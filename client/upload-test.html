@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .upload-area { border: 2px dashed #ccc; padding: 40px; text-align: center; margin: 20px 0; cursor: pointer; }
+        .upload-area:hover { border-color: #007bff; background-color: #f8f9fa; }
+        .preview { max-width: 300px; margin: 20px 0; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>Image Upload Test</h1>
+    
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <p>Click here to select an image file</p>
+        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+    </div>
+    
+    <div id="preview" style="display: none;">
+        <h3>Preview:</h3>
+        <img id="previewImg" class="preview">
+    </div>
+    
+    <button onclick="uploadFile()" id="uploadBtn" disabled>Upload Image</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        let selectedFile = null;
+        
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('uploadBtn').disabled = false;
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('preview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        async function uploadFile() {
+            if (!selectedFile) {
+                showResult('Please select a file first', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+            
+            try {
+                const response = await fetch('/api/items/test-upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`Upload successful! Filename: ${data.filename}`, 'success');
+                } else {
+                    showResult(`Upload failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+        }
+    </script>
+</body>
+</html> 

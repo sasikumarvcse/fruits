@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍎 FreshFruits - Premium Fruits & Vegetables</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="/client/manifest.json">
+  <meta name="theme-color" content="#16a34a">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+      --hero-gradient: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    }
+    
+    body { 
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+    
+    .gradient-bg { background: var(--primary-gradient); }
+    .hero-gradient { background: var(--hero-gradient); }
+    
+    .card-hover { 
+      transition: all 0.3s ease;
+    }
+    .card-hover:hover { 
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Fluid typography with clamp */
+    h1, .text-hero {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+    }
+    
+    h2 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+    }
+    
+    h3 {
+      font-size: clamp(1.25rem, 3vw, 1.75rem);
+    }
+    
+    p, li, a {
+      font-size: clamp(0.875rem, 2vw, 1rem);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .hero-content {
+        flex-direction: column;
+      }
+      
+      .hero-text {
+        order: 2;
+        text-align: center;
+      }
+      
+      .hero-image {
+        order: 1;
+        margin-bottom: 2rem;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .mobile-menu-button {
+        display: block;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+      
+      .feature-cards {
+        grid-template-columns: 1fr;
+      }
+      
+      .testimonial-cards {
+        grid-template-columns: 1fr;
+      }
+      
+      .how-it-works-cards {
+        grid-template-columns: 1fr;
+      }
+      
+      #signup-dropdown {
+        position: static;
+        width: 100%;
+        margin-top: 0.5rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <!-- Logo -->
+        <div class="flex items-center space-x-4">
+          <div class="w-8 h-8 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg flex items-center justify-center">
+            <i class="fas fa-apple-alt text-white text-sm"></i>
+          </div>
+          <span class="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+            FreshFruits
+          </span>
+        </div>
+        
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-8 nav-links">
+          <a href="#" class="text-gray-700 hover:text-green-600 transition-colors font-medium">Home</a>
+          <a href="products.html" class="text-gray-700 hover:text-green-600 transition-colors font-medium">🍎 Fruits</a>
+          <a href="products.html?category=Vegetables" class="text-gray-700 hover:text-green-600 transition-colors font-medium">🥕 Vegetables</a>
+          <a href="products.html?category=Organic" class="text-gray-700 hover:text-green-600 transition-colors font-medium">🌱 Organic</a>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="hidden md:flex items-center space-x-4 flex-1 max-w-md mx-8">
+          <div class="relative flex-1">
+            <input type="text" placeholder="🍎 Search fresh fruits..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          </div>
+        </div>
+        
+        <!-- User Actions -->
+        <div class="flex items-center space-x-4">
+          <!-- Cart -->
+          <a href="orders.html" class="relative text-gray-700 hover:text-green-600 transition-colors">
+            <i class="fas fa-shopping-cart text-xl"></i>
+            <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+          </a>
+
+          <!-- User Menu -->
+          <div class="relative">
+            <button id="userMenuBtn" class="flex items-center space-x-2 text-gray-700 hover:text-green-600 transition-colors">
+              <i class="fas fa-user-circle text-xl"></i>
+              <span class="hidden sm:block">Account</span>
+              <i class="fas fa-chevron-down text-xs"></i>
+            </button>
+            <div id="userMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden">
+              <a href="login.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Login</a>
+              <a href="user-signup.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Sign Up</a>
+              <a href="user-dashboard.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Account</a>
+            </div>
+          </div>
+
+          <!-- Mobile Menu Button -->
+          <button class="md:hidden mobile-menu-button text-gray-700 hover:text-green-600 transition-colors">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-gradient text-gray-800 py-12 md:py-20 relative overflow-hidden">
+    <div class="absolute inset-0 bg-green-50/50"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="flex flex-col md:flex-row items-center hero-content">
+        <div class="md:w-1/2 mb-10 md:mb-0 hero-text">
+          <div class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-6">
+            <i class="fas fa-leaf text-green-600 mr-2"></i>
+            Farm Fresh • 100% Organic
+          </div>
+          <h1 class="text-hero font-bold leading-tight mb-6">
+            Fresh <span class="text-green-600">Fruits</span> Delivered to Your Door
+          </h1>
+          <p class="text-lg md:text-xl text-gray-700 mb-8 leading-relaxed">
+            Experience farm-fresh fruits and vegetables delivered directly to your home. 
+            Handpicked daily from local farms for maximum freshness and nutrition.
+          </p>
+          <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+            <a href="products.html" class="px-6 py-3 md:px-8 md:py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-semibold text-center">
+              <i class="fas fa-shopping-cart mr-2"></i>Shop Fresh Fruits
+            </a>
+            <a href="products.html?category=Organic" class="px-6 py-3 md:px-8 md:py-4 border-2 border-green-600 text-green-600 rounded-lg hover:bg-green-600 hover:text-white transition-all duration-200 font-semibold text-center">
+              <i class="fas fa-seedling mr-2"></i>Organic Collection
+            </a>
+          </div>
+          <div class="mt-8 flex flex-wrap items-center gap-4 text-sm">
+            <div class="flex items-center">
+              <i class="fas fa-check-circle text-green-600 mr-2"></i>
+              <span>Same day delivery</span>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-check-circle text-green-600 mr-2"></i>
+              <span>100% fresh guarantee</span>
+            </div>
+            <div class="flex items-center">
+              <i class="fas fa-check-circle text-green-600 mr-2"></i>
+              <span>Organic certified</span>
+            </div>
+          </div>
+        </div>
+        <div class="md:w-1/2 flex justify-center hero-image">
+          <div class="relative">
+            <div class="w-64 h-64 md:w-96 md:h-96 bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl flex items-center justify-center">
+              <div class="grid grid-cols-2 gap-4 p-8">
+                <div class="w-16 h-16 md:w-20 md:h-20 bg-red-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-apple-alt text-red-500 text-2xl md:text-3xl"></i>
+                </div>
+                <div class="w-16 h-16 md:w-20 md:h-20 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-lemon text-yellow-500 text-2xl md:text-3xl"></i>
+                </div>
+                <div class="w-16 h-16 md:w-20 md:h-20 bg-green-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-seedling text-green-500 text-2xl md:text-3xl"></i>
+                </div>
+                <div class="w-16 h-16 md:w-20 md:h-20 bg-orange-100 rounded-full flex items-center justify-center">
+                  <i class="fas fa-carrot text-orange-500 text-2xl md:text-3xl"></i>
+                </div>
+              </div>
+            </div>
+            <div class="absolute -top-4 -right-4 w-16 h-16 md:w-24 md:h-24 bg-green-400 rounded-full flex items-center justify-center shadow-lg">
+              <i class="fas fa-truck text-xl md:text-2xl text-white"></i>
+            </div>
+            <div class="absolute -bottom-4 -left-4 w-14 h-14 md:w-20 md:h-20 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+              <i class="fas fa-leaf text-lg md:text-xl text-white"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="py-12 md:py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 stats-grid">
+        <div class="text-center p-4">
+          <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-count="10000">0</div>
+          <div class="text-gray-600 text-sm md:text-base">Happy Customers</div>
+        </div>
+        <div class="text-center p-4">
+          <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-count="50">0</div>
+          <div class="text-gray-600 text-sm md:text-base">Fresh Fruits</div>
+        </div>
+        <div class="text-center p-4">
+          <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-count="100">0</div>
+          <div class="text-gray-600 text-sm md:text-base">Fruit Varieties</div>
+        </div>
+        <div class="text-center p-4">
+          <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-2" data-count="99" data-suffix="%">0</div>
+          <div class="text-gray-600 text-sm md:text-base">Freshness Rate</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-12 md:py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12 md:mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose FreshFruits?</h2>
+        <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Discover the features that make us the preferred choice for fresh fruits and vegetables</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-6 md:gap-12 feature-cards">
+        <!-- For Customers -->
+        <div class="bg-white p-6 md:p-8 rounded-xl md:rounded-2xl shadow-sm card-hover border border-gray-100">
+          <div class="flex items-center mb-4 md:mb-6">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg md:rounded-xl flex items-center justify-center mr-3 md:mr-4">
+              <i class="fas fa-shopping-bag text-white text-lg md:text-xl"></i>
+            </div>
+            <h3 class="text-xl md:text-2xl font-semibold text-gray-900">For Customers</h3>
+          </div>
+          <ul class="space-y-3 md:space-y-4">
+            <li class="flex items-start">
+              <div class="w-5 h-5 md:w-6 md:h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 md:mr-3 mt-0.5">
+                <i class="fas fa-check text-green-600 text-xs"></i>
+              </div>
+              <span class="text-gray-700">Fresh fruits delivered to your doorstep</span>
+            </li>
+            <li class="flex items-start">
+              <div class="w-5 h-5 md:w-6 md:h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 md:mr-3 mt-0.5">
+                <i class="fas fa-check text-green-600 text-xs"></i>
+              </div>
+              <span class="text-gray-700">Quality assurance and freshness guarantee</span>
+            </li>
+            <li class="flex items-start">
+              <div class="w-5 h-5 md:w-6 md:h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 md:mr-3 mt-0.5">
+                <i class="fas fa-check text-green-600 text-xs"></i>
+              </div>
+              <span class="text-gray-700">Wide variety of seasonal fruits</span>
+            </li>
+            <li class="flex items-start">
+              <div class="w-5 h-5 md:w-6 md:h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 md:mr-3 mt-0.5">
+                <i class="fas fa-check text-green-600 text-xs"></i>
+              </div>
+              <span class="text-gray-700">Secure payment and easy ordering</span>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- Fresh Fruits -->
+        <div class="bg-white p-6 md:p-8 rounded-xl md:rounded-2xl shadow-sm card-hover border border-gray-100">
+          <div class="flex items-center mb-4 md:mb-6">
+            <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg md:rounded-xl flex items-center justify-center mr-3 md:mr-4">
+              <i class="fas fa-apple-alt text-white text-lg md:text-xl"></i>
+            </div>
+            <h3 class="text-xl md:text-2xl font-semibold text-gray-900">Fresh Fruits</h3>
+          </div>
+          <ul class="space-y-3 md:space-y-4">
+            <li class="flex items-start">
+              <div class="w-5 h-5 md:w-6 md:h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 md:mr-3 mt-0.5">
+                <i class="fas fa-check text-green-600 text-xs"></i>
+              </div>
+              <span class="text-gray-700">Farm-fresh fruits and vegetables</span>
+            </li>
+            <li class="flex items-start">
+              <div class="w-5 h-5 md:w-6 md:h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 md:mr-3 mt-0.5">
+                <i class="fas fa-check text-green-600 text-xs"></i>
+              </div>
+              <span class="text-gray-700">Quality assurance and freshness guarantee</span>
+            </li>
+            <li class="flex items-start">
+              <div class="w-5 h-5 md:w-6 md:h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 md:mr-3 mt-0.5">
+                <i class="fas fa-check text-green-600 text-xs"></i>
+              </div>
+              <span class="text-gray-700">Fast delivery to your doorstep</span>
+            </li>
+            <li class="flex items-start">
+              <div class="w-5 h-5 md:w-6 md:h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 md:mr-3 mt-0.5">
+                <i class="fas fa-check text-green-600 text-xs"></i>
+              </div>
+              <span class="text-gray-700">Wide variety of seasonal fruits</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="py-12 md:py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12 md:mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
+        <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Get fresh fruits delivered in just three simple steps</p>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-6 md:gap-8 how-it-works-cards">
+        <div class="text-center group p-4">
+          <div class="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <i class="fas fa-user-plus text-2xl md:text-3xl text-white"></i>
+          </div>
+          <div class="bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 text-sm font-bold text-gray-600">1</div>
+          <h3 class="text-lg md:text-xl font-semibold mb-2 md:mb-3 text-gray-900">Create Account</h3>
+          <p class="text-gray-600 leading-relaxed">Sign up as a customer in just a few clicks. No complicated setup required.</p>
+        </div>
+        
+        <div class="text-center group p-4">
+          <div class="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-r from-green-500 to-teal-600 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <i class="fas fa-search text-2xl md:text-3xl text-white"></i>
+          </div>
+          <div class="bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 text-sm font-bold text-gray-600">2</div>
+          <h3 class="text-lg md:text-xl font-semibold mb-2 md:mb-3 text-gray-900">Browse Fresh Fruits</h3>
+          <p class="text-gray-600 leading-relaxed">Browse our fresh fruits and vegetables with our intuitive interface.</p>
+        </div>
+        
+        <div class="text-center group p-4">
+          <div class="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl md:rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <i class="fas fa-check-circle text-2xl md:text-3xl text-white"></i>
+          </div>
+          <div class="bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4 text-sm font-bold text-gray-600">3</div>
+          <h3 class="text-lg md:text-xl font-semibold mb-2 md:mb-3 text-gray-900">Get Fresh Delivery</h3>
+          <p class="text-gray-600 leading-relaxed">Checkout securely and enjoy fresh fruits delivered to your door.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shop by Category Section -->
+  <section class="py-12 md:py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-8 text-center">Shop by Category</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 md:gap-6">
+        <a href="products.html?category=pome" class="block bg-red-50 rounded-xl p-4 md:p-6 text-center shadow-sm hover:shadow-lg transition card-hover">
+          <div class="w-12 h-12 md:w-16 md:h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-apple-alt text-white text-xl md:text-2xl"></i>
+          </div>
+          <div class="font-semibold text-sm md:text-lg text-gray-900">🍎 Pome Fruits</div>
+        </a>
+        <a href="products.html?category=citrus" class="block bg-orange-50 rounded-xl p-4 md:p-6 text-center shadow-sm hover:shadow-lg transition card-hover">
+          <div class="w-12 h-12 md:w-16 md:h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-lemon text-white text-xl md:text-2xl"></i>
+          </div>
+          <div class="font-semibold text-sm md:text-lg text-gray-900">🍊 Citrus Fruits</div>
+        </a>
+        <a href="products.html?category=berry" class="block bg-purple-50 rounded-xl p-4 md:p-6 text-center shadow-sm hover:shadow-lg transition card-hover">
+          <div class="w-12 h-12 md:w-16 md:h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-seedling text-white text-xl md:text-2xl"></i>
+          </div>
+          <div class="font-semibold text-sm md:text-lg text-gray-900">🫐 Berries</div>
+        </a>
+        <a href="products.html?category=stone" class="block bg-pink-50 rounded-xl p-4 md:p-6 text-center shadow-sm hover:shadow-lg transition card-hover">
+          <div class="w-12 h-12 md:w-16 md:h-16 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-seedling text-white text-xl md:text-2xl"></i>
+          </div>
+          <div class="font-semibold text-sm md:text-lg text-gray-900">🍑 Stone Fruits</div>
+        </a>
+        <a href="products.html?category=tropical" class="block bg-yellow-50 rounded-xl p-4 md:p-6 text-center shadow-sm hover:shadow-lg transition card-hover">
+          <div class="w-12 h-12 md:w-16 md:h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-leaf text-white text-xl md:text-2xl"></i>
+          </div>
+          <div class="font-semibold text-sm md:text-lg text-gray-900">🥭 Tropical & Exotic</div>
+        </a>
+        <a href="products.html?category=melon" class="block bg-green-50 rounded-xl p-4 md:p-6 text-center shadow-sm hover:shadow-lg transition card-hover">
+          <div class="w-12 h-12 md:w-16 md:h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-circle text-white text-xl md:text-2xl"></i>
+          </div>
+          <div class="font-semibold text-sm md:text-lg text-gray-900">🍉 Melons</div>
+        </a>
+        <a href="products.html?category=banana" class="block bg-yellow-100 rounded-xl p-4 md:p-6 text-center shadow-sm hover:shadow-lg transition card-hover">
+          <div class="w-12 h-12 md:w-16 md:h-16 bg-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-lemon text-white text-xl md:text-2xl"></i>
+          </div>
+          <div class="font-semibold text-sm md:text-lg text-gray-900">🍌 Bananas & Plantains</div>
+        </a>
+        <a href="products.html?category=grape" class="block bg-purple-100 rounded-xl p-4 md:p-6 text-center shadow-sm hover:shadow-lg transition card-hover">
+          <div class="w-12 h-12 md:w-16 md:h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-circle text-white text-xl md:text-2xl"></i>
+          </div>
+          <div class="font-semibold text-sm md:text-lg text-gray-900">🍇 Grapes</div>
+        </a>
+      </div>
+      
+      <!-- Organic Category -->
+      <div class="mt-8 text-center">
+        <a href="products.html?organic=true" class="inline-block bg-emerald-50 rounded-xl p-4 md:p-6 shadow-sm hover:shadow-lg transition card-hover">
+          <div class="w-12 h-12 md:w-16 md:h-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-leaf text-white text-xl md:text-2xl"></i>
+          </div>
+          <div class="font-semibold text-lg text-gray-900">🌱 Organic Certified</div>
+          <p class="text-sm text-gray-600 mt-2">All organic products across categories</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section id="testimonials" class="py-12 md:py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12 md:mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
+        <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">Real feedback from our satisfied customers</p>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-6 md:gap-8 testimonial-cards">
+        <div class="bg-gray-50 p-6 md:p-8 rounded-xl md:rounded-2xl shadow-sm card-hover">
+          <div class="flex items-center mb-4 md:mb-6">
+            <div class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-4">
+              <span class="text-white font-bold text-lg md:text-xl">S</span>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900">Sarah Johnson</h4>
+              <p class="text-xs md:text-sm text-gray-600">Verified Customer</p>
+            </div>
+          </div>
+          <p class="text-gray-700 mb-3 md:mb-4">"The fresh fruits are amazing. I've been ordering weekly and the quality is consistently excellent. The delivery is always on time!"</p>
+          <div class="flex text-yellow-400">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+          </div>
+        </div>
+        
+        <div class="bg-gray-50 p-6 md:p-8 rounded-xl md:rounded-2xl shadow-sm card-hover">
+          <div class="flex items-center mb-4 md:mb-6">
+            <div class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+              <span class="text-white font-bold text-lg md:text-xl">M</span>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900">Mike Chen</h4>
+              <p class="text-xs md:text-sm text-gray-600">Verified Customer</p>
+            </div>
+          </div>
+          <p class="text-gray-700 mb-3 md:mb-4">"FreshFruits has become my go-to for all fresh produce. The organic selection is fantastic and the prices are very reasonable."</p>
+          <div class="flex text-yellow-400">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+          </div>
+        </div>
+        
+        <div class="bg-gray-50 p-6 md:p-8 rounded-xl md:rounded-2xl shadow-sm card-hover">
+          <div class="flex items-center mb-4 md:mb-6">
+            <div class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-pink-500 to-red-600 rounded-full flex items-center justify-center mr-4">
+              <span class="text-white font-bold text-lg md:text-xl">L</span>
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900">Lisa Rodriguez</h4>
+              <p class="text-xs md:text-sm text-gray-600">Verified Customer</p>
+            </div>
+          </div>
+          <p class="text-gray-700 mb-3 md:mb-4">"I love how fresh the fruits are! The seasonal varieties are always a treat. Customer service is excellent too."</p>
+          <div class="flex text-yellow-400">
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+            <i class="fas fa-star"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-12 md:py-20 bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4 md:mb-6">Ready to Enjoy Fresh Fruits?</h2>
+      <p class="text-lg md:text-xl mb-6 md:mb-8 max-w-3xl mx-auto opacity-90">Join thousands of happy customers who are already enjoying fresh fruits from FreshFruits</p>
+      <div class="flex flex-col sm:flex-row justify-center gap-4 md:gap-6 cta-buttons">
+        <a href="products.html" class="px-6 py-3 md:px-8 md:py-4 bg-white text-green-600 rounded-lg hover:bg-gray-100 transition-all duration-200 font-semibold">
+          <i class="fas fa-shopping-cart mr-2"></i>Shop Fresh Fruits
+        </a>
+        <a href="user-signup.html" class="px-6 py-3 md:px-8 md:py-4 border-2 border-white text-white rounded-lg hover:bg-white hover:text-green-600 transition-all duration-200 font-semibold">
+          <i class="fas fa-user-plus mr-2"></i>Create Account
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer id="contact" class="bg-gray-900 text-white py-12 md:py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-6 md:gap-8 footer-grid">
+        <div>
+          <div class="flex items-center mb-3 md:mb-4">
+            <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
+              <i class="fas fa-apple-alt text-white text-sm"></i>
+            </div>
+            <span class="text-xl font-bold">FreshFruits</span>
+          </div>
+          <p class="text-gray-400 mb-4 text-sm md:text-base">Your ultimate destination for fresh fruits and vegetables delivered to your doorstep with quality and ease.</p>
+          <div class="flex space-x-3 md:space-x-4">
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+              <i class="fab fa-facebook"></i>
+            </a>
+          </div>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-3 md:mb-4 text-lg">Quick Links</h4>
+          <ul class="space-y-2 md:space-y-3">
+            <li><a href="#" class="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Home</a></li>
+            <li><a href="#features" class="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Features</a></li>
+            <li><a href="#how-it-works" class="text-gray-400 hover:text-white transition-colors text-sm md:text-base">How It Works</a></li>
+            <li><a href="#testimonials" class="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Testimonials</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-3 md:mb-4 text-lg">Account</h4>
+          <ul class="space-y-2 md:space-y-3">
+            <li><a href="login.html" class="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Login</a></li>
+            <li><a href="user-signup.html" class="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Sign Up</a></li>
+            <li><a href="user-dashboard.html" class="text-gray-400 hover:text-white transition-colors text-sm md:text-base">My Account</a></li>
+            <li><a href="orders.html" class="text-gray-400 hover:text-white transition-colors text-sm md:text-base">Order Tracking</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold mb-3 md:mb-4 text-lg">Contact Us</h4>
+          <ul class="space-y-2 md:space-y-3">
+            <li class="flex items-start">
+              <i class="fas fa-map-marker-alt mr-3 text-gray-400 mt-1"></i>
+              <span class="text-gray-400 text-sm md:text-base">FreshFruits HQ, Green Street, Farm City</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fas fa-phone-alt mr-3 text-gray-400"></i>
+              <span class="text-gray-400 text-sm md:text-base">+1 (555) 123-4567</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fas fa-envelope mr-3 text-gray-400"></i>
+              <span class="text-gray-400 text-sm md:text-base">hello@freshfruits.com</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+        <p class="text-gray-400 text-sm">&copy; 2024 FreshFruits. All rights reserved. Fresh fruits, fresh life.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50"></div>
+
+  <script>
+    // User menu toggle
+    document.getElementById('userMenuBtn').addEventListener('click', function() {
+      document.getElementById('userMenu').classList.toggle('hidden');
+    });
+
+    // Close user menu when clicking outside
+    document.addEventListener('click', function(event) {
+      const userMenu = document.getElementById('userMenu');
+      const userMenuBtn = document.getElementById('userMenuBtn');
+      
+      if (!userMenu.contains(event.target) && !userMenuBtn.contains(event.target)) {
+        userMenu.classList.add('hidden');
+      }
+    });
+
+    // Animate stats on scroll
+    function animateStats() {
+      const stats = document.querySelectorAll('[data-count]');
+      stats.forEach(stat => {
+        const target = parseInt(stat.getAttribute('data-count'));
+        const suffix = stat.getAttribute('data-suffix') || '';
+        let current = 0;
+        const increment = target / 50;
+        
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= target) {
+            current = target;
+            clearInterval(timer);
+          }
+          stat.textContent = Math.floor(current) + suffix;
+        }, 30);
+      });
+    }
+
+    // Intersection Observer for stats animation
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateStats();
+          observer.unobserve(entry.target);
+        }
+      });
+    });
+
+    const statsSection = document.querySelector('.stats-grid');
+    if (statsSection) {
+      observer.observe(statsSection);
+    }
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Toast notification function
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50 ${isError ? 'bg-red-500' : 'bg-green-500'} text-white`;
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+      }, 100);
+      
+      setTimeout(() => {
+        toast.classList.add('translate-x-full');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

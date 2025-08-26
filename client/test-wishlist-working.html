@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Working Wishlist Test</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-center">✅ Working Wishlist Test</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Server Status</h2>
+      <div id="serverStatus" class="text-sm mb-4">
+        <div class="text-blue-600">Checking server status...</div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="border rounded-lg p-4 bg-blue-50">
+          <h3 class="font-semibold text-blue-900 mb-2">Test Port 3000</h3>
+          <button onclick="testPort(3000)" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Test Port 3000
+          </button>
+          <div id="result3000" class="mt-2 text-sm"></div>
+        </div>
+        
+        <div class="border rounded-lg p-4 bg-green-50">
+          <h3 class="font-semibold text-green-900 mb-2">Test Port 5000</h3>
+          <button onclick="testPort(5000)" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Test Port 5000
+          </button>
+          <div id="result5000" class="mt-2 text-sm"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Working Wishlist Links</h2>
+      <p class="text-gray-600 mb-4">These links should work with the correct server port:</p>
+      
+      <div class="space-y-4">
+        <div class="border rounded-lg p-4 bg-blue-50">
+          <h3 class="font-semibold text-blue-900 mb-2">User 1 - 1 Wishlist Item</h3>
+          <p class="text-sm text-gray-600 mb-2">User: sasikumarvenkatesh7373@gmail.com</p>
+          <p class="text-sm text-gray-600 mb-3">Wishlist: iqoo z9s</p>
+          <a href="http://localhost:5000/wishlist-view.html?user=6857bd14a6b4a78c188396d7" 
+             class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+            <i class="fas fa-external-link-alt mr-2"></i>View Wishlist (Port 5000)
+          </a>
+        </div>
+        
+        <div class="border rounded-lg p-4 bg-green-50">
+          <h3 class="font-semibold text-green-900 mb-2">User 2 - 6 Wishlist Items</h3>
+          <p class="text-sm text-gray-600 mb-2">User: sasiacecse@gmail.com</p>
+          <p class="text-sm text-gray-600 mb-3">Wishlist: yellow bag, oppo k13 5g, vivo T4x, iqoo z9s, qqwq (2 items)</p>
+          <a href="http://localhost:5000/wishlist-view.html?user=68705b98b366e3586817d6fe" 
+             class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
+            <i class="fas fa-external-link-alt mr-2"></i>View Wishlist (Port 5000)
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Direct API Test</h2>
+      <button onclick="testDirectAPI()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+        Test Direct API Call
+      </button>
+      <div id="apiResult" class="mt-4 text-sm"></div>
+    </div>
+  </div>
+
+  <script>
+    // Test different ports
+    async function testPort(port) {
+      const resultDiv = document.getElementById(`result${port}`);
+      resultDiv.innerHTML = '<div class="text-blue-600">Testing...</div>';
+      
+      try {
+        const response = await fetch(`http://localhost:${port}/api/user/6857bd14a6b4a78c188396d7/wishlist`);
+        if (response.ok) {
+          const data = await response.json();
+          resultDiv.innerHTML = `
+            <div class="text-green-600">
+              ✅ Port ${port} is working<br>
+              Items: ${data.length}
+            </div>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <div class="text-red-600">
+              ❌ Port ${port} returned ${response.status}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <div class="text-red-600">
+            ❌ Port ${port} error: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Test direct API call
+    async function testDirectAPI() {
+      const resultDiv = document.getElementById('apiResult');
+      resultDiv.innerHTML = '<div class="text-blue-600">Testing direct API...</div>';
+      
+      try {
+        const response = await fetch('http://localhost:5000/api/user/6857bd14a6b4a78c188396d7/wishlist');
+        if (response.ok) {
+          const wishlist = await response.json();
+          resultDiv.innerHTML = `
+            <div class="text-green-600">
+              ✅ API Success!<br>
+              Items: ${wishlist.length}<br>
+              <pre class="text-xs mt-2 bg-gray-100 p-2 rounded">${JSON.stringify(wishlist, null, 2)}</pre>
+            </div>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <div class="text-red-600">
+              ❌ API Error: ${response.status}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <div class="text-red-600">
+            ❌ Network Error: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Check server status on load
+    async function checkServerStatus() {
+      const statusDiv = document.getElementById('serverStatus');
+      
+      try {
+        const response = await fetch('http://localhost:5000/api/user/6857bd14a6b4a78c188396d7/wishlist');
+        if (response.ok) {
+          statusDiv.innerHTML = `
+            <div class="text-green-600">
+              <i class="fas fa-check-circle mr-2"></i>
+              ✅ Server is running on port 5000 and API is accessible
+            </div>
+          `;
+        } else {
+          statusDiv.innerHTML = `
+            <div class="text-yellow-600">
+              <i class="fas fa-exclamation-triangle mr-2"></i>
+              ⚠️ Server is running but API returned status ${response.status}
+            </div>
+          `;
+        }
+      } catch (error) {
+        statusDiv.innerHTML = `
+          <div class="text-red-600">
+            <i class="fas fa-times-circle mr-2"></i>
+            ❌ Server is not accessible: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      checkServerStatus();
+    });
+  </script>
+</body>
+</html>

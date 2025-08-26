@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">🧪 User Dashboard Functionality Test</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Test Functions -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Function Tests</h2>
+                <div class="space-y-3">
+                    <button onclick="testToggleUserDropdown()" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+                        Test toggleUserDropdown()
+                    </button>
+                    <button onclick="testToggleCartSidebar()" class="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                        Test toggleCartSidebar()
+                    </button>
+                    <button onclick="testLoadProducts()" class="w-full bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600">
+                        Test loadProducts()
+                    </button>
+                    <button onclick="testFetchCart()" class="w-full bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600">
+                        Test fetchCart()
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Test Results -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+                <div id="testResults" class="space-y-2 text-sm">
+                    <p class="text-gray-600">Click buttons to test functions...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mock Elements for Testing -->
+        <div id="userDropdown" class="hidden bg-white p-4 rounded-lg shadow-md mt-4">
+            <p class="text-green-600 font-semibold">✅ User dropdown is working!</p>
+        </div>
+        
+        <div id="cartSidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+            <div class="p-4">
+                <p class="text-green-600 font-semibold">✅ Cart sidebar is working!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addResult(message, isSuccess = true) {
+            const results = document.getElementById('testResults');
+            const result = document.createElement('p');
+            result.className = isSuccess ? 'text-green-600' : 'text-red-600';
+            result.textContent = message;
+            results.appendChild(result);
+        }
+        
+        function testToggleUserDropdown() {
+            try {
+                if (typeof toggleUserDropdown === 'function') {
+                    toggleUserDropdown();
+                    addResult('✅ toggleUserDropdown function exists and works');
+                } else {
+                    addResult('❌ toggleUserDropdown function not found', false);
+                }
+            } catch (error) {
+                addResult(`❌ Error: ${error.message}`, false);
+            }
+        }
+        
+        function testToggleCartSidebar() {
+            try {
+                if (typeof toggleCartSidebar === 'function') {
+                    toggleCartSidebar();
+                    addResult('✅ toggleCartSidebar function exists and works');
+                } else {
+                    addResult('❌ toggleCartSidebar function not found', false);
+                }
+            } catch (error) {
+                addResult(`❌ Error: ${error.message}`, false);
+            }
+        }
+        
+        function testLoadProducts() {
+            try {
+                if (typeof loadProducts === 'function') {
+                    addResult('✅ loadProducts function exists');
+                } else {
+                    addResult('❌ loadProducts function not found', false);
+                }
+            } catch (error) {
+                addResult(`❌ Error: ${error.message}`, false);
+            }
+        }
+        
+        function testFetchCart() {
+            try {
+                if (typeof fetchCart === 'function') {
+                    addResult('✅ fetchCart function exists');
+                } else {
+                    addResult('❌ fetchCart function not found', false);
+                }
+            } catch (error) {
+                addResult(`❌ Error: ${error.message}`, false);
+            }
+        }
+        
+        // Test on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            addResult('🎉 Page loaded successfully');
+            addResult('📋 Testing function availability...');
+            
+            const functions = ['toggleUserDropdown', 'toggleCartSidebar', 'loadProducts', 'fetchCart'];
+            functions.forEach(func => {
+                if (typeof window[func] === 'function') {
+                    addResult(`✅ ${func} function available`);
+                } else {
+                    addResult(`❌ ${func} function missing`, false);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

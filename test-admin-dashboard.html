@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍎 Admin Dashboard Test - FreshFruits</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-center mb-8">🍎 Admin Dashboard Test</h1>
+    
+    <!-- Login Section -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">Admin Login</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="email" id="email" value="admin@freshfruits.com" placeholder="Email" class="p-2 border rounded">
+        <input type="password" id="password" value="admin123" placeholder="Password" class="p-2 border rounded">
+      </div>
+      <button onclick="login()" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Login</button>
+      <div id="loginResult" class="mt-2"></div>
+    </div>
+
+    <!-- Dashboard Stats -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">Dashboard Stats</h2>
+      <button onclick="loadDashboardStats()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4">Load Stats</button>
+      <div id="dashboardStats" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-blue-100 p-4 rounded">
+          <h3 class="font-semibold">Total Users</h3>
+          <p id="statUsers" class="text-2xl font-bold">-</p>
+        </div>
+        <div class="bg-green-100 p-4 rounded">
+          <h3 class="font-semibold">Total Products</h3>
+          <p id="statProducts" class="text-2xl font-bold">-</p>
+        </div>
+        <div class="bg-yellow-100 p-4 rounded">
+          <h3 class="font-semibold">Total Orders</h3>
+          <p id="statOrders" class="text-2xl font-bold">-</p>
+        </div>
+        <div class="bg-emerald-100 p-4 rounded">
+          <h3 class="font-semibold">Total Revenue</h3>
+          <p id="statRevenue" class="text-2xl font-bold">-</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Section -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">Products Management</h2>
+      <button onclick="loadProducts()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mb-4">Load Products</button>
+      <div id="productsList" class="space-y-2"></div>
+    </div>
+
+    <!-- Orders Section -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">Orders Management</h2>
+      <button onclick="loadOrders()" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 mb-4">Load Orders</button>
+      <div id="ordersList" class="space-y-2"></div>
+    </div>
+
+    <!-- Users Section -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">Users Management</h2>
+      <button onclick="loadUsers()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 mb-4">Load Users</button>
+      <div id="usersList" class="space-y-2"></div>
+    </div>
+  </div>
+
+  <script>
+    let adminToken = '';
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const result = document.getElementById('loginResult');
+      
+      try {
+        const response = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          adminToken = data.token;
+          result.innerHTML = '<p class="text-green-600">✅ Login successful!</p>';
+          result.className = 'mt-2 text-green-600';
+        } else {
+          result.innerHTML = `<p class="text-red-600">❌ Login failed: ${data.message}</p>`;
+          result.className = 'mt-2 text-red-600';
+        }
+      } catch (error) {
+        result.innerHTML = `<p class="text-red-600">❌ Error: ${error.message}</p>`;
+        result.className = 'mt-2 text-red-600';
+      }
+    }
+
+    async function loadDashboardStats() {
+      if (!adminToken) {
+        alert('Please login first');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/admin/dashboard', {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('statUsers').textContent = data.totalUsers || 0;
+          document.getElementById('statProducts').textContent = data.totalProducts || 0;
+          document.getElementById('statOrders').textContent = data.totalOrders || 0;
+          document.getElementById('statRevenue').textContent = `₹${(data.totalRevenue || 0).toFixed(2)}`;
+        }
+      } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+      }
+    }
+
+    async function loadProducts() {
+      if (!adminToken) {
+        alert('Please login first');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/admin/products', {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const products = data.products || data;
+          const container = document.getElementById('productsList');
+          
+          container.innerHTML = products.map(product => `
+            <div class="border p-4 rounded">
+              <div class="flex items-center">
+                <img src="${product.image || 'https://via.placeholder.com/50x50?text=🍎'}" alt="${product.name}" class="w-12 h-12 object-cover rounded mr-4">
+                <div class="flex-1">
+                  <h3 class="font-semibold">${product.name}</h3>
+                  <p class="text-sm text-gray-600">${product.description}</p>
+                  <p class="text-sm">Category: ${product.category} | Price: ₹${product.price} | Stock: ${product.stock}</p>
+                </div>
+                <span class="px-2 py-1 text-xs rounded-full ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${product.status}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+      }
+    }
+
+    async function loadOrders() {
+      if (!adminToken) {
+        alert('Please login first');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/orders', {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const orders = data.orders || data;
+          const container = document.getElementById('ordersList');
+          
+          container.innerHTML = orders.map(order => `
+            <div class="border p-4 rounded">
+              <div class="flex justify-between items-center">
+                <div>
+                  <h3 class="font-semibold">Order #${order._id.slice(-6)}</h3>
+                  <p class="text-sm text-gray-600">Customer: ${order.user?.firstName || 'Unknown'} ${order.user?.lastName || ''}</p>
+                  <p class="text-sm">Items: ${order.items.length} | Total: ₹${order.total.toFixed(2)}</p>
+                </div>
+                <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(order.status)}">${order.status}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Error loading orders:', error);
+      }
+    }
+
+    async function loadUsers() {
+      if (!adminToken) {
+        alert('Please login first');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/admin/users', {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        
+        if (response.ok) {
+          const users = await response.json();
+          const container = document.getElementById('usersList');
+          
+          container.innerHTML = users.map(user => `
+            <div class="border p-4 rounded">
+              <div class="flex justify-between items-center">
+                <div>
+                  <h3 class="font-semibold">${user.firstName} ${user.lastName}</h3>
+                  <p class="text-sm text-gray-600">${user.email}</p>
+                  <p class="text-sm">Mobile: ${user.mobile}</p>
+                </div>
+                <div class="text-right">
+                  <span class="px-2 py-1 text-xs rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}">${user.role}</span>
+                  <span class="px-2 py-1 text-xs rounded-full ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${user.status}</span>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Error loading users:', error);
+      }
+    }
+
+    function getStatusColor(status) {
+      const colors = {
+        'placed': 'bg-yellow-100 text-yellow-800',
+        'success': 'bg-green-100 text-green-800',
+        'delivered': 'bg-emerald-100 text-emerald-800',
+        'cancelled': 'bg-red-100 text-red-800'
+      };
+      return colors[status] || 'bg-gray-100 text-gray-800';
+    }
+  </script>
+</body>
+</html>

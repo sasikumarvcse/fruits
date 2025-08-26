@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clean Product Modal Demo - Arobowl</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+  <div class="max-w-7xl mx-auto p-6">
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+      <h1 class="text-2xl font-bold text-gray-800 mb-4">🧪 Clean Product Modal Demo</h1>
+      <p class="text-gray-600 mb-4">This demonstrates the complete product view with admin-fetched details.</p>
+      
+      <button onclick="showProductModal()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+        <i class="fas fa-eye mr-2"></i>View Product Demo
+      </button>
+    </div>
+  </div>
+
+  <!-- Product Modal -->
+  <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-screen overflow-y-auto">
+        <!-- Modal Content will be inserted here -->
+        <div id="modalContent"></div>
+        
+        <!-- Modal Footer -->
+        <div id="modalFooter" class="border-t border-gray-200 p-6">
+          <!-- Footer content will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sample product data with admin-fetched details
+    const sampleProduct = {
+      _id: "68aa59c57e9f86201033bc60",
+      name: "Organic Bananas - Premium Quality",
+      description: "Hand-picked organic bananas from the finest farms in Maharashtra. These premium quality bananas are rich in potassium, fiber, and essential vitamins. Perfect for smoothies, baking, or as a healthy snack.",
+      price: 89.99,
+      mrp: 120.00,
+      category: "Bananas",
+      isOrganic: true,
+      isBestSeller: true,
+      stock: 150,
+      status: "active",
+      image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=500",
+      ratings: 4.8,
+      sales: 1250,
+      productDetails: {
+        calories: "89 calories per 100g",
+        protein: "1.1g per 100g",
+        carbs: "23g per 100g",
+        fiber: "2.6g per 100g",
+        vitamins: "Vitamin C, Vitamin B6, Vitamin A, Folate",
+        minerals: "Potassium, Magnesium, Iron, Calcium",
+        origin: "Maharashtra, India",
+        season: "Year-round availability",
+        storage: "Store at room temperature until ripe, then refrigerate",
+        shelfLife: "7-10 days at room temperature, 2-3 weeks refrigerated"
+      }
+    };
+
+    function showProductModal() {
+      const modalContent = document.getElementById('modalContent');
+      const modalFooter = document.getElementById('modalFooter');
+      const product = sampleProduct;
+      
+      // Calculate discount percentage
+      const discountPercent = product.mrp && product.mrp > product.price ? 
+        Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+      
+      // Modal Content
+      modalContent.innerHTML = `
+        <div class="bg-white min-h-screen">
+          <!-- Header -->
+          <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-white sticky top-0 z-10">
+            <div class="flex items-center space-x-2 text-sm text-gray-600">
+              <span class="hover:text-blue-600 cursor-pointer" onclick="closeModal()">Home</span>
+              <i class="fas fa-chevron-right text-xs"></i>
+              <span class="hover:text-blue-600 cursor-pointer">Products</span>
+              <i class="fas fa-chevron-right text-xs"></i>
+              <span class="text-gray-900 font-medium">${product.name}</span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <button onclick="shareProduct()" class="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors">
+                <i class="fas fa-share-alt"></i>
+                <span class="text-sm">Share</span>
+              </button>
+              <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Product Section -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+            <!-- Left Side - Product Gallery -->
+            <div class="space-y-6">
+              <!-- Main Product Image -->
+              <div class="relative group overflow-hidden rounded-2xl shadow-lg bg-white border border-gray-100">
+                <img src="${product.image}" 
+                     alt="${product.name}" 
+                     class="w-full h-[600px] object-cover group-hover:scale-105 transition-transform duration-500">
+                
+                <!-- Floating Action Buttons -->
+                <div class="absolute top-4 left-4 flex flex-col space-y-3">
+                  ${product.isBestSeller ? `
+                    <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-2 rounded-full shadow-lg text-sm font-semibold">
+                      <i class="fas fa-crown mr-1"></i>Best Seller
+                    </div>
+                  ` : ''}
+                  ${discountPercent > 0 ? `
+                    <div class="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-2 rounded-full shadow-lg text-sm font-bold animate-pulse">
+                      ${discountPercent}% OFF
+                    </div>
+                  ` : ''}
+                </div>
+                
+                <div class="absolute top-4 right-4 flex flex-col space-y-3">
+                  <button class="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full p-3 shadow-lg hover:bg-pink-50 transition-all duration-300 hover:scale-110">
+                    <i class="fas fa-heart text-gray-400 text-lg"></i>
+                  </button>
+                  <button class="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full p-3 shadow-lg hover:bg-blue-50 transition-all duration-300 hover:scale-110">
+                    <i class="fas fa-share-alt text-blue-600 text-lg"></i>
+                  </button>
+                </div>
+                
+                ${product.isOrganic ? `
+                  <div class="absolute bottom-4 left-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-2 rounded-full shadow-lg text-sm">
+                    <i class="fas fa-leaf mr-1"></i>Organic
+                  </div>
+                ` : ''}
+              </div>
+              
+              <!-- Product Features -->
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 rounded-xl p-4 text-center">
+                  <i class="fas fa-shipping-fast text-2xl text-blue-500 mb-2"></i>
+                  <p class="text-sm font-semibold text-gray-700">Free Delivery</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 text-center">
+                  <i class="fas fa-shield-alt text-2xl text-green-500 mb-2"></i>
+                  <p class="text-sm font-semibold text-gray-700">Quality Assured</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Right Side - Product Info -->
+            <div class="space-y-6">
+              <!-- Product Header -->
+              <div>
+                <h1 class="text-4xl font-bold text-gray-900 mb-3">${product.name}</h1>
+                
+                <!-- Sales Indicator -->
+                <div class="flex items-center space-x-4 mb-4">
+                  <div class="flex items-center text-red-500">
+                    <i class="fas fa-fire mr-2"></i>
+                    <span class="text-sm font-semibold">6 sold in last 17 hours</span>
+                  </div>
+                  <div class="flex items-center text-gray-500">
+                    <i class="fas fa-eye mr-2"></i>
+                    <span class="text-sm">200 customers are viewing this product</span>
+                  </div>
+                </div>
+                
+                <!-- SKU -->
+                <div class="text-sm text-gray-500 mb-4">
+                  SKU: ${product._id.slice(-6).toUpperCase()}
+                </div>
+                
+                <!-- Rating -->
+                <div class="flex items-center space-x-4 mb-4">
+                  <div class="flex items-center">
+                    <div class="flex text-yellow-400 text-xl">
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star"></i>
+                      <i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <span class="ml-2 text-lg font-semibold text-gray-700">${product.ratings}</span>
+                    <span class="ml-2 text-gray-500">(${product.sales} reviews)</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Price Section -->
+              <div class="bg-gray-50 rounded-2xl p-6">
+                <div class="flex items-baseline space-x-4 mb-3">
+                  <span class="text-4xl font-bold text-gray-900">₹${product.price.toFixed(2)}</span>
+                  ${product.mrp && product.mrp > product.price ? `
+                    <span class="text-2xl text-gray-500 line-through">₹${product.mrp.toFixed(2)}</span>
+                  ` : ''}
+                </div>
+                ${discountPercent > 0 ? `
+                  <div class="flex items-center space-x-3">
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      Save ₹${(product.mrp - product.price).toFixed(2)} (${discountPercent}% off)
+                    </span>
+                  </div>
+                ` : ''}
+              </div>
+              
+              <!-- Stock & Delivery Info -->
+              <div class="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200">
+                <div class="flex items-center space-x-3">
+                  <div class="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                  <span class="text-green-700 font-semibold">In Stock</span>
+                  <span class="text-gray-600">• ${product.stock} units available</span>
+                </div>
+                <div class="text-right">
+                  <div class="text-sm text-gray-600">Fast delivery</div>
+                  <div class="text-sm font-semibold text-green-600">Same day available</div>
+                </div>
+              </div>
+              
+              <!-- Tags -->
+              <div class="text-sm text-gray-600">
+                Tags: / FRUITS / INDIAN / ${product.category?.toUpperCase() || 'NA'}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Product Tabs Section -->
+          <div class="border-t border-gray-200 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-8">
+              <!-- Tab Navigation -->
+              <div class="flex space-x-8 border-b border-gray-200">
+                <button onclick="switchTab('description')" 
+                        class="tab-button py-4 px-2 border-b-2 border-blue-500 text-blue-600 font-semibold text-lg" 
+                        id="tab-description">
+                  DESCRIPTION
+                </button>
+                <button onclick="switchTab('reviews')" 
+                        class="tab-button py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-semibold text-lg" 
+                        id="tab-reviews">
+                  CUSTOMER REVIEWS
+                </button>
+                <button onclick="switchTab('faqs')" 
+                        class="tab-button py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-semibold text-lg" 
+                        id="tab-faqs">
+                  FAQS
+                </button>
+              </div>
+              
+              <!-- Tab Content -->
+              <div class="py-8">
+                <!-- Description Tab -->
+                <div id="tab-content-description" class="tab-content">
+                  <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Product Description</h3>
+                    <div class="prose max-w-none">
+                      <p class="text-gray-700 leading-relaxed text-lg mb-6">
+                        ${product.description}
+                      </p>
+                      
+                      <!-- Product Details from Admin -->
+                      ${product.productDetails ? `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                          ${product.productDetails.calories ? `
+                            <div class="bg-gray-50 rounded-xl p-4">
+                              <h4 class="font-semibold text-gray-900 mb-2">Nutritional Information</h4>
+                              <p class="text-gray-600">${product.productDetails.calories}</p>
+                              ${product.productDetails.protein ? `<p class="text-gray-600">${product.productDetails.protein}</p>` : ''}
+                              ${product.productDetails.carbs ? `<p class="text-gray-600">${product.productDetails.carbs}</p>` : ''}
+                              ${product.productDetails.fiber ? `<p class="text-gray-600">${product.productDetails.fiber}</p>` : ''}
+                            </div>
+                          ` : ''}
+                          
+                          ${product.productDetails.vitamins ? `
+                            <div class="bg-gray-50 rounded-xl p-4">
+                              <h4 class="font-semibold text-gray-900 mb-2">Vitamins & Minerals</h4>
+                              <p class="text-gray-600">${product.productDetails.vitamins}</p>
+                              ${product.productDetails.minerals ? `<p class="text-gray-600">${product.productDetails.minerals}</p>` : ''}
+                            </div>
+                          ` : ''}
+                          
+                          ${product.productDetails.origin ? `
+                            <div class="bg-gray-50 rounded-xl p-4">
+                              <h4 class="font-semibold text-gray-900 mb-2">Origin & Season</h4>
+                              <p class="text-gray-600"><strong>Origin:</strong> ${product.productDetails.origin}</p>
+                              ${product.productDetails.season ? `<p class="text-gray-600"><strong>Season:</strong> ${product.productDetails.season}</p>` : ''}
+                            </div>
+                          ` : ''}
+                          
+                          ${product.productDetails.storage ? `
+                            <div class="bg-gray-50 rounded-xl p-4">
+                              <h4 class="font-semibold text-gray-900 mb-2">Storage & Shelf Life</h4>
+                              <p class="text-gray-600"><strong>Storage:</strong> ${product.productDetails.storage}</p>
+                              ${product.productDetails.shelfLife ? `<p class="text-gray-600"><strong>Shelf Life:</strong> ${product.productDetails.shelfLife}</p>` : ''}
+                            </div>
+                          ` : ''}
+                        </div>
+                      ` : ''}
+                      
+                      <!-- Key Features -->
+                      <div class="mt-8">
+                        <h4 class="text-xl font-bold text-gray-900 mb-4">Key Features</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-xl">
+                            <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                            <span class="text-gray-700 font-medium">100% Fresh & Natural</span>
+                          </div>
+                          <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-xl">
+                            <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                            <span class="text-gray-700 font-medium">No Artificial Preservatives</span>
+                          </div>
+                          <div class="flex items-center space-x-3 p-3 bg-blue-50 rounded-xl">
+                            <i class="fas fa-check-circle text-blue-500 text-xl"></i>
+                            <span class="text-gray-700 font-medium">Same Day Delivery Available</span>
+                          </div>
+                          <div class="flex items-center space-x-3 p-3 bg-blue-50 rounded-xl">
+                            <i class="fas fa-check-circle text-blue-500 text-xl"></i>
+                            <span class="text-gray-700 font-medium">Money Back Guarantee</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Reviews Tab -->
+                <div id="tab-content-reviews" class="tab-content hidden">
+                  <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Customer Reviews</h3>
+                    <div class="text-center py-12">
+                      <i class="fas fa-comments text-4xl text-gray-300 mb-4"></i>
+                      <p class="text-gray-500">No reviews yet. Be the first to review this product!</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- FAQs Tab -->
+                <div id="tab-content-faqs" class="tab-content hidden">
+                  <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h3>
+                    <div class="space-y-4">
+                      <div class="border border-gray-200 rounded-lg">
+                        <button class="faq-question w-full px-6 py-4 text-left font-semibold text-gray-900 hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                          <span>How fresh are the products?</span>
+                          <i class="fas fa-chevron-down float-right text-gray-400 transition-transform"></i>
+                        </button>
+                        <div class="faq-answer hidden px-6 pb-4">
+                          <p class="text-gray-600">All our products are sourced fresh daily and delivered within hours of harvest to ensure maximum freshness and quality.</p>
+                        </div>
+                      </div>
+                      
+                      <div class="border border-gray-200 rounded-lg">
+                        <button class="faq-question w-full px-6 py-4 text-left font-semibold text-gray-900 hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                          <span>What is your delivery policy?</span>
+                          <i class="fas fa-chevron-down float-right text-gray-400 transition-transform"></i>
+                        </button>
+                        <div class="faq-answer hidden px-6 pb-4">
+                          <p class="text-gray-600">We offer same-day delivery for orders placed before 2 PM. Free delivery on orders above ₹500.</p>
+                        </div>
+                      </div>
+                      
+                      <div class="border border-gray-200 rounded-lg">
+                        <button class="faq-question w-full px-6 py-4 text-left font-semibold text-gray-900 hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                          <span>Can I return the product?</span>
+                          <i class="fas fa-chevron-down float-right text-gray-400 transition-transform"></i>
+                        </button>
+                        <div class="faq-answer hidden px-6 pb-4">
+                          <p class="text-gray-600">Yes, we offer a 30-day return policy for all products. If you're not satisfied, we'll provide a full refund.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Trust Badges Section -->
+          <div class="bg-white border-t border-gray-200 py-8">
+            <div class="max-w-7xl mx-auto px-8">
+              <div class="flex items-center justify-center space-x-8">
+                <div class="flex items-center space-x-2">
+                  <i class="fas fa-shield-alt text-green-500 text-xl"></i>
+                  <span class="text-sm font-semibold text-gray-700">Norton SECURED</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <i class="fas fa-check-circle text-blue-500 text-xl"></i>
+                  <span class="text-sm font-semibold text-gray-700">TRUSTe VERIFIED</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <i class="fas fa-lock text-purple-500 text-xl"></i>
+                  <span class="text-sm font-semibold text-gray-700">Authorize.Net</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <i class="fas fa-award text-yellow-500 text-xl"></i>
+                  <span class="text-sm font-semibold text-gray-700">BBB ACCREDITED BUSINESS</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Modal Footer
+      modalFooter.innerHTML = `
+        <div class="bg-white border-t border-gray-200 p-6">
+          <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col lg:flex-row gap-6 items-center">
+              <!-- Quantity Selector -->
+              <div class="flex items-center space-x-4">
+                <span class="font-semibold text-gray-700">Quantity:</span>
+                <div class="flex items-center space-x-2">
+                  <button onclick="updateQuantity('decrease')" 
+                          class="w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-minus text-gray-600"></i>
+                  </button>
+                  <span id="productQuantity" class="w-12 text-center font-bold text-lg">1</span>
+                  <button onclick="updateQuantity('increase')" 
+                          class="w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-plus text-gray-600"></i>
+                  </button>
+                </div>
+                <div class="text-sm text-gray-600">
+                  Subtotal: ₹<span id="subtotal">${product.price.toFixed(2)}</span>
+                </div>
+              </div>
+              
+              <!-- Action Buttons -->
+              <div class="flex flex-col sm:flex-row gap-4 flex-1">
+                <button class="bg-black text-white py-3 px-8 rounded-lg hover:bg-gray-800 transition-colors font-semibold">
+                  ADD TO CART
+                </button>
+                <button class="bg-white text-black border-2 border-black py-3 px-8 rounded-lg hover:bg-gray-50 transition-colors font-semibold">
+                  BUY IT NOW
+                </button>
+              </div>
+              
+              <!-- Action Icons -->
+              <div class="flex items-center space-x-3">
+                <button class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-pink-50 transition-colors">
+                  <i class="fas fa-heart text-gray-400"></i>
+                </button>
+                <button class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-blue-50 transition-colors">
+                  <i class="fas fa-share-alt text-gray-600"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('productModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('productModal').classList.add('hidden');
+    }
+
+    function shareProduct() {
+      alert('Share functionality would be implemented here');
+    }
+
+    // Tab switching function
+    function switchTab(tabName) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      
+      // Remove active state from all tab buttons
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('border-blue-500', 'text-blue-600');
+        button.classList.add('border-transparent', 'text-gray-500');
+      });
+      
+      // Show selected tab content
+      const selectedContent = document.getElementById(`tab-content-${tabName}`);
+      if (selectedContent) {
+        selectedContent.classList.remove('hidden');
+      }
+      
+      // Add active state to selected tab button
+      const selectedButton = document.getElementById(`tab-${tabName}`);
+      if (selectedButton) {
+        selectedButton.classList.remove('border-transparent', 'text-gray-500');
+        selectedButton.classList.add('border-blue-500', 'text-blue-600');
+      }
+    }
+
+    // FAQ toggle function
+    function toggleFaq(button) {
+      const answer = button.nextElementSibling;
+      const icon = button.querySelector('i');
+      
+      if (answer.classList.contains('hidden')) {
+        answer.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+      } else {
+        answer.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    // Quantity update function
+    function updateQuantity(action) {
+      const quantityElement = document.getElementById('productQuantity');
+      const subtotalElement = document.getElementById('subtotal');
+      let currentQuantity = parseInt(quantityElement.textContent);
+      
+      if (action === 'increase') {
+        currentQuantity = Math.min(currentQuantity + 1, 99);
+      } else if (action === 'decrease') {
+        currentQuantity = Math.max(currentQuantity - 1, 1);
+      }
+      
+      quantityElement.textContent = currentQuantity;
+      
+      // Update subtotal
+      const subtotal = (sampleProduct.price * currentQuantity).toFixed(2);
+      subtotalElement.textContent = subtotal;
+    }
+  </script>
+</body>
+</html>

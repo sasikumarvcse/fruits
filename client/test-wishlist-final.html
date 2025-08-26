@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Final Wishlist Test</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-center">🎯 Final Wishlist Test</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Server Connection Test</h2>
+      <button onclick="testServer()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Test Server Connection
+      </button>
+      <div id="serverTest" class="mt-4 text-sm"></div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Wishlist API Test</h2>
+      <button onclick="testWishlistAPI()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        Test Wishlist API
+      </button>
+      <div id="wishlistTest" class="mt-4 text-sm"></div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Working Wishlist Links</h2>
+      <div class="space-y-4">
+        <div class="border rounded-lg p-4 bg-blue-50">
+          <h3 class="font-semibold text-blue-900 mb-2">User 1 - 1 Wishlist Item</h3>
+          <a href="wishlist-view.html?user=6857bd14a6b4a78c188396d7" 
+             class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+            <i class="fas fa-external-link-alt mr-2"></i>View Wishlist
+          </a>
+        </div>
+        
+        <div class="border rounded-lg p-4 bg-green-50">
+          <h3 class="font-semibold text-green-900 mb-2">User 2 - 6 Wishlist Items</h3>
+          <a href="wishlist-view.html?user=68705b98b366e3586817d6fe" 
+             class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
+            <i class="fas fa-external-link-alt mr-2"></i>View Wishlist
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Wishlist Items Display</h2>
+      <div id="wishlistItems" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+  </div>
+
+  <script>
+    // Test server connection
+    async function testServer() {
+      const resultDiv = document.getElementById('serverTest');
+      resultDiv.innerHTML = '<div class="text-blue-600">Testing server connection...</div>';
+      
+      try {
+        const response = await fetch('/');
+        if (response.ok) {
+          resultDiv.innerHTML = `
+            <div class="text-green-600">
+              ✅ Server is running and accessible
+            </div>
+          `;
+        } else {
+          resultDiv.innerHTML = `
+            <div class="text-yellow-600">
+              ⚠️ Server responded with status ${response.status}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <div class="text-red-600">
+            ❌ Server connection failed: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Test wishlist API
+    async function testWishlistAPI() {
+      const resultDiv = document.getElementById('wishlistTest');
+      resultDiv.innerHTML = '<div class="text-blue-600">Testing wishlist API...</div>';
+      
+      try {
+        const response = await fetch('/api/user/6857bd14a6b4a78c188396d7/wishlist');
+        if (response.ok) {
+          const wishlist = await response.json();
+          resultDiv.innerHTML = `
+            <div class="text-green-600">
+              ✅ Wishlist API is working!<br>
+              Items found: ${wishlist.length}
+            </div>
+          `;
+          displayWishlistItems(wishlist);
+        } else {
+          const errorText = await response.text();
+          resultDiv.innerHTML = `
+            <div class="text-red-600">
+              ❌ Wishlist API error: ${response.status}<br>
+              ${errorText}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <div class="text-red-600">
+            ❌ Wishlist API failed: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Display wishlist items
+    function displayWishlistItems(wishlist) {
+      const container = document.getElementById('wishlistItems');
+      
+      if (!wishlist || wishlist.length === 0) {
+        container.innerHTML = '<div class="text-gray-500 col-span-2 text-center py-8">No wishlist items found</div>';
+        return;
+      }
+      
+      container.innerHTML = wishlist.map(product => `
+        <div class="border rounded-lg p-4 bg-gray-50">
+          <div class="font-semibold text-gray-900 mb-2">${product.name || 'Unnamed Product'}</div>
+          <div class="text-blue-600 font-bold mb-2">₹${product.price ? product.price.toFixed(2) : '0.00'}</div>
+          <div class="text-sm text-gray-600">${product.description || 'No description'}</div>
+          <div class="text-xs text-gray-500 mt-2">ID: ${product._id}</div>
+        </div>
+      `).join('');
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      testServer();
+    });
+  </script>
+</body>
+</html>

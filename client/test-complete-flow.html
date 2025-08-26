@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍎 Complete System Test - FreshFruits</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">🍎 Complete System Test</h1>
+        
+        <!-- System Status -->
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">System Status</h2>
+            <div id="systemStatus" class="space-y-2">
+                <div id="serverStatus" class="text-sm">🔄 Checking server...</div>
+                <div id="dbStatus" class="text-sm">🔄 Checking database...</div>
+                <div id="apiStatus" class="text-sm">🔄 Checking APIs...</div>
+            </div>
+        </div>
+
+        <!-- Login Section -->
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Step 1: Authentication</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="email" id="email" value="john@example.com" placeholder="Email" class="p-2 border rounded">
+                <input type="password" id="password" value="password123" placeholder="Password" class="p-2 border rounded">
+            </div>
+            <button onclick="login()" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Login</button>
+            <div id="loginResult" class="mt-2 text-sm"></div>
+        </div>
+
+        <!-- API Tests -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Step 2: API Tests</h2>
+                <button onclick="testProductsAPI()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 mb-2">Test Products API</button>
+                <button onclick="testOrdersAPI()" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700 mb-2">Test Orders API</button>
+                <button onclick="testAddressAPI()" class="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700 mb-2">Test Address API</button>
+                <button onclick="testReturnRequestsAPI()" class="w-full bg-orange-600 text-white p-2 rounded hover:bg-orange-700">Test Return Requests API</button>
+                <div id="apiResult" class="mt-2 text-sm"></div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Step 3: Complete Flow Test</h2>
+                <button onclick="testCompleteFlow()" class="w-full bg-green-600 text-white p-4 rounded hover:bg-green-700 text-lg font-semibold">Test Complete Flow</button>
+                <div id="flowResult" class="mt-2 text-sm"></div>
+            </div>
+        </div>
+
+        <!-- Console Log -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Console Log</h2>
+            <div id="consoleLog" class="bg-gray-100 p-4 rounded text-sm font-mono h-48 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        
+        // Console logging function
+        function log(message) {
+            const consoleLog = document.getElementById('consoleLog');
+            const timestamp = new Date().toLocaleTimeString();
+            consoleLog.innerHTML += `[${timestamp}] ${message}\n`;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+            console.log(message);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Page loaded, checking system status...');
+            checkSystemStatus();
+        });
+        
+        // Check system status
+        async function checkSystemStatus() {
+            // Check server
+            try {
+                const res = await fetch('/api/items');
+                if (res.ok) {
+                    document.getElementById('serverStatus').innerHTML = '✅ Server running';
+                    log('✅ Server is running');
+                } else {
+                    document.getElementById('serverStatus').innerHTML = '❌ Server error';
+                    log('❌ Server error');
+                }
+            } catch (err) {
+                document.getElementById('serverStatus').innerHTML = '❌ Server not accessible';
+                log('❌ Server not accessible: ' + err.message);
+            }
+            
+            // Check database
+            try {
+                const res = await fetch('/api/items');
+                const products = await res.json();
+                document.getElementById('dbStatus').innerHTML = `✅ Database connected (${products.length} products)`;
+                log(`✅ Database connected with ${products.length} products`);
+            } catch (err) {
+                document.getElementById('dbStatus').innerHTML = '❌ Database error';
+                log('❌ Database error: ' + err.message);
+            }
+            
+            // Check API
+            try {
+                const res = await fetch('/api/orders/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ test: 'data' })
+                });
+                if (res.status === 401) {
+                    document.getElementById('apiStatus').innerHTML = '✅ API working (auth required)';
+                    log('✅ API is working (correctly rejecting unauthorized requests)');
+                } else {
+                    document.getElementById('apiStatus').innerHTML = '⚠️ API unexpected response';
+                    log('⚠️ API unexpected response: ' + res.status);
+                }
+            } catch (err) {
+                document.getElementById('apiStatus').innerHTML = '❌ API error';
+                log('❌ API error: ' + err.message);
+            }
+        }
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const result = document.getElementById('loginResult');
+            
+            log(`Attempting login with email: ${email}`);
+            
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    authToken = data.token;
+                    result.innerHTML = '✅ Login successful!';
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log('✅ Login successful, token received');
+                } else {
+                    result.innerHTML = '❌ Login failed: ' + data.message;
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Login failed: ' + data.message);
+                }
+            } catch (err) {
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Login error: ' + err.message);
+            }
+        }
+        
+        async function testProductsAPI() {
+            const result = document.getElementById('apiResult');
+            
+            log('Testing products API...');
+            
+            try {
+                const res = await fetch('/api/items');
+                const products = await res.json();
+                
+                if (res.ok) {
+                    result.innerHTML = `✅ Products API working! Found ${products.length} products`;
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log(`✅ Products API working! Found ${products.length} products`);
+                    
+                    // Show first product
+                    if (products.length > 0) {
+                        log(`First product: ${products[0].name} - ₹${products[0].price}`);
+                    }
+                } else {
+                    result.innerHTML = '❌ Products API failed';
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Products API failed');
+                }
+            } catch (err) {
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Products API error: ' + err.message);
+            }
+        }
+        
+        async function testOrdersAPI() {
+            const result = document.getElementById('apiResult');
+            
+            if (!authToken) {
+                result.innerHTML = '❌ Please login first';
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Please login first');
+                return;
+            }
+            
+            log('Testing orders API...');
+            
+            try {
+                const res = await fetch('/api/orders/user', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const orders = await res.json();
+                
+                if (res.ok) {
+                    result.innerHTML = `✅ Orders API working! Found ${orders.length} orders`;
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log(`✅ Orders API working! Found ${orders.length} orders`);
+                } else {
+                    result.innerHTML = '❌ Orders API failed: ' + orders.message;
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Orders API failed: ' + orders.message);
+                }
+            } catch (err) {
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Orders API error: ' + err.message);
+            }
+        }
+        
+        async function testAddressAPI() {
+            const result = document.getElementById('apiResult');
+            
+            if (!authToken) {
+                result.innerHTML = '❌ Please login first';
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Please login first');
+                return;
+            }
+            
+            log('Testing address API...');
+            
+            try {
+                const res = await fetch('/api/user/addresses', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const addresses = await res.json();
+                
+                if (res.ok) {
+                    result.innerHTML = `✅ Address API working! Found ${addresses.length} addresses`;
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log(`✅ Address API working! Found ${addresses.length} addresses`);
+                } else {
+                    result.innerHTML = '❌ Address API failed: ' + addresses.message;
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Address API failed: ' + addresses.message);
+                }
+            } catch (err) {
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Address API error: ' + err.message);
+            }
+        }
+        
+        async function testReturnRequestsAPI() {
+            const result = document.getElementById('apiResult');
+            
+            if (!authToken) {
+                result.innerHTML = '❌ Please login first';
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Please login first');
+                return;
+            }
+            
+            log('Testing return requests API...');
+            
+            try {
+                // First get user's orders
+                const ordersRes = await fetch('/api/orders/user', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!ordersRes.ok) {
+                    result.innerHTML = '❌ Failed to get orders for return requests test';
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Failed to get orders for return requests test');
+                    return;
+                }
+                
+                const orders = await ordersRes.json();
+                
+                if (orders.length === 0) {
+                    result.innerHTML = '⚠️ No orders found for return requests test';
+                    result.className = 'mt-2 text-sm text-yellow-600';
+                    log('⚠️ No orders found for return requests test');
+                    return;
+                }
+                
+                // Test return requests for first order
+                const returnsRes = await fetch(`/api/orders/${orders[0]._id}/return-requests`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (returnsRes.ok) {
+                    const returns = await returnsRes.json();
+                    result.innerHTML = `✅ Return requests API working! Found ${returns.length} return requests`;
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log(`✅ Return requests API working! Found ${returns.length} return requests`);
+                } else {
+                    result.innerHTML = '❌ Return requests API failed';
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Return requests API failed');
+                }
+            } catch (err) {
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Return requests API error: ' + err.message);
+            }
+        }
+        
+        async function testCompleteFlow() {
+            const result = document.getElementById('flowResult');
+            
+            if (!authToken) {
+                result.innerHTML = '❌ Please login first';
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Please login first');
+                return;
+            }
+            
+            log('Starting complete flow test...');
+            
+            try {
+                // Step 1: Get products
+                const productsRes = await fetch('/api/items');
+                const products = await productsRes.json();
+                
+                if (products.length === 0) {
+                    result.innerHTML = '❌ No products available';
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ No products available');
+                    return;
+                }
+                
+                const product = products[0];
+                log(`Selected product: ${product.name} - ₹${product.price}`);
+                
+                // Step 2: Create order
+                const orderData = {
+                    productId: product._id,
+                    quantity: 1,
+                    recipientName: 'Test User',
+                    mobile: '9876543210',
+                    address: '123 Test Street, Test City',
+                    pincode: '123456',
+                    total: product.price,
+                    paymentMethod: 'Online Payment',
+                    paymentStatus: 'Completed',
+                    paymentId: 'PAY_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+                };
+                
+                log('Creating order...');
+                log(`Order data: ${JSON.stringify(orderData, null, 2)}`);
+                
+                const orderRes = await fetch('/api/orders/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                
+                if (orderRes.ok) {
+                    const order = await orderRes.json();
+                    result.innerHTML = '✅ Complete flow working! Order created: ' + order._id;
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log(`✅ Complete flow working! Order created: ${order._id}`);
+                    log(`Order status: ${order.status}`);
+                    log(`Payment status: ${order.paymentStatus}`);
+                } else {
+                    const error = await orderRes.json();
+                    result.innerHTML = '❌ Order creation failed: ' + error.message;
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Order creation failed: ' + error.message);
+                }
+                
+            } catch (err) {
+                result.innerHTML = '❌ Flow test error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Flow test error: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

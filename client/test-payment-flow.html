@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍎 Payment Flow Test - FreshFruits</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">🍎 Payment Flow Test</h1>
+        
+        <!-- Login Section -->
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Step 1: Login</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="email" id="email" value="john@example.com" placeholder="Email" class="p-2 border rounded">
+                <input type="password" id="password" value="password123" placeholder="Password" class="p-2 border rounded">
+            </div>
+            <button onclick="login()" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Login</button>
+            <div id="loginResult" class="mt-2 text-sm"></div>
+        </div>
+
+        <!-- Test Payment Flow -->
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Step 2: Test Payment Flow</h2>
+            <button onclick="testPaymentFlow()" class="w-full bg-blue-600 text-white p-4 rounded hover:bg-blue-700 text-lg font-semibold">Test Complete Payment Flow</button>
+            <div id="paymentResult" class="mt-2 text-sm"></div>
+        </div>
+
+        <!-- Console Log -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Console Log</h2>
+            <div id="consoleLog" class="bg-gray-100 p-4 rounded text-sm font-mono h-48 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        
+        // Console logging function
+        function log(message) {
+            const consoleLog = document.getElementById('consoleLog');
+            const timestamp = new Date().toLocaleTimeString();
+            consoleLog.innerHTML += `[${timestamp}] ${message}\n`;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+            console.log(message);
+        }
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const result = document.getElementById('loginResult');
+            
+            log(`Attempting login with email: ${email}`);
+            
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    authToken = data.token;
+                    result.innerHTML = '✅ Login successful!';
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log('✅ Login successful, token received');
+                } else {
+                    result.innerHTML = '❌ Login failed: ' + data.message;
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Login failed: ' + data.message);
+                }
+            } catch (err) {
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Login error: ' + err.message);
+            }
+        }
+        
+        async function testPaymentFlow() {
+            const result = document.getElementById('paymentResult');
+            
+            if (!authToken) {
+                result.innerHTML = '❌ Please login first';
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Please login first');
+                return;
+            }
+            
+            log('Starting payment flow test...');
+            
+            try {
+                // Step 1: Get a product
+                const productRes = await fetch('/api/items');
+                const products = await productRes.json();
+                
+                if (products.length === 0) {
+                    result.innerHTML = '❌ No products available';
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ No products available');
+                    return;
+                }
+                
+                const product = products[0];
+                log(`Selected product: ${product.name} - ₹${product.price}`);
+                
+                // Step 2: Create order with payment
+                const orderData = {
+                    productId: product._id,
+                    quantity: 1,
+                    recipientName: 'Test User',
+                    mobile: '9876543210',
+                    address: '123 Test Street, Test City',
+                    pincode: '123456',
+                    total: product.price,
+                    paymentMethod: 'Online Payment',
+                    paymentStatus: 'Completed',
+                    paymentId: 'PAY_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+                };
+                
+                log('Creating order with payment...');
+                log(`Order data: ${JSON.stringify(orderData, null, 2)}`);
+                
+                const orderRes = await fetch('/api/orders/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                
+                if (orderRes.ok) {
+                    const order = await orderRes.json();
+                    result.innerHTML = '✅ Payment flow working! Order created: ' + order._id;
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log(`✅ Payment flow working! Order created: ${order._id}`);
+                    log(`Order status: ${order.status}`);
+                    log(`Payment status: ${order.paymentStatus}`);
+                } else {
+                    const error = await orderRes.json();
+                    result.innerHTML = '❌ Payment flow failed: ' + error.message;
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Payment flow failed: ' + error.message);
+                }
+                
+            } catch (err) {
+                result.innerHTML = '❌ Payment flow error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Payment flow error: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍎 Shared Wishlist - FreshFruits</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="max-w-3xl mx-auto py-10">
+    <h1 class="text-3xl font-bold text-center text-blue-700 mb-8 flex items-center justify-center"><i class="fas fa-heart mr-2"></i>Shared Wishlist</h1>
+    <div id="wishlistContent" class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-lg shadow"></div>
+  </div>
+  
+  <script>
+    // Function to get product image URL with fallback
+    function getProductImageUrl(product, index = 0) {
+      if (!product) return 'uploads/default-item.jpg';
+      
+      // If product has images array and it's not empty
+      if (product.images && product.images.length > 0) {
+        const imageUrl = product.images[index] || product.images[0];
+        if (imageUrl && imageUrl.startsWith('uploads/')) {
+          return imageUrl;
+        }
+      }
+      
+      // If product has a single image field
+      if (product.image && product.image.startsWith('uploads/')) {
+        return product.image;
+      }
+      
+      // Fallback to default image
+      return 'uploads/default-item.jpg';
+    }
+
+    async function fetchSharedWishlist() {
+      const params = new URLSearchParams(window.location.search);
+      const userId = params.get('user');
+      const wishlistContent = document.getElementById('wishlistContent');
+      
+      if (!userId) {
+        wishlistContent.innerHTML = `
+          <div class="text-red-500 text-center col-span-2 py-8">
+            <div class="mb-4">
+              <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+              <h3 class="text-xl font-semibold mb-2">Invalid Wishlist Link</h3>
+              <p class="text-gray-600 mb-4">The wishlist link is missing the user parameter.</p>
+            </div>
+            <div class="bg-gray-100 p-4 rounded-lg">
+              <h4 class="font-semibold mb-2">Example URLs:</h4>
+              <div class="text-sm text-gray-700 space-y-1">
+                <div>• <code class="bg-gray-200 px-2 py-1 rounded">/wishlist-view.html?user=6857bd14a6b4a78c188396d7</code></div>
+                <div>• <code class="bg-gray-200 px-2 py-1 rounded">/wishlist-view.html?user=68705b98b366e3586817d6fe</code></div>
+              </div>
+            </div>
+          </div>`;
+        return;
+      }
+      
+      try {
+        console.log('Fetching wishlist for user:', userId);
+        const res = await fetch(`/api/user/${userId}/wishlist`);
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
+        const wishlist = await res.json();
+        console.log('Wishlist data:', wishlist);
+        
+        if (!wishlist || !wishlist.length) {
+          wishlistContent.innerHTML = '<div class="text-gray-400 col-span-2 text-center py-8">This wishlist is empty.</div>';
+          return;
+        }
+        
+        wishlistContent.innerHTML = wishlist.map(product => `
+          <div class="border rounded-lg p-4 bg-gray-50 flex flex-col items-center hover:shadow-md transition-shadow">
+            <img src="${getProductImageUrl(product)}" alt="${product.name}" class="w-32 h-32 object-cover rounded mb-3">
+            <div class="font-semibold text-gray-900 text-lg mb-1 text-center">${product.name}</div>
+            <div class="text-blue-600 font-bold mb-2">₹${product.price ? product.price.toFixed(2) : '0.00'}</div>
+            <div class="text-sm text-gray-600 mb-2 text-center">${product.description || 'No description available'}</div>
+            <a href="/product.html?id=${product._id}" class="text-blue-600 hover:underline text-sm font-medium">View Product</a>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error fetching wishlist:', err);
+        wishlistContent.innerHTML = `<div class="text-red-500 text-center col-span-2 py-8">Failed to load wishlist: ${err.message}</div>`;
+      }
+    }
+    
+    // Load wishlist when page loads - using immediate execution instead of event listener
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fetchSharedWishlist);
+    } else {
+      fetchSharedWishlist();
+    }
+  </script>
+</body>
+</html> 

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Minimal Razorpay Test</title>
+</head>
+<body>
+  <h2>Minimal Razorpay Test Mode Payment</h2>
+  <button id="payButton">Pay ₹500 with Razorpay</button>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    document.getElementById("payButton").onclick = async function () {
+      const response = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: 500 }) // Amount in INR
+      });
+      const order = await response.json();
+      const options = {
+        key: window.RAZORPAY_KEY_ID || 'rzp_live_gBP9geXusrKWUg', // Live Razorpay key
+        amount: order.amount,
+        currency: "INR",
+        name: "Test Shop",
+        description: "Test Transaction",
+        order_id: order.id,
+        handler: function (response) {
+          alert("Payment successful. Razorpay Payment ID: " + response.razorpay_payment_id);
+        },
+        prefill: {
+          name: "Test User",
+          email: "test@example.com",
+          contact: "9999999999"
+        },
+        theme: { color: "#3399cc" }
+      };
+      const rzp = new Razorpay(options);
+      rzp.open();
+    };
+  </script>
+</body>
+</html> 

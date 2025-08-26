@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍎 Product Management - FreshFruits Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+  <nav class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-4">
+          <div class="w-8 h-8 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg flex items-center justify-center">
+            <i class="fas fa-apple-alt text-white text-sm"></i>
+          </div>
+          <span class="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+            🍎 FreshFruits Admin
+          </span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="admin-dashboard.html" class="text-blue-600 hover:text-blue-800">
+            <i class="fas fa-arrow-left mr-1"></i>Back to Dashboard
+          </a>
+          <span id="adminName" class="text-gray-700 font-medium">Admin</span>
+          <button onclick="logout()" class="text-red-600 hover:text-red-800 transition-colors">
+            <i class="fas fa-sign-out-alt mr-1"></i>Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">🍎 Product Management</h1>
+        <p class="text-gray-600 mt-2">Add, edit, and manage all products for customers to buy</p>
+      </div>
+      <button onclick="openAddProductModal()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+        <i class="fas fa-plus mr-2"></i>Add New Product
+      </button>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+          <input type="text" id="productSearch" placeholder="Search products by name..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+        </div>
+        <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+          <option value="">All Categories</option>
+          <option value="Apples">🍎 Apples</option>
+          <option value="Bananas">🍌 Bananas</option>
+          <option value="Oranges">🍊 Oranges</option>
+          <option value="Berries">🫐 Berries</option>
+          <option value="Vegetables">🥕 Vegetables</option>
+          <option value="Organic">🌱 Organic</option>
+        </select>
+        <button onclick="loadProducts()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+          <i class="fas fa-search mr-2"></i>Search
+        </button>
+      </div>
+    </div>
+
+    <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- Products will be loaded here -->
+    </div>
+
+    <div id="loadingState" class="text-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+      <p class="text-gray-600 mt-4">Loading products...</p>
+    </div>
+
+    <div id="emptyState" class="text-center py-12 hidden">
+      <i class="fas fa-apple-alt text-6xl text-gray-300 mb-4"></i>
+      <h3 class="text-xl font-semibold text-gray-600 mb-2">No products found</h3>
+      <p class="text-gray-500 mb-4">Add your first product to start selling</p>
+      <button onclick="openAddProductModal()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+        <i class="fas fa-plus mr-2"></i>Add Product
+      </button>
+    </div>
+  </div>
+
+  <!-- Add/Edit Product Modal -->
+  <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+        <div class="p-6 border-b border-gray-200">
+          <h2 id="modalTitle" class="text-2xl font-bold text-gray-800">Add New Product</h2>
+        </div>
+        <form id="productForm" class="p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+              <input type="text" id="productName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+              <select id="productCategory" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="">Select Category</option>
+                <option value="Apples">🍎 Apples</option>
+                <option value="Bananas">🍌 Bananas</option>
+                <option value="Oranges">🍊 Oranges</option>
+                <option value="Berries">🫐 Berries</option>
+                <option value="Vegetables">🥕 Vegetables</option>
+                <option value="Organic">🌱 Organic</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea id="productDescription" rows="3" placeholder="Describe the product..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Price (₹) *</label>
+              <input type="number" id="productPrice" step="0.01" min="0" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">MRP (₹)</label>
+              <input type="number" id="productMrp" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Stock *</label>
+              <input type="number" id="productStock" min="0" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+              <select id="productStatus" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="flex items-center space-x-4">
+              <label class="flex items-center">
+                <input type="checkbox" id="productIsOrganic" class="mr-2">
+                <span class="text-sm font-medium text-gray-700">Organic Product</span>
+              </label>
+            </div>
+            <div class="flex items-center space-x-4">
+              <label class="flex items-center">
+                <input type="checkbox" id="productIsBestSeller" class="mr-2">
+                <span class="text-sm font-medium text-gray-700">Best Seller</span>
+              </label>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Product Image URL</label>
+            <input type="url" id="productImage" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+            <p class="text-sm text-gray-500 mt-1">Enter a valid image URL or leave empty for default fruit icon</p>
+          </div>
+          
+          <!-- Product Details Section -->
+          <div class="border-t border-gray-200 pt-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">📋 Detailed Product Information</h3>
+            
+            <!-- Nutritional Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Calories</label>
+                <input type="text" id="productCalories" placeholder="e.g., 89 calories per 100g" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Protein</label>
+                <input type="text" id="productProtein" placeholder="e.g., 1.1g per 100g" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Carbohydrates</label>
+                <input type="text" id="productCarbs" placeholder="e.g., 23g per 100g" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fiber</label>
+                <input type="text" id="productFiber" placeholder="e.g., 2.6g per 100g" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+            </div>
+            
+            <!-- Vitamins & Minerals -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Vitamins</label>
+                <input type="text" id="productVitamins" placeholder="e.g., Vitamin C, Vitamin B6" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Minerals</label>
+                <input type="text" id="productMinerals" placeholder="e.g., Potassium, Magnesium" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+            </div>
+            
+            <!-- Origin & Storage -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Origin</label>
+                <input type="text" id="productOrigin" placeholder="e.g., Maharashtra, India" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Season</label>
+                <input type="text" id="productSeason" placeholder="e.g., Year-round, Summer" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Storage Instructions</label>
+                <input type="text" id="productStorage" placeholder="e.g., Store in refrigerator" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Shelf Life</label>
+                <input type="text" id="productShelfLife" placeholder="e.g., 7-10 days" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex justify-end space-x-3 pt-4">
+            <button type="button" onclick="closeProductModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+              <i class="fas fa-save mr-2"></i>Save Product
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let productsCache = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAuth();
+      loadProducts();
+    });
+
+    function checkAuth() {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        window.location.href = 'admin-login.html';
+        return;
+      }
+      
+      const adminData = JSON.parse(localStorage.getItem('adminData') || '{}');
+      document.getElementById('adminName').textContent = adminData.firstName || 'Admin';
+    }
+
+    function logout() {
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminData');
+      window.location.href = 'admin-login.html';
+    }
+
+    async function loadProducts() {
+      const search = document.getElementById('productSearch').value;
+      const category = document.getElementById('categoryFilter').value;
+      
+      showLoading(true);
+      
+      try {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (category) params.append('category', category);
+        
+        const response = await fetch(`/api/admin/products?${params}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          productsCache = data.products || data;
+          renderProducts();
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        alert('Failed to load products');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function renderProducts() {
+      const container = document.getElementById('productsGrid');
+      
+      if (!productsCache || productsCache.length === 0) {
+        showEmptyState();
+        return;
+      }
+      
+      hideEmptyState();
+      
+      container.innerHTML = productsCache.map(product => `
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+          <div class="aspect-w-1 aspect-h-1 bg-gray-200">
+            <img src="${product.image || 'https://via.placeholder.com/300x200?text=🍎'}" 
+                 alt="${product.name}" 
+                 class="w-full h-48 object-cover"
+                 onerror="this.src='https://via.placeholder.com/300x200?text=🍎'">
+          </div>
+          <div class="p-4">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-semibold text-gray-900 text-lg">${product.name}</h3>
+              <span class="px-2 py-1 text-xs rounded-full ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${product.status}</span>
+            </div>
+            <p class="text-gray-600 text-sm mb-3">${product.description || 'No description available'}</p>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">${product.category}</span>
+              <span class="font-semibold text-green-600">₹${product.price.toFixed(2)}</span>
+            </div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm text-gray-500">Stock: ${product.stock}</span>
+              ${product.mrp && product.mrp > product.price ? `<span class="text-sm text-gray-400 line-through">MRP: ₹${product.mrp.toFixed(2)}</span>` : ''}
+            </div>
+            <div class="flex items-center space-x-2 mb-4">
+              ${product.isOrganic ? '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">🌱 Organic</span>' : ''}
+              ${product.isBestSeller ? '<span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">⭐ Best Seller</span>' : ''}
+            </div>
+            <div class="flex space-x-2">
+              <button onclick="editProduct('${product._id}')" class="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-edit mr-1"></i>Edit
+              </button>
+              <button onclick="deleteProduct('${product._id}')" class="flex-1 bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                <i class="fas fa-trash mr-1"></i>Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function showLoading(show) {
+      document.getElementById('loadingState').style.display = show ? 'block' : 'none';
+      document.getElementById('productsGrid').style.display = show ? 'none' : 'grid';
+    }
+
+    function showEmptyState() {
+      document.getElementById('emptyState').classList.remove('hidden');
+      document.getElementById('productsGrid').style.display = 'none';
+    }
+
+    function hideEmptyState() {
+      document.getElementById('emptyState').classList.add('hidden');
+      document.getElementById('productsGrid').style.display = 'grid';
+    }
+
+    function openAddProductModal() {
+      document.getElementById('modalTitle').textContent = 'Add New Product';
+      document.getElementById('productForm').reset();
+      document.getElementById('productForm').removeAttribute('data-product-id');
+      document.getElementById('productModal').classList.remove('hidden');
+    }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.add('hidden');
+    }
+
+    async function editProduct(productId) {
+      const product = productsCache.find(p => p._id === productId);
+      if (!product) return;
+      
+      document.getElementById('modalTitle').textContent = 'Edit Product';
+      document.getElementById('productName').value = product.name;
+      document.getElementById('productCategory').value = product.category;
+      document.getElementById('productDescription').value = product.description || '';
+      document.getElementById('productPrice').value = product.price;
+      document.getElementById('productMrp').value = product.mrp || '';
+      document.getElementById('productStock').value = product.stock;
+      document.getElementById('productStatus').value = product.status;
+      document.getElementById('productImage').value = product.image || '';
+      document.getElementById('productIsOrganic').checked = product.isOrganic || false;
+      document.getElementById('productIsBestSeller').checked = product.isBestSeller || false;
+      
+      // Fill product details
+      if (product.productDetails) {
+        document.getElementById('productCalories').value = product.productDetails.calories || '';
+        document.getElementById('productProtein').value = product.productDetails.protein || '';
+        document.getElementById('productCarbs').value = product.productDetails.carbs || '';
+        document.getElementById('productFiber').value = product.productDetails.fiber || '';
+        document.getElementById('productVitamins').value = product.productDetails.vitamins || '';
+        document.getElementById('productMinerals').value = product.productDetails.minerals || '';
+        document.getElementById('productOrigin').value = product.productDetails.origin || '';
+        document.getElementById('productSeason').value = product.productDetails.season || '';
+        document.getElementById('productStorage').value = product.productDetails.storage || '';
+        document.getElementById('productShelfLife').value = product.productDetails.shelfLife || '';
+      }
+      
+      document.getElementById('productForm').setAttribute('data-product-id', productId);
+      document.getElementById('productModal').classList.remove('hidden');
+    }
+
+    async function deleteProduct(productId) {
+      if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
+      
+      try {
+        const response = await fetch(`/api/admin/products/${productId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+        });
+        
+        if (response.ok) {
+          loadProducts();
+          alert('Product deleted successfully!');
+        } else {
+          const data = await response.json();
+          alert(data.message || 'Failed to delete product');
+        }
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        alert('Error deleting product');
+      }
+    }
+
+    document.getElementById('productForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const productId = this.getAttribute('data-product-id');
+      const formData = {
+        name: document.getElementById('productName').value,
+        category: document.getElementById('productCategory').value,
+        description: document.getElementById('productDescription').value,
+        price: parseFloat(document.getElementById('productPrice').value),
+        mrp: document.getElementById('productMrp').value ? parseFloat(document.getElementById('productMrp').value) : undefined,
+        stock: parseInt(document.getElementById('productStock').value),
+        status: document.getElementById('productStatus').value,
+        image: document.getElementById('productImage').value || undefined,
+        isOrganic: document.getElementById('productIsOrganic').checked,
+        isBestSeller: document.getElementById('productIsBestSeller').checked,
+        productDetails: {
+          calories: document.getElementById('productCalories').value || undefined,
+          protein: document.getElementById('productProtein').value || undefined,
+          carbs: document.getElementById('productCarbs').value || undefined,
+          fiber: document.getElementById('productFiber').value || undefined,
+          vitamins: document.getElementById('productVitamins').value || undefined,
+          minerals: document.getElementById('productMinerals').value || undefined,
+          origin: document.getElementById('productOrigin').value || undefined,
+          season: document.getElementById('productSeason').value || undefined,
+          storage: document.getElementById('productStorage').value || undefined,
+          shelfLife: document.getElementById('productShelfLife').value || undefined
+        }
+      };
+      
+      // Remove undefined values from productDetails
+      Object.keys(formData.productDetails).forEach(key => {
+        if (formData.productDetails[key] === undefined) {
+          delete formData.productDetails[key];
+        }
+      });
+      
+      // Remove productDetails if empty
+      if (Object.keys(formData.productDetails).length === 0) {
+        delete formData.productDetails;
+      }
+      
+      try {
+        const url = productId ? `/api/admin/products/${productId}` : '/api/admin/products';
+        const method = productId ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+          closeProductModal();
+          loadProducts();
+          alert(productId ? 'Product updated successfully!' : 'Product added successfully!');
+        } else {
+          const data = await response.json();
+          alert(data.message || 'Failed to save product');
+        }
+      } catch (error) {
+        console.error('Error saving product:', error);
+        alert('Error saving product');
+      }
+    });
+
+    document.getElementById('productSearch').addEventListener('input', function() {
+      clearTimeout(this.searchTimeout);
+      this.searchTimeout = setTimeout(() => {
+        loadProducts();
+      }, 500);
+    });
+
+    document.getElementById('categoryFilter').addEventListener('change', loadProducts);
+  </script>
+</body>
+</html>

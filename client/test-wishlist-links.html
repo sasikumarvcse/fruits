@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Wishlist Links</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-center">🧪 Wishlist Test Links</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Working Wishlist Links</h2>
+      <p class="text-gray-600 mb-4">Click on any of these links to test the shared wishlist functionality:</p>
+      
+      <div class="space-y-4">
+        <div class="border rounded-lg p-4 bg-blue-50">
+          <h3 class="font-semibold text-blue-900 mb-2">User 1 - 1 Wishlist Item</h3>
+          <p class="text-sm text-gray-600 mb-2">User: sasikumarvenkatesh7373@gmail.com</p>
+          <p class="text-sm text-gray-600 mb-3">Wishlist: iqoo z9s</p>
+          <a href="wishlist-view.html?user=6857bd14a6b4a78c188396d7" 
+             class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+            <i class="fas fa-external-link-alt mr-2"></i>View Wishlist
+          </a>
+        </div>
+        
+        <div class="border rounded-lg p-4 bg-green-50">
+          <h3 class="font-semibold text-green-900 mb-2">User 2 - 6 Wishlist Items</h3>
+          <p class="text-sm text-gray-600 mb-2">User: sasiacecse@gmail.com</p>
+          <p class="text-sm text-gray-600 mb-3">Wishlist: yellow bag, oppo k13 5g, vivo T4x, iqoo z9s, qqwq (2 items)</p>
+          <a href="wishlist-view.html?user=68705b98b366e3586817d6fe" 
+             class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
+            <i class="fas fa-external-link-alt mr-2"></i>View Wishlist
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Test Invalid Link</h2>
+      <p class="text-gray-600 mb-4">This link will show the error message:</p>
+      <a href="wishlist-view.html" 
+         class="inline-block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors">
+        <i class="fas fa-exclamation-triangle mr-2"></i>Test Invalid Link
+      </a>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Server Status</h2>
+      <div id="serverStatus" class="text-sm">
+        <div class="text-blue-600">Checking server status...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check if server is running
+    async function checkServerStatus() {
+      const statusDiv = document.getElementById('serverStatus');
+      
+      try {
+        const response = await fetch('/api/user/6857bd14a6b4a78c188396d7/wishlist');
+        if (response.ok) {
+          statusDiv.innerHTML = `
+            <div class="text-green-600">
+              <i class="fas fa-check-circle mr-2"></i>
+              ✅ Server is running and API is accessible
+            </div>
+          `;
+        } else {
+          statusDiv.innerHTML = `
+            <div class="text-yellow-600">
+              <i class="fas fa-exclamation-triangle mr-2"></i>
+              ⚠️ Server is running but API returned status ${response.status}
+            </div>
+          `;
+        }
+      } catch (error) {
+        statusDiv.innerHTML = `
+          <div class="text-red-600">
+            <i class="fas fa-times-circle mr-2"></i>
+            ❌ Server is not running or not accessible: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      checkServerStatus();
+    });
+  </script>
+</body>
+</html>

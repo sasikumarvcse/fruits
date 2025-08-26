@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍎 Login - FreshFruits</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .login-bg { background-image: url('https://images.unsplash.com/photo-1557821552-17105176677c?q=80&w=2532&auto=format&fit=crop'); background-size: cover; background-position: center; }
+    .toast {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 2px;
+      padding: 16px;
+      position: fixed;
+      z-index: 100;
+      left: 50%;
+      bottom: 30px;
+      font-size: 17px;
+      opacity: 0;
+      transition: opacity 0.3s, bottom 0.3s;
+    }
+    .toast.show {
+      visibility: visible;
+      opacity: 1;
+      bottom: 50px;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div id="toast" class="toast"></div>
+  <div class="min-h-screen flex">
+    <!-- Left Panel: Image and Branding -->
+    <div class="hidden lg:flex w-1/2 login-bg relative items-end p-12 text-white">
+      <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+      <div class="relative z-10 flex flex-col items-center justify-center w-full h-full text-center">
+        <h1 class="text-4xl font-bold mb-4">Welcome back to FreshFruits</h1>
+        <p class="text-lg opacity-80">Your fresh fruits journey continues here. Login to access your account and order fresh, organic fruits.</p>
+      </div>
+    </div>
+
+    <!-- Right Panel: Login Form -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
+      <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="inline-block w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
+              <i class="fas fa-apple-alt text-white text-xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mt-4">🍎 FreshFruits</h1>
+            <p class="text-gray-500 mt-2">Login to your account</p>
+            
+            <!-- Test Credentials Info -->
+            <div class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p class="text-sm text-blue-700 font-medium mb-2">🧪 Test Credentials:</p>
+              <div class="text-xs text-blue-600 space-y-1">
+                <p><strong>User:</strong> test@example.com / password123</p>
+                <p><strong>Admin:</strong> admin@arobowl.com / admin123</p>
+              </div>
+            </div>
+        </div>
+
+
+        
+        <form id="loginForm" class="space-y-5">
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+            <input type="email" id="email" required
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition">
+          </div>
+          
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <input type="password" id="password" required
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition">
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <input type="checkbox" id="remember" class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+              <label for="remember" class="ml-2 block text-sm text-gray-800">Remember me</label>
+            </div>
+            <a href="#" class="text-sm text-green-600 hover:underline">Forgot password?</a>
+          </div>
+          
+          <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-lg hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all font-semibold">
+            🍎 Login to FreshFruits
+          </button>
+        </form>
+        
+        <div class="mt-8 text-center">
+          <p class="text-sm text-gray-600">
+            Don't have an account? 
+            <a href="user-signup.html" class="text-green-600 hover:underline font-medium">🍎 Sign up for fresh fruits</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const loginForm = document.getElementById('loginForm');
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = loginForm.email.value;
+        const password = loginForm.password.value;
+
+        try {
+          console.log('🔐 Attempting login with:', { email, password: '***' });
+          
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+
+          console.log('📥 Response status:', res.status);
+          console.log('📥 Response headers:', res.headers);
+
+          const data = await res.json();
+          console.log('📄 Response data:', data);
+
+          if (res.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            
+            showToast('🍎 Login successful!');
+            setTimeout(() => {
+              // Redirect to logo animation first, then to dashboard based on user role
+              if (data.user.role === 'admin') {
+                window.location.href = 'logo-animation.html?redirect=admin-dashboard.html';
+              } else {
+                window.location.href = 'logo-animation.html?redirect=user-dashboard.html';
+              }
+            }, 1500);
+          } else {
+            // Enhanced error handling
+            let errorMessage = 'Login failed.';
+            if (data.message) {
+              errorMessage = data.message;
+            } else if (data.errors && data.errors.length > 0) {
+              errorMessage = data.errors.map(err => err.msg).join(', ');
+            }
+            showToast(errorMessage, true);
+            console.error('❌ Login failed:', data);
+          }
+        } catch (err) {
+          console.error('❌ Network error:', err);
+          showToast('Network error. Please check your connection and try again.', true);
+        }
+      });
+    });
+
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast show';
+      if (isError) {
+        toast.style.backgroundColor = '#dc2626'; // Red for error
+      } else {
+        toast.style.backgroundColor = '#059669'; // Green for success
+      }
+      setTimeout(function(){ 
+        toast.className = toast.className.replace('show', ''); 
+      }, 3000);
+    }
+
+
+  </script>
+</body>
+</html>

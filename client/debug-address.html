@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍎 Debug Address - FreshFruits</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">🍎 Address Debug Test</h1>
+        
+        <!-- Test Buttons -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Step 1: Login</h2>
+                <input type="email" id="email" value="john@example.com" placeholder="Email" class="w-full p-2 border rounded mb-2">
+                <input type="password" id="password" value="password123" placeholder="Password" class="w-full p-2 border rounded mb-4">
+                <button onclick="login()" class="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">Login</button>
+                <div id="loginResult" class="mt-2 text-sm"></div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Step 2: Test Address API</h2>
+                <button onclick="testAddressAPI()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 mb-2">Test Address API</button>
+                <button onclick="addTestAddress()" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700">Add Test Address</button>
+                <div id="apiResult" class="mt-2 text-sm"></div>
+            </div>
+        </div>
+        
+        <!-- Address Modal Test -->
+        <div class="bg-white p-6 rounded-lg shadow mb-8">
+            <h2 class="text-xl font-semibold mb-4">Step 3: Test Address Modal</h2>
+            <button onclick="openAddressModal()" class="bg-orange-600 text-white p-2 rounded hover:bg-orange-700">Open Address Modal</button>
+            <div id="modalResult" class="mt-2 text-sm"></div>
+        </div>
+        
+        <!-- Console Log -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Console Log</h2>
+            <div id="consoleLog" class="bg-gray-100 p-4 rounded text-sm font-mono h-32 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Address Selection Modal -->
+    <div id="addressSelectionModal" class="modal" style="display:none;">
+        <div class="modal-content max-w-md p-6">
+            <h2 class="text-2xl font-bold mb-4">Select Shipping Address</h2>
+            <div id="addressList" class="mb-4">
+                <!-- Addresses will be rendered here -->
+            </div>
+            <button id="addNewAddressBtn" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg mb-2">Add New Address</button>
+            <form id="addressForm" style="display:none;" class="mb-4">
+                <input id="addressName" class="w-full mb-2 p-2 border rounded" placeholder="Name" required />
+                <input id="addressMobile" class="w-full mb-2 p-2 border rounded" placeholder="Mobile" required />
+                <input id="addressLine" class="w-full mb-2 p-2 border rounded" placeholder="Address" required />
+                <input id="addressPincode" class="w-full mb-2 p-2 border rounded" placeholder="Pincode" required />
+                <input id="addressState" class="w-full mb-2 p-2 border rounded" placeholder="State" readonly />
+                <input id="addressCountry" class="w-full mb-2 p-2 border rounded" placeholder="Country" readonly />
+                <button id="saveAddressBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg mb-2">Save Address</button>
+                <button id="cancelAddressBtn" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg">Cancel</button>
+            </form>
+            <button id="continueToSummaryBtn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold text-lg">Continue to Summary</button>
+            <button id="closeAddressModal" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg mt-2">Cancel</button>
+        </div>
+    </div>
+
+    <style>
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+
+    <script>
+        let authToken = '';
+        
+        // Console logging function
+        function log(message) {
+            const consoleLog = document.getElementById('consoleLog');
+            const timestamp = new Date().toLocaleTimeString();
+            consoleLog.innerHTML += `[${timestamp}] ${message}\n`;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+            console.log(message);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Page loaded, initializing address handlers...');
+            initializeAddressHandlers();
+        });
+        
+        // Initialize all address-related event handlers
+        function initializeAddressHandlers() {
+            log('Setting up address event handlers...');
+            
+            // Add New Address button
+            const addNewBtn = document.getElementById('addNewAddressBtn');
+            if (addNewBtn) {
+                addNewBtn.addEventListener('click', function() {
+                    log('Add New Address button clicked');
+                    showAddressForm();
+                });
+                log('✅ Add New Address button handler set');
+            } else {
+                log('❌ Add New Address button not found');
+            }
+            
+            // Save Address button
+            const saveBtn = document.getElementById('saveAddressBtn');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function() {
+                    log('Save Address button clicked');
+                    saveAddress();
+                });
+                log('✅ Save Address button handler set');
+            } else {
+                log('❌ Save Address button not found');
+            }
+            
+            // Cancel Address button
+            const cancelBtn = document.getElementById('cancelAddressBtn');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function() {
+                    log('Cancel Address button clicked');
+                    hideAddressForm();
+                });
+                log('✅ Cancel Address button handler set');
+            } else {
+                log('❌ Cancel Address button not found');
+            }
+            
+            // Continue to Summary button
+            const continueBtn = document.getElementById('continueToSummaryBtn');
+            if (continueBtn) {
+                continueBtn.addEventListener('click', function() {
+                    log('Continue to Summary button clicked');
+                    continueToSummary();
+                });
+                log('✅ Continue to Summary button handler set');
+            } else {
+                log('❌ Continue to Summary button not found');
+            }
+            
+            // Close Address Modal button
+            const closeBtn = document.getElementById('closeAddressModal');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    log('Close Address Modal button clicked');
+                    closeAddressModal();
+                });
+                log('✅ Close Address Modal button handler set');
+            } else {
+                log('❌ Close Address Modal button not found');
+            }
+            
+            // Pincode auto-fill
+            const pincodeInput = document.getElementById('addressPincode');
+            if (pincodeInput) {
+                pincodeInput.addEventListener('blur', function() {
+                    log('Pincode input blurred');
+                    autoFillStateCountry();
+                });
+                log('✅ Pincode input handler set');
+            } else {
+                log('❌ Pincode input not found');
+            }
+        }
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const result = document.getElementById('loginResult');
+            
+            log(`Attempting login with email: ${email}`);
+            
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    authToken = data.token;
+                    result.innerHTML = '✅ Login successful!';
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log('✅ Login successful, token received');
+                } else {
+                    result.innerHTML = '❌ Login failed: ' + data.message;
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Login failed: ' + data.message);
+                }
+            } catch (err) {
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Login error: ' + err.message);
+            }
+        }
+        
+        async function testAddressAPI() {
+            if (!authToken) {
+                log('❌ No auth token, please login first');
+                return;
+            }
+            
+            const result = document.getElementById('apiResult');
+            
+            log('Testing address API...');
+            
+            try {
+                const res = await fetch('/api/user/addresses', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    result.innerHTML = '✅ Address API working! Found ' + data.length + ' addresses';
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log(`✅ Address API working! Found ${data.length} addresses`);
+                } else {
+                    result.innerHTML = '❌ Address API failed: ' + data.message;
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Address API failed: ' + data.message);
+                }
+            } catch (err) {
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Address API error: ' + err.message);
+            }
+        }
+        
+        async function addTestAddress() {
+            if (!authToken) {
+                log('❌ No auth token, please login first');
+                return;
+            }
+            
+            const result = document.getElementById('apiResult');
+            
+            log('Adding test address...');
+            
+            try {
+                const res = await fetch('/api/user/addresses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        name: 'Test User',
+                        mobile: '9876543210',
+                        address: '123 Test Street, Test City',
+                        pincode: '123456',
+                        isDefault: true
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    result.innerHTML = '✅ Test address added! Total addresses: ' + data.length;
+                    result.className = 'mt-2 text-sm text-green-600';
+                    log(`✅ Test address added successfully! Total addresses: ${data.length}`);
+                } else {
+                    result.innerHTML = '❌ Failed to add address: ' + data.message;
+                    result.className = 'mt-2 text-sm text-red-600';
+                    log('❌ Failed to add address: ' + data.message);
+                }
+            } catch (err) {
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.className = 'mt-2 text-sm text-red-600';
+                log('❌ Add address error: ' + err.message);
+            }
+        }
+        
+        function openAddressModal() {
+            log('Opening address modal...');
+            document.getElementById('addressSelectionModal').style.display = 'flex';
+            loadUserAddresses();
+        }
+        
+        // Load user addresses from API
+        async function loadUserAddresses() {
+            if (!authToken) {
+                log('❌ No auth token, cannot load addresses');
+                return;
+            }
+
+            log('Loading user addresses...');
+
+            try {
+                const response = await fetch('/api/user/addresses', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const addresses = await response.json();
+                    log(`✅ Loaded ${addresses.length} addresses`);
+                    renderAddressList(addresses);
+                } else {
+                    log('❌ Failed to load addresses');
+                    renderAddressList([]);
+                }
+            } catch (error) {
+                log('❌ Error loading addresses: ' + error.message);
+                renderAddressList([]);
+            }
+        }
+
+        // Render address list in modal
+        function renderAddressList(addresses) {
+            const addressList = document.getElementById('addressList');
+            
+            if (addresses.length === 0) {
+                addressList.innerHTML = '<p class="text-gray-500 text-center py-4">No addresses found. Please add one.</p>';
+                log('No addresses found, showing add address message');
+            } else {
+                addressList.innerHTML = addresses.map((address, index) => `
+                    <div class="border rounded-lg p-3 mb-3 cursor-pointer hover:bg-gray-50 ${address.isDefault ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}" 
+                         onclick="selectAddress(${index})">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="font-semibold">${address.name}</div>
+                                <div class="text-sm text-gray-600">${address.mobile}</div>
+                                <div class="text-sm text-gray-600">${address.address}</div>
+                                <div class="text-sm text-gray-600">${address.pincode}</div>
+                            </div>
+                            <div class="ml-2">
+                                ${address.isDefault ? '<span class="text-xs bg-blue-500 text-white px-2 py-1 rounded">Default</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                log(`Rendered ${addresses.length} addresses`);
+            }
+        }
+
+        // Show address form
+        function showAddressForm() {
+            log('Showing address form...');
+            document.getElementById('addressForm').style.display = 'block';
+            document.getElementById('addNewAddressBtn').style.display = 'none';
+        }
+
+        // Hide address form
+        function hideAddressForm() {
+            log('Hiding address form...');
+            document.getElementById('addressForm').style.display = 'none';
+            document.getElementById('addNewAddressBtn').style.display = 'block';
+            
+            // Clear form
+            document.getElementById('addressName').value = '';
+            document.getElementById('addressMobile').value = '';
+            document.getElementById('addressLine').value = '';
+            document.getElementById('addressPincode').value = '';
+            document.getElementById('addressState').value = '';
+            document.getElementById('addressCountry').value = '';
+        }
+
+        // Auto-fill state and country based on pincode
+        function autoFillStateCountry() {
+            const pincode = document.getElementById('addressPincode').value;
+            log(`Auto-filling state/country for pincode: ${pincode}`);
+            
+            if (pincode.length === 6) {
+                const pincodeMap = {
+                    '110001': 'Delhi',
+                    '400001': 'Maharashtra',
+                    '700001': 'West Bengal',
+                    '600001': 'Tamil Nadu',
+                    '500001': 'Telangana',
+                    '380001': 'Gujarat',
+                    '302001': 'Rajasthan',
+                    '226001': 'Uttar Pradesh',
+                    '800001': 'Bihar',
+                    '751001': 'Odisha'
+                };
+                
+                const state = pincodeMap[pincode] || 'India';
+                document.getElementById('addressState').value = state;
+                document.getElementById('addressCountry').value = 'India';
+                log(`Auto-filled: State=${state}, Country=India`);
+            }
+        }
+
+        // Save new address
+        async function saveAddress() {
+            const name = document.getElementById('addressName').value;
+            const mobile = document.getElementById('addressMobile').value;
+            const address = document.getElementById('addressLine').value;
+            const pincode = document.getElementById('addressPincode').value;
+
+            log(`Saving address: ${name}, ${mobile}, ${address}, ${pincode}`);
+
+            if (!name || !mobile || !address || !pincode) {
+                log('❌ Missing required fields');
+                alert('Please fill all required fields');
+                return;
+            }
+
+            if (!authToken) {
+                log('❌ No auth token');
+                alert('Please login to save address');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/user/addresses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        name,
+                        mobile,
+                        address,
+                        pincode,
+                        isDefault: true
+                    })
+                });
+
+                if (response.ok) {
+                    log('✅ Address saved successfully');
+                    hideAddressForm();
+                    await loadUserAddresses();
+                    alert('Address saved successfully!');
+                } else {
+                    const error = await response.json();
+                    log('❌ Failed to save address: ' + error.message);
+                    alert('Failed to save address: ' + error.message);
+                }
+            } catch (error) {
+                log('❌ Error saving address: ' + error.message);
+                alert('Failed to save address');
+            }
+        }
+
+        // Continue to summary
+        function continueToSummary() {
+            log('Continue to summary clicked');
+            alert('Continue to summary functionality would go here');
+        }
+
+        // Close address modal
+        function closeAddressModal() {
+            log('Closing address modal...');
+            document.getElementById('addressSelectionModal').style.display = 'none';
+            hideAddressForm();
+        }
+
+        // Select address
+        window.selectAddress = function(index) {
+            log(`Address ${index} selected`);
+            // Implementation would go here
+        }
+    </script>
+</body>
+</html>

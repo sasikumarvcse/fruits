@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍎 Address Test - FreshFruits</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow p-6">
+        <h1 class="text-2xl font-bold text-center mb-6">🍎 Address Test</h1>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Email:</label>
+            <input type="email" id="email" value="john@example.com" class="w-full p-2 border rounded">
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Password:</label>
+            <input type="password" id="password" value="password123" class="w-full p-2 border rounded">
+        </div>
+        
+        <button onclick="login()" class="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700 mb-4">
+            Login
+        </button>
+        
+        <button onclick="testAddressAPI()" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 mb-4">
+            Test Address API
+        </button>
+        
+        <button onclick="addTestAddress()" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700 mb-4">
+            Add Test Address
+        </button>
+        
+        <div id="result" class="mt-4 p-3 rounded hidden"></div>
+    </div>
+
+    <script>
+        let authToken = '';
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const result = document.getElementById('result');
+            
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    authToken = data.token;
+                    result.className = 'mt-4 p-3 rounded bg-green-100 text-green-800';
+                    result.innerHTML = '✅ Login successful! Token: ' + data.token.substring(0, 20) + '...';
+                } else {
+                    result.className = 'mt-4 p-3 rounded bg-red-100 text-red-800';
+                    result.innerHTML = '❌ Login failed: ' + data.message;
+                }
+                result.classList.remove('hidden');
+            } catch (err) {
+                result.className = 'mt-4 p-3 rounded bg-red-100 text-red-800';
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.classList.remove('hidden');
+            }
+        }
+        
+        async function testAddressAPI() {
+            if (!authToken) {
+                alert('Please login first');
+                return;
+            }
+            
+            const result = document.getElementById('result');
+            
+            try {
+                const res = await fetch('/api/user/addresses', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    result.className = 'mt-4 p-3 rounded bg-green-100 text-green-800';
+                    result.innerHTML = '✅ Address API working! Found ' + data.length + ' addresses';
+                } else {
+                    result.className = 'mt-4 p-3 rounded bg-red-100 text-red-800';
+                    result.innerHTML = '❌ Address API failed: ' + data.message;
+                }
+                result.classList.remove('hidden');
+            } catch (err) {
+                result.className = 'mt-4 p-3 rounded bg-red-100 text-red-800';
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.classList.remove('hidden');
+            }
+        }
+        
+        async function addTestAddress() {
+            if (!authToken) {
+                alert('Please login first');
+                return;
+            }
+            
+            const result = document.getElementById('result');
+            
+            try {
+                const res = await fetch('/api/user/addresses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        name: 'Test User',
+                        mobile: '9876543210',
+                        address: '123 Test Street, Test City',
+                        pincode: '123456',
+                        isDefault: true
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    result.className = 'mt-4 p-3 rounded bg-green-100 text-green-800';
+                    result.innerHTML = '✅ Test address added successfully! Total addresses: ' + data.length;
+                } else {
+                    result.className = 'mt-4 p-3 rounded bg-red-100 text-red-800';
+                    result.innerHTML = '❌ Failed to add address: ' + data.message;
+                }
+                result.classList.remove('hidden');
+            } catch (err) {
+                result.className = 'mt-4 p-3 rounded bg-red-100 text-red-800';
+                result.innerHTML = '❌ Error: ' + err.message;
+                result.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

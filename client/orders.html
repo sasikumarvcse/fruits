@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍎 My Orders - FreshFruits</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    body { font-family: 'Inter', sans-serif; }
+    
+    .order-card {
+      transition: all 0.3s ease;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .order-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .status-placed { background-color: #dbeafe; color: #1e40af; }
+    .status-success { background-color: #bbf7d0; color: #166534; }
+    .status-shipped { background-color: #fef3c7; color: #92400e; }
+    .status-out_for_delivery { background-color: #f3e8ff; color: #7c3aed; }
+    .status-delivered { background-color: #dcfce7; color: #166534; }
+    .status-cancelled { background-color: #fee2e2; color: #991b1b; }
+    .status-failed { background-color: #fee2e2; color: #b91c1c; }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <!-- Logo -->
+        <div class="flex items-center space-x-4">
+          <a href="user-dashboard.html" class="flex items-center space-x-2">
+            <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <i class="fas fa-shopping-bag text-white text-sm"></i>
+            </div>
+            <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              🍎 FreshFruits
+            </span>
+          </a>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="hidden md:flex items-center space-x-8">
+          <a href="user-dashboard.html" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Home</a>
+          <a href="#" class="text-blue-600 font-medium">Orders</a>
+        </nav>
+        
+        <!-- User Menu -->
+        <div class="flex items-center space-x-4">
+            <button id="userMenuBtn" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+              <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-user text-white text-sm"></i>
+              </div>
+              <span id="userName" class="font-medium">User</span>
+              <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+            </button>
+            
+            
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">My Orders</h1>
+      <p class="text-gray-600">Track your orders and view order history</p>
+    </div>
+
+    <!-- Order Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div class="flex items-center">
+          <div class="p-2 bg-blue-100 rounded-lg">
+            <i class="fas fa-shopping-bag text-blue-600"></i>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600">Total Orders</p>
+            <p class="text-2xl font-bold text-gray-900" id="totalOrders">0</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div class="flex items-center">
+          <div class="p-2 bg-yellow-100 rounded-lg">
+            <i class="fas fa-clock text-yellow-600"></i>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600">Pending</p>
+            <p class="text-2xl font-bold text-gray-900" id="pendingOrders">0</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div class="flex items-center">
+          <div class="p-2 bg-green-100 rounded-lg">
+            <i class="fas fa-check-circle text-green-600"></i>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600">Delivered</p>
+            <p class="text-2xl font-bold text-gray-900" id="deliveredOrders">0</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div class="flex items-center">
+          <div class="p-2 bg-purple-100 rounded-lg">
+            <i class="fas fa-truck text-purple-600"></i>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600">In Transit</p>
+            <p class="text-2xl font-bold text-gray-900" id="inTransitOrders">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+        <div class="flex items-center space-x-4">
+          <label class="text-sm font-medium text-gray-700">Filter by:</label>
+          <select id="statusFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">All Orders</option>
+            <option value="placed">Placed</option>
+            <option value="success">Success</option>
+            <option value="shipped">Shipped</option>
+            <option value="out_for_delivery">Out for Delivery</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+          <label class="text-sm font-medium text-gray-700">Sort by:</label>
+          <select id="sortFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="amount-high">Amount: High to Low</option>
+            <option value="amount-low">Amount: Low to High</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders List -->
+    <div id="ordersContainer">
+      <!-- Loading State -->
+      <div id="loadingState" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p class="mt-2 text-gray-600">Loading orders...</p>
+      </div>
+      
+      <!-- No Orders State -->
+      <div id="noOrdersState" class="text-center py-12 hidden">
+        <i class="fas fa-box-open text-4xl text-gray-400 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
+        <p class="text-gray-600 mb-4">You haven't placed any orders yet.</p>
+        <a href="user-dashboard.html" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <i class="fas fa-shopping-cart mr-2"></i>
+          Start Shopping
+        </a>
+      </div>
+      
+      <!-- Orders Grid -->
+      <div id="ordersGrid" class="space-y-6 hidden">
+        <!-- Orders will be loaded here -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Order Details Modal -->
+  <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center p-6 border-b border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-900">Order Details</h3>
+          <button id="closeOrderModal" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <div id="orderModalContent" class="p-6">
+          <!-- Order details will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Return/Refund Modal -->
+  <div id="returnRequestModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-lg max-w-md w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold">Request Return/Refund</h3>
+          <button id="closeReturnModal" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="returnRequestForm">
+          <input type="hidden" id="returnOrderId">
+          <input type="hidden" id="returnItemId">
+          <div class="mb-4">
+            <label class="block font-medium mb-1">Reason</label>
+            <select id="returnReason" class="w-full border rounded p-2" required>
+              <option value="">Select a reason</option>
+              <option value="Damaged product">Damaged product</option>
+              <option value="Wrong item received">Wrong item received</option>
+              <option value="Not as described">Not as described</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block font-medium mb-1">Comments (optional)</label>
+            <textarea id="returnComments" class="w-full border rounded p-2" rows="3"></textarea>
+          </div>
+          <div class="mb-4">
+            <label class="block font-medium mb-1">UPI ID</label>
+            <input type="text" id="returnUpiId" class="w-full border rounded p-2" placeholder="Enter your UPI ID for refund" required>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Submit Request</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="reviewModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-lg max-w-md w-full p-6 relative">
+      <button id="closeReviewModal" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+      <h3 class="text-xl font-bold mb-2" id="reviewModalTitle">Write a Review</h3>
+      <div class="flex flex-col items-center mb-4">
+        <div id="modernStarBar" class="flex gap-2 text-4xl select-none mb-1">
+          <span data-val="1" class="modern-star" style="color:#d1d5db;cursor:pointer;transition:color 0.2s;">★</span>
+          <span data-val="2" class="modern-star" style="color:#d1d5db;cursor:pointer;transition:color 0.2s;">★</span>
+          <span data-val="3" class="modern-star" style="color:#d1d5db;cursor:pointer;transition:color 0.2s;">★</span>
+          <span data-val="4" class="modern-star" style="color:#d1d5db;cursor:pointer;transition:color 0.2s;">★</span>
+          <span data-val="5" class="modern-star" style="color:#d1d5db;cursor:pointer;transition:color 0.2s;">★</span>
+        </div>
+        <div id="starLabel" class="text-sm text-gray-500"></div>
+      </div>
+      <textarea id="reviewComment" class="w-full border border-gray-300 rounded-lg p-2 mb-4" rows="3" placeholder="Share your experience..." required></textarea>
+      <div class="flex gap-3 justify-end">
+        <button id="cancelReviewBtn" class="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition">Cancel</button>
+        <button id="submitReviewBtn" class="px-6 py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Submit Review</button>
+      </div>
+      <div id="reviewStatus" class="mt-3 text-center text-sm"></div>
+    </div>
+  </div>
+
+  <script>
+    let orders = [];
+    let filteredOrders = [];
+    let ordersPollingInterval = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAuth();
+      setUserInfo();
+      loadOrders();
+      setupEventListeners();
+      if (ordersPollingInterval) clearInterval(ordersPollingInterval);
+      ordersPollingInterval = setInterval(loadOrders, 20000); // 20 seconds
+    });
+    
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+    }
+    
+    function setUserInfo() {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user && user.firstName) {
+        document.getElementById('userName').textContent = user.firstName;
+      }
+    }
+    
+    async function loadOrders() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/orders/user', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch orders');
+        orders = await res.json();
+        filteredOrders = [...orders];
+        displayOrders();
+        updateStats();
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        showNotification('Error loading orders', 'error');
+      }
+    }
+    
+    function generateSampleOrders() {
+      const statuses = ['placed', 'success', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'failed'];
+      const products = [
+        { name: 'Wireless Bluetooth Headphones', price: 1299, image: 'headphones.jpg' },
+        { name: 'Smartphone Case', price: 299, image: 'phone-case.jpg' },
+        { name: 'Laptop Stand', price: 899, image: 'laptop-stand.jpg' },
+        { name: 'Wireless Mouse', price: 599, image: 'mouse.jpg' },
+        { name: 'USB-C Cable', price: 199, image: 'cable.jpg' }
+      ];
+      
+      return Array.from({ length: 8 }, (_, i) => {
+        const product = products[Math.floor(Math.random() * products.length)];
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        const quantity = Math.floor(Math.random() * 3) + 1;
+        const orderDate = new Date();
+        orderDate.setDate(orderDate.getDate() - Math.floor(Math.random() * 30));
+        
+        return {
+          _id: `order_${i + 1}`,
+          orderNumber: `ORD${String(i + 1).padStart(6, '0')}`,
+          items: [{
+            ...product,
+            quantity,
+            total: product.price * quantity
+          }],
+          total: product.price * quantity,
+          status,
+          orderDate: orderDate.toISOString(),
+          deliveryDate: status === 'delivered' ? new Date(orderDate.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() : null,
+          shippingAddress: {
+            street: '123 Main Street',
+            city: 'Mumbai',
+            state: 'Maharashtra',
+            pincode: '400001'
+          }
+        };
+      });
+    }
+    
+    // --- PATCH START: Show user review with edit/delete for delivered, reviewed items ---
+    // In displayOrders, after rendering each delivered item, if item.reviewed === true, fetch the user's review for that product and render it below the item with edit/delete buttons.
+    // Add edit/delete logic to the review modal and UI. Only allow one review per user per product per order.
+
+    // 1. Add a helper to fetch the current user's review for a product
+    async function getUserReview(productId) {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!user) return null;
+      const res = await fetch(`/api/reviews/${productId}`);
+      if (!res.ok) return null;
+      const reviews = await res.json();
+      return reviews.find(r => r.user && (r.user._id === user._id || r.user === user._id));
+    }
+
+    // 2. Patch displayOrders to inject review display for reviewed items
+    const origDisplayOrders = displayOrders;
+    displayOrders = async function() {
+      const loadingState = document.getElementById('loadingState');
+      const noOrdersState = document.getElementById('noOrdersState');
+      const ordersGrid = document.getElementById('ordersGrid');
+      loadingState.classList.add('hidden');
+      if (filteredOrders.length === 0) {
+        noOrdersState.classList.remove('hidden');
+        ordersGrid.classList.add('hidden');
+        return;
+      }
+      noOrdersState.classList.add('hidden');
+      ordersGrid.classList.remove('hidden');
+      let html = '';
+      for (const order of filteredOrders) {
+        html += `<div class="order-card bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"><div class="p-6">`;
+        // ... order header ...
+        html += `<div class="space-y-3 mb-4">`;
+        for (const item of order.items || []) {
+          html += `<div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">`;
+          html += `<img src="/uploads/${(item.item && item.item.images && item.item.images[0]) || 'default-item.jpg'}" alt="${item.item ? item.item.name : 'Product'}" onerror="this.onerror=null;this.src='/uploads/logoindex.png';" class="w-16 h-16 object-cover rounded">`;
+          html += `<div class="flex-1"><h4 class="font-medium text-gray-900">${item.item ? item.item.name : 'Unknown Product'}</h4><p class="text-sm text-gray-600">Qty: ${item.quantity} × ₹${item.item ? (typeof item.item.price === 'number' ? item.item.price.toFixed(2) : '0.00') : '0.00'}</p></div>`;
+          html += `<div class="text-right"><p class="font-semibold text-gray-900">₹${item.item ? (typeof item.item.price === 'number' ? (item.item.price * item.quantity).toFixed(2) : '0.00') : '0.00'}</p></div>`;
+          if (order.status === 'delivered') {
+            html += `<button onclick="openReturnRequestModal('${order._id}', '${item.item && item.item._id ? item.item._id : ''}')" class="ml-2 px-3 py-1 bg-pink-600 text-white rounded hover:bg-pink-700 text-sm">Request Return/Refund</button>`;
+          }
+          if (order.status === 'delivered' && item.item && item.reviewed !== true) {
+            html += `<button onclick="openReviewModal('${item.item._id}', '${item.item.name}')" class="ml-2 px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm">Write Review</button>`;
+          }
+          html += `</div>`;
+          // --- If reviewed, show review with edit/delete ---
+          if (order.status === 'delivered' && item.item && item.reviewed === true) {
+            html += `<div id="reviewBox_${order._id}_${item.item._id}" class="ml-20 my-2"></div>`;
+          }
+        }
+        html += `</div>`;
+        // ... rest of order card ...
+        html += `<div class="flex flex-col md:flex-row md:items-center md:justify-between pt-4 border-t border-gray-200">`;
+        html += `<div class="mb-2 md:mb-0"><p class="text-sm text-gray-600">Total Amount</p><p class="text-xl font-bold text-gray-900">₹${order.total.toFixed(2)}</p></div>`;
+        html += `<div class="flex space-x-2">`;
+        html += `<button onclick="viewOrderDetails('${order._id}')" class="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors">View Details</button>`;
+        if (shouldShowCancelButton(order)) {
+          html += `<button onclick="cancelOrder('${order._id}')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Cancel Order</button>`;
+        }
+        if (order.status === 'delivered') {
+          html += `<button onclick="reorder('${order._id}')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Reorder</button>`;
+          html += `<button onclick="downloadInvoice('${order._id}')" class="ml-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"><i class='fas fa-file-download mr-1'></i>Download Invoice</button>`;
+        }
+        html += `</div></div></div></div>`;
+      }
+      ordersGrid.innerHTML = html;
+      // After rendering, fetch and inject reviews for reviewed items
+      for (const order of filteredOrders) {
+        for (const item of order.items || []) {
+          if (order.status === 'delivered' && item.item && item.reviewed === true) {
+            const boxId = `reviewBox_${order._id}_${item.item._id}`;
+            const box = document.getElementById(boxId);
+            if (box) {
+              getUserReview(item.item._id).then(review => {
+                if (review) {
+                  box.innerHTML = `<div class='flex items-center gap-2'><span style='color:#fbbf24;font-size:1.5rem;'>${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}</span><span class='text-gray-700 font-medium ml-2'>${review.comment}</span><button class='ml-4 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200' onclick='editReviewModal("${item.item._id}", "${item.item.name}", ${review.rating}, "${review.comment.replace(/"/g, '&quot;')}", "${review._id}")'>Edit</button><button class='ml-2 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200' onclick='deleteReview("${review._id}", "${order._id}", "${item.item._id}")'>Delete</button></div>`;
+                } else {
+                  // If no review found, show Write Review button again
+                  box.innerHTML = `<button onclick="openReviewModal('${item.item._id}', '${item.item.name}')" class="ml-2 px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm">Write Review</button>`;
+                }
+              });
+            }
+          }
+        }
+      }
+    };
+
+    // 3. Edit review modal logic
+    window.editReviewModal = function(productId, productName, rating, comment, reviewId) {
+      document.getElementById('reviewModalTitle').textContent = `Edit Review for ${productName}`;
+      document.getElementById('reviewComment').value = comment;
+      selectedRating = rating;
+      document.getElementById('reviewStatus').textContent = '';
+      document.getElementById('reviewModal').classList.remove('hidden');
+      setupModernReviewModal();
+      document.getElementById('submitReviewBtn').onclick = async function() {
+        const newComment = document.getElementById('reviewComment').value.trim();
+        if (!selectedRating) {
+          document.getElementById('reviewStatus').textContent = 'Please select a rating.';
+          return;
+        }
+        if (!newComment) {
+          document.getElementById('reviewStatus').textContent = 'Please write a review.';
+          return;
+        }
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`/api/reviews/${reviewId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ rating: selectedRating, comment: newComment })
+          });
+          if (res.ok) {
+            document.getElementById('reviewStatus').textContent = 'Review updated!';
+            setTimeout(() => { document.getElementById('reviewModal').classList.add('hidden'); location.reload(); }, 1200);
+          } else {
+            const data = await res.json();
+            document.getElementById('reviewStatus').textContent = data.message || 'Failed to update review.';
+          }
+        } catch (err) {
+          document.getElementById('reviewStatus').textContent = 'Error: ' + err.message;
+        }
+      };
+      document.getElementById('cancelReviewBtn').onclick = function() {
+        document.getElementById('reviewModal').classList.add('hidden');
+      };
+      document.getElementById('closeReviewModal').onclick = function() {
+        document.getElementById('reviewModal').classList.add('hidden');
+      };
+    };
+
+    // 4. Delete review logic
+    window.deleteReview = async function(reviewId, orderId, productId) {
+      if (!confirm('Are you sure you want to delete your review?')) return;
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/reviews/${reviewId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          // Optionally, update the order's item.reviewed flag via backend (not shown here)
+          showNotification('Review deleted.');
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          const data = await res.json();
+          showNotification(data.message || 'Failed to delete review', 'error');
+        }
+      } catch (err) {
+        showNotification('Error: ' + err.message, 'error');
+      }
+    };
+    // --- PATCH END ---
+    
+    function displayOrders() {
+      const loadingState = document.getElementById('loadingState');
+      const noOrdersState = document.getElementById('noOrdersState');
+      const ordersGrid = document.getElementById('ordersGrid');
+      
+      loadingState.classList.add('hidden');
+      
+      if (filteredOrders.length === 0) {
+        noOrdersState.classList.remove('hidden');
+        ordersGrid.classList.add('hidden');
+        return;
+      }
+      
+      noOrdersState.classList.add('hidden');
+      ordersGrid.classList.remove('hidden');
+      
+      ordersGrid.innerHTML = filteredOrders.map(order => `
+        <div class="order-card bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">Order #${order.orderNumber || order._id.slice(-6)}</h3>
+                <p class="text-sm text-gray-600">Placed on ${new Date(order.createdAt || order.orderDate).toLocaleDateString()}</p>
+              </div>
+              <div class="mt-2 md:mt-0">
+                <span class="status-badge status-${order.status.replace(/_/g, ' ').replace(/^./, s => s.toLowerCase())}">${order.status.replace(/_/g, ' ').replace(/^./, s => s.toUpperCase())}</span>
+              </div>
+            </div>
+            <div class="space-y-3 mb-4">
+              ${(order.items || []).map(item => `
+                <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                  <img src="/uploads/${(item.item && item.item.images && item.item.images[0]) || 'default-item.jpg'}" 
+                       alt="${item.item ? item.item.name : 'Product'}" 
+                       onerror="this.onerror=null;this.src='/uploads/logoindex.png';"
+                       class="w-16 h-16 object-cover rounded">
+                  <div class="flex-1">
+                    <h4 class="font-medium text-gray-900">${item.item ? item.item.name : 'Unknown Product'}</h4>
+                    <p class="text-sm text-gray-600">Qty: ${item.quantity} × ₹${item.item ? (typeof item.item.price === 'number' ? item.item.price.toFixed(2) : '0.00') : '0.00'}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-semibold text-gray-900">₹${item.item ? (typeof item.item.price === 'number' ? (item.item.price * item.quantity).toFixed(2) : '0.00') : '0.00'}</p>
+                  </div>
+                  ${order.status === 'delivered' ? `<button onclick="openReturnRequestModal('${order._id}', '${item.item && item.item._id ? item.item._id : ''}')" class="ml-2 px-3 py-1 bg-pink-600 text-white rounded hover:bg-pink-700 text-sm">Request Return/Refund</button>` : ''}
+                  ${order.status === 'delivered' && item.item && item.reviewed !== true ? `<button onclick="openReviewModal('${item.item._id}', '${item.item.name}')" class="ml-2 px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm">Write Review</button>` : ''}
+                </div>
+              `).join('')}
+            </div>
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between pt-4 border-t border-gray-200">
+              <div class="mb-2 md:mb-0">
+                <p class="text-sm text-gray-600">Total Amount</p>
+                <p class="text-xl font-bold text-gray-900">₹${order.total.toFixed(2)}</p>
+              </div>
+              <div class="flex space-x-2">
+                <button onclick="viewOrderDetails('${order._id}')" 
+                        class="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                  View Details
+                </button>
+                ${shouldShowCancelButton(order) ? `
+                  <button onclick="cancelOrder('${order._id}')" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    Cancel Order
+                  </button>
+                ` : ''}
+                ${order.status === 'delivered' ? `
+                  <button onclick="reorder('${order._id}')" 
+                          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Reorder
+                  </button>
+                  <button onclick="downloadInvoice('${order._id}')" class="ml-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"><i class='fas fa-file-download mr-1'></i>Download Invoice</button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function updateStats() {
+      const stats = {
+        total: orders.length,
+        placed: orders.filter(o => o.status === 'placed').length,
+        success: orders.filter(o => o.status === 'success').length,
+        shipped: orders.filter(o => o.status === 'shipped').length,
+        out_for_delivery: orders.filter(o => o.status === 'out_for_delivery').length,
+        delivered: orders.filter(o => o.status === 'delivered').length,
+        cancelled: orders.filter(o => o.status === 'cancelled').length,
+        failed: orders.filter(o => o.status === 'failed').length,
+        inTransit: orders.filter(o => ['shipped', 'out_for_delivery'].includes(o.status)).length
+      };
+      document.getElementById('totalOrders').textContent = stats.total;
+      document.getElementById('pendingOrders').textContent = stats.placed + stats.success;
+      document.getElementById('deliveredOrders').textContent = stats.delivered;
+      document.getElementById('inTransitOrders').textContent = stats.inTransit;
+    }
+    
+    function setupEventListeners() {
+      // Filters
+      const statusFilter = document.getElementById('statusFilter');
+      if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+      const sortFilter = document.getElementById('sortFilter');
+      if (sortFilter) sortFilter.addEventListener('change', applyFilters);
+      
+      // User menu
+      const userMenuBtn = document.getElementById('userMenuBtn');
+      if (userMenuBtn) userMenuBtn.addEventListener('click', toggleUserMenu);
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) logoutBtn.addEventListener('click', logout);
+      
+      // Modal
+      const closeOrderModalBtn = document.getElementById('closeOrderModal');
+      if (closeOrderModalBtn) closeOrderModalBtn.addEventListener('click', closeOrderModal);
+      const orderModal = document.getElementById('orderModal');
+      if (orderModal) orderModal.addEventListener('click', function(e) {
+        if (e.target === this) closeOrderModal();
+      });
+    }
+    
+    function applyFilters() {
+      const statusFilter = document.getElementById('statusFilter').value;
+      const sortFilter = document.getElementById('sortFilter').value;
+      filteredOrders = statusFilter 
+        ? orders.filter(order => order.status === statusFilter || (statusFilter === 'placed' && order.status === 'success'))
+        : [...orders];
+      switch (sortFilter) {
+        case 'oldest':
+          filteredOrders.sort((a, b) => new Date(a.createdAt || a.orderDate) - new Date(b.createdAt || b.orderDate));
+          break;
+        case 'amount-high':
+          filteredOrders.sort((a, b) => b.total - a.total);
+          break;
+        case 'amount-low':
+          filteredOrders.sort((a, b) => a.total - b.total);
+          break;
+        default:
+          filteredOrders.sort((a, b) => new Date(b.createdAt || b.orderDate) - new Date(a.createdAt || a.orderDate));
+      }
+      displayOrders();
+    }
+    
+    function viewOrderDetails(orderId) {
+      const order = orders.find(o => o._id === orderId);
+      if (!order) return;
+      document.getElementById('orderModalContent').innerHTML = `
+        <div class="space-y-6">
+          <!-- Order Info -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-2">Order Information</h4>
+              <div class="space-y-2 text-sm">
+                <p><span class="font-medium">Order Number:</span> ${order.orderNumber || order._id.slice(-6)}</p>
+                <p><span class="font-medium">Order Date:</span> ${new Date(order.createdAt || order.orderDate).toLocaleDateString()}</p>
+                <p><span class="font-medium">Status:</span> 
+                  <span class="status-badge status-${order.status.replace(/_/g, ' ').replace(/^./, s => s.toLowerCase())}">${order.status.replace(/_/g, ' ').replace(/^./, s => s.toUpperCase())}</span>
+                </p>
+                ${order.status === 'delivered' && order.deliveryDate ? `<p><span class="font-medium">Delivery Date:</span> ${new Date(order.deliveryDate).toLocaleDateString()}</p>` : ''}
+              </div>
+              ${order.status === 'delivered' ? `<button onclick="downloadInvoice('${order._id}')" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"><i class='fas fa-file-download mr-2'></i>Download Invoice</button>` : ''}
+            </div>
+            <div>
+              <h4 class="font-semibold text-gray-900 mb-2">Shipping Address</h4>
+              <div class="text-sm text-gray-600">
+                <p>${order.address || (order.shippingAddress && order.shippingAddress.street) || ''}</p>
+                <p>${order.pincode || (order.shippingAddress && order.shippingAddress.pincode) || ''}</p>
+              </div>
+            </div>
+          </div>
+          <!-- Order Timeline -->
+          <div>
+            <h4 class="font-semibold text-gray-900 mb-2">Order Timeline</h4>
+            <ol class="relative border-l border-gray-200">
+              ${(order.orderTimeline || []).map(t => `
+                <li class="mb-6 ml-4">
+                  <div class="absolute w-3 h-3 bg-blue-200 rounded-full mt-1.5 -left-1.5 border border-white"></div>
+                  <time class="mb-1 text-xs font-normal leading-none text-gray-400">${new Date(t.timestamp).toLocaleString()}</time>
+                  <p class="text-sm font-semibold text-gray-900">${t.status.replace(/_/g, ' ').replace(/^./, s => s.toUpperCase())}</p>
+                  <p class="text-xs text-gray-600">${t.description || ''}</p>
+                </li>
+              `).join('')}
+            </ol>
+          </div>
+          <!-- Order Items -->
+          <div>
+            <h4 class="font-semibold text-gray-900 mb-4">Order Items</h4>
+            <div class="space-y-3">
+              ${(order.items || []).map(item => `
+                <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <img src="/uploads/${item.image || 'default-item.jpg'}" 
+                       alt="${item.name}" 
+                       onerror="this.onerror=null;this.src='/uploads/logoindex.png';"
+                       class="w-20 h-20 object-cover rounded">
+                  <div class="flex-1">
+                    <h5 class="font-medium text-gray-900">${item.name}</h5>
+                    <p class="text-sm text-gray-600">Quantity: ${item.quantity}</p>
+                    <p class="text-sm text-gray-600">Price: ₹${(typeof item.price === 'number' ? item.price.toFixed(2) : '0.00')}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-semibold text-gray-900">₹${(typeof item.total === 'number' ? item.total.toFixed(2) : '0.00')}</p>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <!-- Order Total -->
+          <div class="border-t pt-4">
+            <div class="flex justify-between items-center">
+              <span class="text-lg font-semibold text-gray-900">Total Amount</span>
+              <span class="text-2xl font-bold text-gray-900">₹${order.total.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('orderModal').classList.remove('hidden');
+    }
+    
+    function closeOrderModal() {
+      document.getElementById('orderModal').classList.add('hidden');
+    }
+    
+    function reorder(orderId) {
+      const order = orders.find(o => o._id === orderId);
+      if (!order) return;
+      
+      // Add items to cart
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      
+      order.items.forEach(item => {
+        const existingItem = cart.find(cartItem => cartItem.name === item.name);
+        if (existingItem) {
+          existingItem.quantity += item.quantity;
+        } else {
+          cart.push({
+            _id: `reorder_${Date.now()}`,
+            name: item.name,
+            price: item.price,
+            image: item.image,
+            quantity: item.quantity
+          });
+        }
+      });
+      
+      localStorage.setItem('cart', JSON.stringify(cart));
+      showNotification('Items added to cart for reorder!');
+      
+      // Redirect to dashboard
+      setTimeout(() => {
+        window.location.href = 'user-dashboard.html';
+      }, 1500);
+    }
+    
+    function toggleUserMenu() {
+      const dropdown = document.getElementById('userDropdown');
+      dropdown.classList.toggle('hidden');
+    }
+    
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('cart');
+      window.location.href = 'index.html';
+    }
+    
+    function showNotification(message, type = 'success') {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+        type === 'error' ? 'bg-red-500' : 'bg-green-500'
+      } text-white`;
+      notification.innerHTML = `
+        <div class="flex items-center">
+          <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'} mr-2"></i>
+          <span>${message}</span>
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
+    function openReturnRequestModal(orderId, itemId) {
+      document.getElementById('returnOrderId').value = orderId;
+      document.getElementById('returnItemId').value = itemId;
+      document.getElementById('returnRequestModal').classList.remove('hidden');
+    }
+    document.getElementById('closeReturnModal').onclick = function() {
+      document.getElementById('returnRequestModal').classList.add('hidden');
+    };
+    document.getElementById('returnRequestForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const orderId = document.getElementById('returnOrderId').value;
+      const itemId = document.getElementById('returnItemId').value;
+      const reason = document.getElementById('returnReason').value;
+      const comments = document.getElementById('returnComments').value;
+      const upiId = document.getElementById('returnUpiId').value;
+      if (!reason) return alert('Please select a reason.');
+      if (!upiId) return alert('Please enter your UPI ID.');
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/orders/${orderId}/return-request`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ itemId, reason, comments, upiId })
+        });
+        if (res.ok) {
+          alert('Return/refund request submitted!');
+          document.getElementById('returnRequestModal').classList.add('hidden');
+          loadOrders();
+        } else {
+          const data = await res.json();
+          alert('Error: ' + (data.message || 'Failed to submit request.'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    };
+
+    async function fetchAndShowReturnStatuses() {
+      const token = localStorage.getItem('token');
+      for (const order of filteredOrders) {
+        if (order.status !== 'delivered') continue;
+        try {
+          const res = await fetch(`/api/orders/${order._id}/return-requests`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (!res.ok) continue;
+          const requests = await res.json();
+          (order.items || []).forEach(item => {
+            const req = requests.find(r => r.itemId && (r.itemId._id === (item._id || '') || r.itemId === (item._id || '')));
+            const el = document.getElementById(`returnStatus_${order._id}_${item._id || ''}`);
+            if (el && req) {
+              el.innerHTML = `<span class='inline-block px-2 py-1 rounded text-xs font-semibold ${req.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : req.status === 'approved' ? 'bg-green-100 text-green-700' : req.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}'>Return/Refund: ${req.status.charAt(0).toUpperCase() + req.status.slice(1)}</span>` +
+                (req.adminResponse ? `<span class='ml-2 text-gray-500'>Admin: ${req.adminResponse}</span>` : '');
+            }
+          });
+        } catch {}
+      }
+    }
+
+    displayOrders = (function(orig) {
+      return function() {
+        orig.apply(this, arguments);
+        fetchAndShowReturnStatuses();
+      };
+    })(displayOrders);
+
+    function downloadInvoice(orderId) {
+      const token = localStorage.getItem('token');
+      fetch(`/api/orders/${orderId}/invoice`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          if (!response.ok) throw new Error('Failed to download invoice');
+          return response.blob();
+        })
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `invoice_${orderId}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        })
+        .catch(err => {
+          showNotification('Could not download invoice', 'error');
+        });
+    }
+
+    // Helper to determine if Cancel button should show
+    function shouldShowCancelButton(order) {
+      if (['shipped', 'out_for_delivery', 'delivered', 'cancelled'].includes(order.status)) return false;
+      const now = new Date();
+      const created = new Date(order.createdAt || order.orderDate);
+      const diffHours = (now - created) / (1000 * 60 * 60);
+      return diffHours <= 24;
+    }
+
+    // Cancel order logic
+    async function cancelOrder(orderId) {
+      if (!confirm('Are you sure you want to cancel this order? Your payment will be refunded.')) return;
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/orders/${orderId}/cancel`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showNotification('Order cancelled and refund initiated.');
+          loadOrders();
+        } else {
+          showNotification(data.message || 'Failed to cancel order', 'error');
+        }
+      } catch (err) {
+        showNotification('Failed to cancel order', 'error');
+      }
+    }
+
+    // Modern review modal star logic
+    let selectedRating = 0;
+    const labels = ["Terrible", "Bad", "Okay", "Good", "Excellent"];
+    function setupModernReviewModal() {
+      const stars = document.querySelectorAll('#modernStarBar .modern-star');
+      const starLabel = document.getElementById('starLabel');
+      function updateModernStars() {
+        stars.forEach((star, i) => {
+          star.style.color = i < selectedRating ? '#fbbf24' : '#d1d5db';
+        });
+        starLabel.textContent = selectedRating ? labels[selectedRating-1] : '';
+      }
+      stars.forEach(star => {
+        star.onmouseenter = function() {
+          const val = Number(this.dataset.val);
+          stars.forEach((s, i) => {
+            s.style.color = i < val ? '#fbbf24' : '#d1d5db';
+          });
+          starLabel.textContent = labels[val-1];
+        };
+        star.onmouseleave = function() {
+          updateModernStars();
+        };
+        star.onclick = function() {
+          selectedRating = Number(this.dataset.val);
+          updateModernStars();
+        };
+      });
+      updateModernStars();
+    }
+    // Call this after opening the modal
+    function openReviewModal(productId, productName) {
+      document.getElementById('reviewModalTitle').textContent = `Write a Review for ${productName}`;
+      document.getElementById('reviewComment').value = '';
+      document.getElementById('reviewStatus').textContent = '';
+      selectedRating = 0;
+      document.getElementById('reviewModal').classList.remove('hidden');
+      setupModernReviewModal();
+      document.getElementById('submitReviewBtn').onclick = async function() {
+        const comment = document.getElementById('reviewComment').value.trim();
+        if (!selectedRating) {
+          document.getElementById('reviewStatus').textContent = 'Please select a rating.';
+          return;
+        }
+        if (!comment) {
+          document.getElementById('reviewStatus').textContent = 'Please write a review.';
+          return;
+        }
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/reviews', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ productId, rating: selectedRating, comment })
+          });
+          if (res.ok) {
+            document.getElementById('reviewStatus').textContent = 'Review submitted!';
+            setTimeout(() => { document.getElementById('reviewModal').classList.add('hidden'); location.reload(); }, 1200);
+          } else {
+            const data = await res.json();
+            document.getElementById('reviewStatus').textContent = data.message || 'Failed to submit review.';
+          }
+        } catch (err) {
+          document.getElementById('reviewStatus').textContent = 'Error: ' + err.message;
+        }
+      };
+      document.getElementById('cancelReviewBtn').onclick = function() {
+        document.getElementById('reviewModal').classList.add('hidden');
+      };
+      document.getElementById('closeReviewModal').onclick = function() {
+        document.getElementById('reviewModal').classList.add('hidden');
+      };
+    }
+  </script>
+</body>
+</html> 

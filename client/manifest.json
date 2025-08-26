@@ -1,0 +1,21 @@
+{
+  "name": "GrowwPark",
+  "short_name": "GrowwPark",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#2563eb",
+  "description": "Your Ultimate Shopping Destination",
+  "icons": [
+    {
+      "src": "/client/uploads/logoindex.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/client/uploads/logoindex.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+} 

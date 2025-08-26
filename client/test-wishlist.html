@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Wishlist</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">Wishlist Test</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Authentication Status</h2>
+      <div id="authStatus" class="text-sm"></div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Wishlist API Test</h2>
+      <button onclick="testWishlistAPI()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Test Wishlist API
+      </button>
+      <div id="apiResult" class="mt-4 text-sm"></div>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Wishlist Items</h2>
+      <div id="wishlistItems" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
+  </div>
+
+  <script>
+    // Check authentication status
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      const authStatus = document.getElementById('authStatus');
+      
+      if (token && user) {
+        const userObj = JSON.parse(user);
+        authStatus.innerHTML = `
+          <div class="text-green-600">
+            ✅ Authenticated<br>
+            User: ${userObj.email || userObj.firstName}<br>
+            Token: ${token.substring(0, 20)}...
+          </div>
+        `;
+      } else {
+        authStatus.innerHTML = `
+          <div class="text-red-600">
+            ❌ Not authenticated<br>
+            <a href="login.html" class="text-blue-600 underline">Login here</a>
+          </div>
+        `;
+      }
+    }
+    
+    // Test wishlist API
+    async function testWishlistAPI() {
+      const token = localStorage.getItem('token');
+      const resultDiv = document.getElementById('apiResult');
+      
+      if (!token) {
+        resultDiv.innerHTML = '<div class="text-red-600">No token found. Please login first.</div>';
+        return;
+      }
+      
+      try {
+        resultDiv.innerHTML = '<div class="text-blue-600">Testing API...</div>';
+        
+        const response = await fetch('/api/wishlist', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('API Response:', response);
+        
+        if (response.ok) {
+          const wishlist = await response.json();
+          resultDiv.innerHTML = `
+            <div class="text-green-600">
+              ✅ API Success<br>
+              Items: ${wishlist.length}<br>
+              Data: ${JSON.stringify(wishlist, null, 2)}
+            </div>
+          `;
+          displayWishlistItems(wishlist);
+        } else {
+          const errorText = await response.text();
+          resultDiv.innerHTML = `
+            <div class="text-red-600">
+              ❌ API Error: ${response.status}<br>
+              ${errorText}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `
+          <div class="text-red-600">
+            ❌ Network Error: ${error.message}
+          </div>
+        `;
+      }
+    }
+    
+    // Display wishlist items
+    function displayWishlistItems(wishlist) {
+      const container = document.getElementById('wishlistItems');
+      
+      if (!wishlist || wishlist.length === 0) {
+        container.innerHTML = '<div class="text-gray-500 col-span-2 text-center py-8">No wishlist items found</div>';
+        return;
+      }
+      
+      container.innerHTML = wishlist.map(product => `
+        <div class="border rounded-lg p-4 bg-gray-50">
+          <div class="font-semibold text-gray-900 mb-2">${product.name || 'Unnamed Product'}</div>
+          <div class="text-blue-600 font-bold mb-2">₹${product.price ? product.price.toFixed(2) : '0.00'}</div>
+          <div class="text-sm text-gray-600">${product.description || 'No description'}</div>
+          <div class="text-xs text-gray-500 mt-2">ID: ${product._id}</div>
+        </div>
+      `).join('');
+    }
+    
+    // Function to get product image URL
+    function getProductImageUrl(product, index = 0) {
+      if (!product) return 'uploads/default-item.jpg';
+      
+      if (product.images && product.images.length > 0) {
+        const imageUrl = product.images[index] || product.images[0];
+        if (imageUrl && imageUrl.startsWith('uploads/')) {
+          return imageUrl;
+        }
+      }
+      
+      if (product.image && product.image.startsWith('uploads/')) {
+        return product.image;
+      }
+      
+      return 'uploads/default-item.jpg';
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAuth();
+    });
+  </script>
+</body>
+</html>

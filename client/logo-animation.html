@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arobowl Logo Animation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Page background */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #f9f9f9 0%, #e5f3ff 50%, #f0f9ff 100%);
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated background elements */
+    body::before,
+    body::after {
+      content: '';
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: linear-gradient(45deg, rgba(16, 185, 129, 0.1), rgba(30, 58, 138, 0.1));
+      animation: float 6s ease-in-out infinite;
+    }
+
+    body::before {
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+
+    body::after {
+      bottom: 10%;
+      right: 10%;
+      animation-delay: 3s;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-20px) rotate(180deg);
+      }
+    }
+
+    /* Container for logo + text */
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      overflow: hidden;
+      padding: 20px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      animation: containerGlow 2s ease-out forwards;
+      animation-delay: 1.5s;
+    }
+
+    @keyframes containerGlow {
+      0% {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+      50% {
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+      }
+      100% {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    /* Logo animation: move from right to left */
+    .logo {
+      width: 96px;
+      height: 96px;
+      animation: slideFromRight 1.2s ease-out forwards;
+    }
+
+    /* Stylish "Arobowl" text */
+    .logo-text {
+      font-size: 42px;
+      font-weight: 700;
+      text-transform: capitalize;
+      letter-spacing: 1.5px;
+      color: #002D47; /* Blue color from logo */
+      opacity: 0;
+      transform: translateY(30px);
+      animation: slideFromBottom 1.2s ease-out forwards;
+      animation-delay: 0.6s;
+    }
+
+    /* Keyframes for logo animation */
+    @keyframes slideFromRight {
+      0% {
+        opacity: 0;
+        transform: translateX(100px) rotate(-10deg) scale(0.8);
+      }
+      50% {
+        opacity: 0.8;
+        transform: translateX(20px) rotate(-5deg) scale(0.9);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) rotate(0deg) scale(1);
+      }
+    }
+
+    /* Keyframes for text animation */
+    @keyframes slideFromBottom {
+      0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+      }
+      70% {
+        opacity: 1;
+        transform: translateY(-5px) scale(1.05);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Success message animation */
+    .success-message {
+      position: absolute;
+      bottom: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 18px;
+      color: #10b981;
+      font-weight: 500;
+      opacity: 0;
+      animation: fadeInUp 0.8s ease-out forwards;
+      animation-delay: 1.8s;
+    }
+
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    /* Loading dots animation */
+    .loading-dots {
+      position: absolute;
+      bottom: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      animation: fadeIn 0.5s ease-out forwards;
+      animation-delay: 2.5s;
+    }
+
+    .loading-dots span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #002D47;
+      margin: 0 4px;
+      animation: bounce 1.4s ease-in-out infinite both;
+    }
+
+    .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-container">
+    <!-- Arobowl Logo SVG -->
+    <div class="logo w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-lg">
+      <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Bowl -->
+        <path d="M20 40 Q20 20 50 20 Q80 20 80 40 L80 60 Q80 80 50 80 Q20 80 20 60 Z" 
+              fill="none" stroke="#1e3a8a" stroke-width="3"/>
+        <!-- Leaf -->
+        <path d="M30 45 Q35 35 40 45 Q35 55 30 45" 
+              fill="#10b981" stroke="#1e3a8a" stroke-width="1"/>
+        <!-- Orange fruits -->
+        <circle cx="65" cy="45" r="4" fill="#f97316" stroke="#1e3a8a" stroke-width="1"/>
+        <circle cx="70" cy="50" r="3" fill="#f97316" stroke="#1e3a8a" stroke-width="1"/>
+        <!-- Bowl interior lines -->
+        <path d="M25 50 Q50 45 75 50" stroke="#10b981" stroke-width="2" fill="none"/>
+        <path d="M25 55 Q50 50 75 55" stroke="#f97316" stroke-width="2" fill="none"/>
+      </svg>
+    </div>
+    <div class="logo-text">Arobowl</div>
+  </div>
+  
+  <div class="success-message">
+    🎉 Welcome back! Login successful
+  </div>
+  
+  <div class="loading-dots">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <script>
+    // Auto-redirect after animation completes
+    setTimeout(() => {
+      // Get the redirect URL from URL parameters or default to user dashboard
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectUrl = urlParams.get('redirect') || 'user-dashboard.html';
+      window.location.href = redirectUrl;
+    }, 4000); // 4 seconds total animation time
+  </script>
+</body>
+</html>
