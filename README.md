@@ -280,3 +280,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 *Your fruits e-commerce store is ready to serve fresh produce to customers!* 
 >>>>>>> b74857a (Initial project files)
+"# fruitE" 
