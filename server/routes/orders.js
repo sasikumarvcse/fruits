@@ -163,9 +163,11 @@ router.post('/razorpay/create-order', auth, async (req, res) => {
   try {
     const { amount, currency = 'INR' } = req.body;
     
-    if (!amount) {
-      return res.status(400).json({ message: 'Amount is required' });
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: 'Valid amount is required' });
     }
+    
+    console.log(`💰 Creating Razorpay order for amount: ₹${amount} (${amount * 100} paise)`);
     
     // For demo purposes, create a mock order when Razorpay credentials are not available
     try {
@@ -175,35 +177,53 @@ router.post('/razorpay/create-order', auth, async (req, res) => {
       });
       
       const options = {
-        amount: amount * 100, // Razorpay expects amount in paise
+        amount: Math.round(amount * 100), // Razorpay expects amount in paise, ensure no decimal issues
         currency,
-        receipt: 'order_' + Date.now()
+        receipt: 'order_' + Date.now(),
+        notes: {
+          actual_amount: amount.toString(),
+          currency: currency
+        }
       };
       
+      console.log('🔍 Razorpay order options:', options);
+      
       const order = await razorpay.orders.create(options);
+      
+      console.log('✅ Razorpay order created:', {
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        status: order.status,
+        amount_in_rupees: (order.amount / 100).toFixed(2)
+      });
+      
       res.json({ 
         id: order.id, 
         amount: order.amount, 
         currency: order.currency,
-        status: order.status 
+        status: order.status,
+        amount_in_rupees: (order.amount / 100).toFixed(2)
       });
     } catch (razorpayError) {
-      console.log('Razorpay API not available, using mock order for development');
+      console.log('⚠️ Razorpay API not available, using mock order for development');
+      console.error('Razorpay error details:', razorpayError.message);
       
       // Create a mock order for development/demo purposes
       const mockOrder = {
         id: 'order_mock_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-        amount: amount * 100,
+        amount: Math.round(amount * 100), // Ensure exact amount in paise
         currency: currency,
         status: 'created',
-        receipt: 'order_' + Date.now()
+        receipt: 'order_' + Date.now(),
+        amount_in_rupees: amount.toFixed(2)
       };
       
-      console.log('Mock order created:', mockOrder);
+      console.log('✅ Mock order created:', mockOrder);
       res.json(mockOrder);
     }
   } catch (error) {
-    console.error('Order creation error:', error);
+    console.error('❌ Order creation error:', error);
     res.status(500).json({ message: error.message || 'Failed to create payment order' });
   }
 });
@@ -418,65 +438,4 @@ router.patch('/:orderId/status', auth, async (req, res) => {
   }
 });
 
-router.get('/:orderId/invoice', orderController.downloadInvoice);
-
 module.exports = router; 
-
-// ✅ FIXED: Proper amount conversion to paise (only once)
-router.post('/razorpay/create-order', auth, async (req, res) => {
-    try {
-        const { amount, currency = 'INR' } = req.body;
-        
-        if (!amount || amount <= 0) {
-            return res.status(400).json({ message: 'Valid amount is required' });
-        }
-        
-        // ✅ CRITICAL: Convert to paise only once, no extra fees
-        const amountInPaise = Math.round(parseFloat(amount) * 100);
-        
-        console.log('🔍 DEBUG: Received amount (INR):', amount);
-        console.log('🔍 DEBUG: Converting to paise:', amountInPaise);
-        
-        try {
-            const razorpay = new Razorpay({
-                key_id: process.env.RAZORPAY_KEY_ID,
-                key_secret: process.env.RAZORPAY_KEY_SECRET
-            });
-
-            const options = {
-                amount: amountInPaise, // ✅ Exact amount in paise, no extra charges
-                currency,
-                receipt: 'order_' + Date.now()
-            };
-
-            const order = await razorpay.orders.create(options);
-            
-            console.log('✅ Razorpay order created:', order.id, 'Amount:', order.amount, 'paise');
-
-            res.json({
-                id: order.id,
-                amount: order.amount,
-                currency: order.currency,
-                status: order.status
-            });
-
-        } catch (razorpayError) {
-            console.log('⚠️ Razorpay API not available, using mock order');
-            
-            const mockOrder = {
-                id: 'order_mock_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-                amount: amountInPaise, // ✅ Mock also uses exact amount
-                currency: currency,
-                status: 'created',
-                receipt: 'order_' + Date.now()
-            };
-
-            console.log('🔍 DEBUG: Mock order created with amount:', mockOrder.amount, 'paise');
-            res.json(mockOrder);
-        }
-
-    } catch (error) {
-        console.error('❌ Order creation error:', error);
-        res.status(500).json({ message: error.message || 'Failed to create payment order' });
-    }
-});

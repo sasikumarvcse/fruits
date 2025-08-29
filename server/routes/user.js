@@ -1,118 +1,183 @@
-// server/models/User.js - FIXED VERSION
-const mongoose = require('mongoose');
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
+const auth = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-    firstName: {
-        type: String,
-        required: true
-    },
-    lastName: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    password: {
-        type: String,
-        required: true
-    },
-    mobile: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    address: {
-        type: String
-    },
-    role: {
-        type: String,
-        enum: ['user', 'admin', 'delivery'],
-        default: 'user'
-    },
-    avatar: {
-        type: String,
-        default: ''
-    },
-    status: {
-        type: String,
-        enum: ['active', 'inactive', 'suspended'],
-        default: 'active'
-    },
-    wishlist: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Item',
-        default: []
-    }],
-    cart: [{
-        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Item' },
-        quantity: { type: Number, default: 1 }
-    }],
-    orders: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Order',
-        default: []
-    }],
-    // ✅ FIXED: Single addresses definition with all required fields
-    addresses: [{
-        name: { type: String, required: true },
-        recipientName: { type: String, required: true },
-        mobile: { type: String, required: true },
-        address: { type: String, required: true },
-        pincode: { type: String, required: true },
-        isDefault: { type: Boolean, default: false }
-    }],
-    notificationPreferences: {
-        order: { type: Boolean, default: true },
-        offer: { type: Boolean, default: true },
-        system: { type: Boolean, default: true },
-        admin: { type: Boolean, default: true }
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    }
-});
-
-// Pre-save hook with isModified check
-userSchema.pre('save', async function(next) {
+// GET /api/user/profile - Get user profile
+router.get('/profile', auth, async (req, res) => {
     try {
-        if (this.isModified('password')) {
-            console.log('🔒 Hashing password for user:', this.email);
-            this.password = await bcrypt.hash(this.password, 10);
-            console.log('✅ Password hashed successfully');
+        const user = await User.findById(req.user._id).select('-password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
         }
-        this.updatedAt = Date.now();
-        next();
+        res.json(user);
     } catch (error) {
-        console.error('❌ Error in pre-save hook:', error);
-        next(error);
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
-// Virtual for full name
-userSchema.virtual('fullName').get(function() {
-    return `${this.firstName} ${this.lastName}`;
-});
-
-// comparePassword method
-userSchema.methods.comparePassword = async function(candidatePassword) {
+// PUT /api/user/profile - Update user profile
+router.put('/profile', auth, async (req, res) => {
     try {
-        console.log('🔍 Comparing passwords for user:', this.email);
-        const result = await bcrypt.compare(candidatePassword, this.password);
-        console.log('🔒 Password comparison result:', result);
-        return result;
+        const { firstName, lastName, mobile, address } = req.body;
+        const updateData = {};
+        
+        if (firstName) updateData.firstName = firstName;
+        if (lastName) updateData.lastName = lastName;
+        if (mobile) updateData.mobile = mobile;
+        if (address) updateData.address = address;
+        
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            updateData,
+            { new: true, runValidators: true }
+        ).select('-password');
+        
+        res.json(user);
     } catch (error) {
-        console.error('❌ Error comparing passwords:', error);
-        return false;
+        console.error('Error updating user profile:', error);
+        res.status(500).json({ message: 'Server error' });
     }
-};
+});
 
-module.exports = mongoose.model('User', userSchema);
+// GET /api/user/addresses - Get user addresses
+router.get('/addresses', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user.addresses || []);
+    } catch (error) {
+        console.error('Error fetching addresses:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// POST /api/user/addresses - Add new address
+router.post('/addresses', auth, async (req, res) => {
+    try {
+        const { recipientName, mobile, address, pincode, name } = req.body;
+        
+        if (!recipientName || !mobile || !address || !pincode) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+        
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const newAddress = {
+            name: name || recipientName,
+            recipientName,
+            mobile,
+            address,
+            pincode,
+            isDefault: user.addresses.length === 0
+        };
+        
+        user.addresses.push(newAddress);
+        await user.save();
+        
+        res.status(201).json(newAddress);
+    } catch (error) {
+        console.error('Error adding address:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// PUT /api/user/addresses - Update address
+router.put('/addresses', auth, async (req, res) => {
+    try {
+        const { addressId, recipientName, mobile, address, pincode, name } = req.body;
+        
+        if (!addressId) {
+            return res.status(400).json({ message: 'Address ID is required' });
+        }
+        
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const addressIndex = user.addresses.findIndex(addr => addr._id.toString() === addressId);
+        if (addressIndex === -1) {
+            return res.status(404).json({ message: 'Address not found' });
+        }
+        
+        if (recipientName) user.addresses[addressIndex].recipientName = recipientName;
+        if (mobile) user.addresses[addressIndex].mobile = mobile;
+        if (address) user.addresses[addressIndex].address = address;
+        if (pincode) user.addresses[addressIndex].pincode = pincode;
+        if (name) user.addresses[addressIndex].name = name;
+        
+        await user.save();
+        res.json(user.addresses[addressIndex]);
+    } catch (error) {
+        console.error('Error updating address:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// DELETE /api/user/addresses - Delete address
+router.delete('/addresses', auth, async (req, res) => {
+    try {
+        const { addressId } = req.body;
+        
+        if (!addressId) {
+            return res.status(400).json({ message: 'Address ID is required' });
+        }
+        
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const addressIndex = user.addresses.findIndex(addr => addr._id.toString() === addressId);
+        if (addressIndex === -1) {
+            return res.status(404).json({ message: 'Address not found' });
+        }
+        
+        user.addresses.splice(addressIndex, 1);
+        await user.save();
+        
+        res.json({ message: 'Address deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting address:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// PUT /api/user/password - Change password
+router.put('/password', auth, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Both passwords are required' });
+        }
+        
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        const isPasswordValid = await user.comparePassword(currentPassword);
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: 'Current password is incorrect' });
+        }
+        
+        user.password = newPassword;
+        await user.save();
+        
+        res.json({ message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Error changing password:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+module.exports = router;

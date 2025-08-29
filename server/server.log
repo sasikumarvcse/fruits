@@ -1,0 +1,16 @@
+nohup: ignoring input
+🚀 Starting comprehensive e-commerce server...
+✅ Comprehensive e-commerce server setup complete
+(node:27846) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:27846) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+✅ MongoDB connected successfully
+🚀 Comprehensive e-commerce server running at: http://localhost:5000
+🔑 Razorpay key: Configured
+🧪 Test endpoint: http://localhost:5000/test
+💳 Payment API: http://localhost:5000/api/payment/get-key
+👑 Admin Dashboard: http://localhost:5000/admin-dashboard.html
+🛒 User Dashboard: http://localhost:5000/user-dashboard.html
+🥗 Products: http://localhost:5000/products.html
+🔒 Hashing password for user: testcustomer@example.com
+✅ Password hashed successfully

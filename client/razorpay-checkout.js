@@ -406,11 +406,17 @@
         console.log('Payment details:', {
             product: razorpayConfig.checkoutData.product.name,
             quantity: razorpayConfig.checkoutData.quantity,
-            total: razorpayConfig.checkoutData.total
+            total: razorpayConfig.checkoutData.total,
+            total_in_paise: razorpayConfig.checkoutData.total * 100
         });
         
         try {
             const token = localStorage.getItem('token');
+            
+            // ✅ CRITICAL: Send EXACT amount to server (no extra charges)
+            const exactAmount = razorpayConfig.checkoutData.total;
+            
+            console.log(`💰 Sending exact amount to server: ₹${exactAmount}`);
             
             // Create order on server with EXACT amount
             const orderResponse = await fetch('/api/orders/razorpay/create-order', {
@@ -420,7 +426,7 @@
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    amount: razorpayConfig.checkoutData.total,
+                    amount: exactAmount,
                     currency: 'INR'
                 })
             });
@@ -431,15 +437,22 @@
                 throw new Error('Failed to create payment order');
             }
             
-            console.log('✅ Payment order created');
+            console.log('✅ Payment order created:', orderData);
+            console.log(`💰 Order amount: ${orderData.amount} paise (₹${(orderData.amount / 100).toFixed(2)})`);
+            
+            // ✅ Verify amount consistency
+            const expectedPaise = Math.round(exactAmount * 100);
+            if (orderData.amount !== expectedPaise) {
+                console.warn(`⚠️ Amount mismatch: Expected ${expectedPaise} paise, got ${orderData.amount} paise`);
+            }
             
             // Hide quantity modal
             document.getElementById('quantityModal').style.display = 'none';
             
-            // ✅ NOW open Razorpay payment window
+            // ✅ NOW open Razorpay payment window with EXACT amount
             const options = {
                 key: razorpayConfig.keyId,
-                amount: orderData.amount,
+                amount: orderData.amount, // ✅ Use server-provided amount (already in paise)
                 currency: orderData.currency,
                 name: 'FreshFruits',
                 description: `${razorpayConfig.checkoutData.product.name} x ${razorpayConfig.checkoutData.quantity}`,
@@ -461,7 +474,13 @@
                 }
             };
             
-            console.log('🚀 Opening Razorpay payment window...');
+            console.log('🚀 Opening Razorpay payment window with options:', {
+                amount: options.amount,
+                amount_in_rupees: (options.amount / 100).toFixed(2),
+                currency: options.currency,
+                order_id: options.order_id
+            });
+            
             const rzp = new Razorpay(options);
             rzp.open();
             
@@ -575,93 +594,14 @@
     window.goBackToAddress = window.goBackToAddress || goBackToAddress;
     window.closeModal = window.closeModal || closeModal;
     window.updateQuantity = window.updateQuantity || updateQuantity;
+    window.saveAddress = window.saveAddress || saveAddress;
 
     console.log('✅ Enhanced checkout flow loaded successfully');
     console.log('🔄 Flow: Buy Now → Address Selection → Quantity Selection → Razorpay Payment');
+    console.log('✅ Global functions exported:', Object.keys(window).filter(key => 
+        ['startCheckoutFlow', 'selectAddress', 'editAddress', 'deleteAddress', 
+         'showAddressForm', 'proceedToQuantity', 'goBackToAddress', 
+         'closeModal', 'updateQuantity', 'saveAddress'].includes(key)
+    ));
 
 })();
-// ✅ FIXED: Proper address form submission
-async function saveAddress() {
-    const addressId = document.getElementById('addressId').value;
-    
-    // ✅ Get values from correct form fields
-    const addressData = {
-        recipientName: document.getElementById('recipientNameNew').value.trim(),
-        mobile: document.getElementById('mobileNew').value.trim(),
-        address: document.getElementById('addressNew').value.trim(),
-        pincode: document.getElementById('pincodeNew').value.trim(),
-        name: document.getElementById('recipientNameNew').value.trim(),
-        isDefault: razorpayConfig.userAddresses.length === 0
-    };
-    
-    // ✅ Frontend validation
-    if (!addressData.recipientName || !addressData.mobile || !addressData.address || !addressData.pincode) {
-        showNotification('Please fill all required fields', 'warning');
-        return;
-    }
-    
-    // ✅ Mobile number validation
-    if (!/^[0-9]{10}$/.test(addressData.mobile)) {
-        showNotification('Please enter a valid 10-digit mobile number', 'warning');
-        return;
-    }
-    
-    // ✅ Pincode validation
-    if (!/^[0-9]{6}$/.test(addressData.pincode)) {
-        showNotification('Please enter a valid 6-digit pincode', 'warning');
-        return;
-    }
-    
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            showNotification('Please login to continue', 'error');
-            window.location.href = '/login.html';
-            return;
-        }
-        
-        const url = '/api/user/addresses';
-        const method = addressId ? 'PUT' : 'POST';
-        
-        if (addressId) {
-            addressData.addressId = addressId;
-        }
-        
-        console.log('🔄 Saving address:', addressData);
-        
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(addressData)
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-            console.log('✅ Address saved successfully');
-            showNotification('Address saved successfully', 'success');
-            
-            // Close address form modal
-            document.getElementById('addressFormModal').style.display = 'none';
-            
-            // Reload addresses and refresh display
-            await loadUserAddresses();
-            displayAddresses();
-            
-            // Reset form
-            document.getElementById('addressForm').reset();
-            document.getElementById('addressId').value = '';
-            
-        } else {
-            console.error('❌ Address save failed:', result);
-            showNotification(result.message || 'Failed to save address', 'error');
-        }
-        
-    } catch (error) {
-        console.error('❌ Error saving address:', error);
-        showNotification('Network error. Please try again.', 'error');
-    }
-}
