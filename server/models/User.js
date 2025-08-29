@@ -62,6 +62,9 @@ const userSchema = new mongoose.Schema({
         mobile: { type: String, required: true },
         address: { type: String, required: true },
         pincode: { type: String, required: true },
+        city: { type: String, required: true },
+        state: { type: String, required: true },
+        addressType: { type: String, enum: ['home', 'work', 'other'], default: 'home' },
         isDefault: { type: Boolean, default: false }
     }],
     notificationPreferences: {

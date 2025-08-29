@@ -2598,29 +2598,29 @@
       document.getElementById('ordersModal').style.display = 'none';
     }
 
-    // Modern buyNow function (only one definition)
+    // Modern buyNow function using enhanced checkout flow
     async function buyNow(productId) {
-      const qty = window.currentProductQuantity || 1;
-      // Fetch addresses from backend if logged in, else from localStorage
-      let addresses = [];
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const res = await fetch('/api/user/addresses', { headers: { Authorization: `Bearer ${token}` } });
-          addresses = await res.json();
-        } catch (e) { addresses = []; }
-      } else {
-        addresses = JSON.parse(localStorage.getItem('addresses') || '[]');
-      }
-      const defaultAddress = addresses.find(a => a.isDefault) || addresses[0];
-      if (defaultAddress) {
-        fetch(`/api/items/${productId}`)
-          .then(res => res.json())
-          .then(product => openRazorpayCheckout(product, qty, defaultAddress));
-      } else {
-        fetch(`/api/items/${productId}`)
-          .then(res => res.json())
-          .then(product => openCheckoutModal(product, qty));
+      try {
+        const product = await fetch(`/api/items/${productId}`).then(res => res.json());
+        if (!product) {
+          showNotification('Product not found', 'error');
+          return;
+        }
+        
+        // Start the enhanced checkout flow: Address → Quantity → Payment
+        if (typeof startCheckoutFlow === 'function') {
+          startCheckoutFlow(
+            product._id,
+            product.name,
+            product.price,
+            product.image
+          );
+        } else {
+          showNotification('Checkout system not loaded', 'error');
+        }
+      } catch (error) {
+        console.error('Error starting checkout:', error);
+        showNotification('Failed to start checkout', 'error');
       }
     }
 
@@ -2672,56 +2672,7 @@
       // window.location.href = '/checkout.html';
     }
 
-    // Razorpay integration with shipping info
-    function openRazorpayCheckout(product, qty, addressObj) {
-      const subtotal = qty * product.price;
-      const shipping = subtotal > 1000 ? 0 : 50;
-      const total = subtotal + shipping;
-      const options = {
-        key: window.RAZORPAY_KEY_ID || 'rzp_live_gBP9geXusrKWUg', // Live Razorpay key
-        amount: total * 100,
-        currency: 'INR',
-        name: product.name,
-        description: 'Order Payment',
-        image: product.image ? (product.image.startsWith('http') ? product.image : '/uploads/' + product.image) : '/uploads/logoindex.png',
-        handler: function (response) {
-          // On payment success, place the order
-          fetch('/api/orders/create', {
-          method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({
-              productId: product._id,
-              quantity: qty,
-              recipientName: addressObj.name,
-              mobile: addressObj.mobile,
-              address: addressObj.address,
-              pincode: addressObj.pincode
-            })
-          })
-          .then(res => res.json())
-          .then(order => {
-            alert('Order placed successfully!');
-            closeCheckoutModal();
-          })
-          .catch(() => alert('Order placement failed.'));
-        },
-        prefill: {
-          name: addressObj.name,
-          contact: addressObj.mobile
-        },
-        notes: {
-          address: addressObj.address,
-          pincode: addressObj.pincode,
-          quantity: qty
-        },
-        theme: { color: '#3399cc' }
-      };
-      const rzp = new Razorpay(options);
-      rzp.open();
-    }
+    // Enhanced checkout flow is now handled by razorpay-checkout.js
 
     // Fetch and render orders
     async function fetchAndRenderOrders() {
@@ -3044,83 +2995,82 @@
     }
   </script>
 
-// ✅ FIXED: Clean address display without HTML encoding errors
-<script>
-displayAddresses() {
-    const addressList = document.getElementById('addressList');
-    if (!addressList) {
-        console.error('❌ Address list element not found!');
-        return;
-    }
-    
-    if (razorpayConfig.userAddresses.length === 0) {
-        addressList.innerHTML = `
-            <div class="no-addresses">
-                <p>No saved addresses found</p>
-                <p>Please add a delivery address to continue</p>
-            </div>
-        `;
-        const addressNextBtn = document.getElementById('addressNextBtn');
-        if (addressNextBtn) addressNextBtn.disabled = true;
-        return;
-    }
-    
-    // ✅ Clean HTML generation without encoding issues
-    const addressHTML = razorpayConfig.userAddresses.map(address => {
-        return `
-            <div class="address-item ${address.isDefault ? 'default' : ''}" 
-                 data-address-id="${address._id}" 
-                 onclick="selectAddress('${address._id}')">
-                <div class="address-header">
-                    <h4>${address.name || 'Address'}</h4>
-                    ${address.isDefault ? '<span class="default-badge">Default</span>' : ''}
-                </div>
-                <div class="address-details">
-                    <p><strong>${address.recipientName || address.name || 'N/A'}</strong></p>
-                    <p>${address.mobile || 'N/A'}</p>
-                    <p>${address.address || 'N/A'}</p>
-                    <p>PIN: ${address.pincode || 'N/A'}</p>
-                </div>
-                <div class="address-actions" onclick="event.stopPropagation()">
-                    <button class="edit-btn" onclick="editAddress('${address._id}')">Edit</button>
-                    <button class="delete-btn" onclick="deleteAddress('${address._id}')">Delete</button>
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    addressList.innerHTML = addressHTML;
-}
-
-// ✅ Add this notification function to your razorpay-checkout.js
-function showNotification(message, type = 'info') {
-    console.log(`[${type.toUpperCase()}] ${message}`);
-    
-    // Remove existing notifications
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(n => n.remove());
-    
-    // Create new notification
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <div class="notification-content">
-            <span class="notification-message">${message}</span>
-            <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
-        </div>
-    `;
-    
-    // Add to page
-    document.body.appendChild(notification);
-    
-    // Auto-remove after 4 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
+  <script>
+    // ✅ FIXED: Clean address display without HTML encoding errors
+    function displayAddresses() {
+        const addressList = document.getElementById('addressList');
+        if (!addressList) {
+            console.error('❌ Address list element not found!');
+            return;
         }
-    }, 4000);
-}
+        
+        if (razorpayConfig.userAddresses.length === 0) {
+            addressList.innerHTML = `
+                <div class="no-addresses">
+                    <p>No saved addresses found</p>
+                    <p>Please add a delivery address to continue</p>
+                </div>
+            `;
+            const addressNextBtn = document.getElementById('addressNextBtn');
+            if (addressNextBtn) addressNextBtn.disabled = true;
+            return;
+        }
+        
+        // ✅ Clean HTML generation without encoding issues
+        const addressHTML = razorpayConfig.userAddresses.map(address => {
+            return `
+                <div class="address-item ${address.isDefault ? 'default' : ''}" 
+                     data-address-id="${address._id}" 
+                     onclick="selectAddress('${address._id}')">
+                    <div class="address-header">
+                        <h4>${address.name || 'Address'}</h4>
+                        ${address.isDefault ? '<span class="default-badge">Default</span>' : ''}
+                    </div>
+                    <div class="address-details">
+                        <p><strong>${address.recipientName || address.name || 'N/A'}</strong></p>
+                        <p>${address.mobile || 'N/A'}</p>
+                        <p>${address.address || 'N/A'}</p>
+                        <p>PIN: ${address.pincode || 'N/A'}</p>
+                    </div>
+                    <div class="address-actions" onclick="event.stopPropagation()">
+                        <button class="edit-btn" onclick="editAddress('${address._id}')">Edit</button>
+                        <button class="delete-btn" onclick="deleteAddress('${address._id}')">Delete</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        addressList.innerHTML = addressHTML;
+    }
 
+    // ✅ Add this notification function to your razorpay-checkout.js
+    function showNotification(message, type = 'info') {
+        console.log(`[${type.toUpperCase()}] ${message}`);
+        
+        // Remove existing notifications
+        const existingNotifications = document.querySelectorAll('.notification');
+        existingNotifications.forEach(n => n.remove());
+        
+        // Create new notification
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-message">${message}</span>
+                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+            </div>
+        `;
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 4 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 4000);
+    }
   </script>
 
 
@@ -3843,6 +3793,112 @@ function showNotification(message, type = 'info') {
   }
   </style>
   
+
+  <!-- Address Modal -->
+  <div id="addressModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeAddressModal()">&times;</span>
+      <h2>Select Delivery Address</h2>
+      <div id="addressList"></div>
+      <button id="addAddressBtn" class="btn btn-primary">Add New Address</button>
+      <button id="addressNextBtn" class="btn btn-success" disabled>Continue</button>
+    </div>
+  </div>
+
+  <!-- Address Form Modal -->
+  <div id="addressFormModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeAddressFormModal()">&times;</span>
+      <h2 id="addressFormTitle">Add New Address</h2>
+      <form id="addressForm">
+        <input type="hidden" id="addressId" name="addressId">
+        <div class="form-group">
+          <label for="recipientName">Recipient Name *</label>
+          <input type="text" id="recipientName" name="recipientName" required>
+        </div>
+        <div class="form-group">
+          <label for="mobile">Mobile Number *</label>
+          <input type="tel" id="mobile" name="mobile" pattern="[0-9]{10}" required>
+        </div>
+        <div class="form-group">
+          <label for="address">Address *</label>
+          <textarea id="address" name="address" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="pincode">PIN Code *</label>
+          <input type="text" id="pincode" name="pincode" pattern="[0-9]{6}" required>
+        </div>
+        <div class="form-group">
+          <label for="city">City *</label>
+          <input type="text" id="city" name="city" required>
+        </div>
+        <div class="form-group">
+          <label for="city">State *</label>
+          <input type="text" id="state" name="state" required>
+        </div>
+        <div class="form-group">
+          <label for="addressType">Address Type</label>
+          <select id="addressType" name="addressType">
+            <option value="home">Home</option>
+            <option value="work">Work</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="isDefault" name="isDefault">
+            Set as default address
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save Address</button>
+          <button type="button" class="btn btn-secondary" onclick="closeAddressFormModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Quantity Selection Modal -->
+  <div id="quantityModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeQuantityModal()">&times;</span>
+      <h2>Select Quantity</h2>
+      <div class="product-summary">
+        <img id="quantityProductImage" src="" alt="Product" class="product-image">
+        <div class="product-details">
+          <h3 id="quantityProductName"></h3>
+          <p id="quantityProductPrice"></p>
+        </div>
+      </div>
+      <div class="quantity-controls">
+        <button id="decreaseQty" class="btn btn-secondary">-</button>
+        <input type="number" id="quantityInput" value="1" min="1" max="10">
+        <button id="increaseQty" class="btn btn-secondary">+</button>
+      </div>
+      <div class="price-breakdown">
+        <div class="price-row">
+          <span>Product Price:</span>
+          <span id="basePrice">₹0</span>
+        </div>
+        <div class="price-row">
+          <span>Quantity:</span>
+          <span id="quantityDisplay">1</span>
+        </div>
+        <div class="price-row">
+          <span>Delivery Charge:</span>
+          <span>₹50</span>
+        </div>
+        <div class="price-row total">
+          <span>Total:</span>
+          <span id="totalPrice">₹0</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="backToAddressBtn" class="btn btn-secondary">Back to Address</button>
+        <button id="proceedToPayment" class="btn btn-success">Proceed to Payment</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Your scripts -->
   <script src="/razorpay-checkout.js"></script>

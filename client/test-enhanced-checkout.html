@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Checkout Test - Arobowl</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .test-button.warning {
+            background: #ff9800;
+        }
+        .test-button.warning:hover {
+            background: #f57c00;
+        }
+        .test-button.danger {
+            background: #f44336;
+        }
+        .test-button.danger:hover {
+            background: #d32f2f;
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f9f9f9;
+        }
+        .product-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Enhanced Checkout System Test</h1>
+        <p>This page tests the complete checkout flow: Address → Quantity → Payment</p>
+        
+        <div class="test-section">
+            <h2>1. Test Product</h2>
+            <div class="product-card">
+                <img src="/uploads/logoindex.png" alt="Test Product" class="product-image">
+                <h3>Test Product</h3>
+                <p>Price: ₹299</p>
+                <p>Description: This is a test product to verify the enhanced checkout flow</p>
+                <button class="test-button" onclick="testBuyNow()">🛒 Test Buy Now</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Test Functions</h2>
+            <button class="test-button" onclick="testAddressModal()">📍 Test Address Modal</button>
+            <button class="test-button" onclick="testQuantityModal()">🔢 Test Quantity Modal</button>
+            <button class="test-button" onclick="testAddressForm()">✏️ Test Address Form</button>
+            <button class="test-button warning" onclick="testNotification()">🔔 Test Notification</button>
+        </div>
+
+        <div class="test-section">
+            <h2>3. System Status</h2>
+            <div id="systemStatus">
+                <div class="status info">Checking system status...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. Test Results</h2>
+            <div id="testResults">
+                <p>No tests run yet. Click the buttons above to test the system.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the enhanced checkout system -->
+    <script src="/razorpay-checkout.js"></script>
+    
+    <script>
+        // Test functions
+        function testBuyNow() {
+            addTestResult('🛒 Testing Buy Now flow...', 'info');
+            
+            try {
+                if (typeof startCheckoutFlow === 'function') {
+                    startCheckoutFlow(
+                        'test_product_123',
+                        'Test Product',
+                        299,
+                        '/uploads/logoindex.png'
+                    );
+                    addTestResult('✅ Buy Now flow started successfully', 'success');
+                } else {
+                    addTestResult('❌ startCheckoutFlow function not found', 'error');
+                }
+            } catch (error) {
+                addTestResult(`❌ Error in Buy Now test: ${error.message}`, 'error');
+            }
+        }
+
+        function testAddressModal() {
+            addTestResult('📍 Testing Address Modal...', 'info');
+            
+            try {
+                const modal = document.getElementById('addressModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    addTestResult('✅ Address Modal opened successfully', 'success');
+                } else {
+                    addTestResult('❌ Address Modal not found', 'error');
+                }
+            } catch (error) {
+                addTestResult(`❌ Error in Address Modal test: ${error.message}`, 'error');
+            }
+        }
+
+        function testQuantityModal() {
+            addTestResult('🔢 Testing Quantity Modal...', 'info');
+            
+            try {
+                const modal = document.getElementById('quantityModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    addTestResult('✅ Quantity Modal opened successfully', 'success');
+                } else {
+                    addTestResult('❌ Quantity Modal not found', 'error');
+                }
+            } catch (error) {
+                addTestResult(`❌ Error in Quantity Modal test: ${error.message}`, 'error');
+            }
+        }
+
+        function testAddressForm() {
+            addTestResult('✏️ Testing Address Form...', 'info');
+            
+            try {
+                const modal = document.getElementById('addressFormModal');
+                if (modal) {
+                    modal.style.display = 'block';
+                    addTestResult('✅ Address Form opened successfully', 'success');
+                } else {
+                    addTestResult('❌ Address Form not found', 'error');
+                }
+            } catch (error) {
+                addTestResult(`❌ Error in Address Form test: ${error.message}`, 'error');
+            }
+        }
+
+        function testNotification() {
+            addTestResult('🔔 Testing Notification System...', 'info');
+            
+            try {
+                if (typeof showNotification === 'function') {
+                    showNotification('This is a test notification!', 'success');
+                    addTestResult('✅ Notification system working', 'success');
+                } else {
+                    addTestResult('❌ showNotification function not found', 'error');
+                }
+            } catch (error) {
+                addTestResult(`❌ Error in Notification test: ${error.message}`, 'error');
+            }
+        }
+
+        function addTestResult(message, type) {
+            const resultsDiv = document.getElementById('testResults');
+            const resultElement = document.createElement('div');
+            resultElement.className = `status ${type}`;
+            resultElement.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            resultsDiv.appendChild(resultElement);
+        }
+
+        // Check system status on load
+        window.addEventListener('DOMContentLoaded', function() {
+            const statusDiv = document.getElementById('systemStatus');
+            
+            // Check if required functions are available
+            const requiredFunctions = [
+                'startCheckoutFlow',
+                'selectAddress',
+                'editAddress',
+                'deleteAddress',
+                'showAddressForm',
+                'showNotification'
+            ];
+            
+            const availableFunctions = requiredFunctions.filter(func => typeof window[func] === 'function');
+            
+            if (availableFunctions.length === requiredFunctions.length) {
+                statusDiv.innerHTML = '<div class="status success">✅ All required functions are available</div>';
+            } else {
+                const missingFunctions = requiredFunctions.filter(func => typeof window[func] !== 'function');
+                statusDiv.innerHTML = `<div class="status error">❌ Missing functions: ${missingFunctions.join(', ')}</div>`;
+            }
+            
+            // Check if modals exist
+            const requiredModals = ['addressModal', 'addressFormModal', 'quantityModal'];
+            const existingModals = requiredModals.filter(modalId => document.getElementById(modalId));
+            
+            if (existingModals.length === requiredModals.length) {
+                statusDiv.innerHTML += '<div class="status success">✅ All required modals are present</div>';
+            } else {
+                const missingModals = requiredModals.filter(modalId => !document.getElementById(modalId));
+                statusDiv.innerHTML += `<div class="status error">❌ Missing modals: ${missingModals.join(', ')}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>

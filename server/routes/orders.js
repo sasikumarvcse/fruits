@@ -161,13 +161,27 @@ router.get('/', auth, async (req, res) => {
 // POST /api/orders/razorpay/create-order - Create Razorpay order
 router.post('/razorpay/create-order', auth, async (req, res) => {
   try {
-    const { amount, currency = 'INR' } = req.body;
+    const { productId, quantity, amount, deliveryAddress, currency = 'INR' } = req.body;
     
     if (!amount || amount <= 0) {
       return res.status(400).json({ message: 'Valid amount is required' });
     }
     
-    console.log(`💰 Creating Razorpay order for amount: ₹${amount} (${amount * 100} paise)`);
+    if (!productId || !quantity || !deliveryAddress) {
+      return res.status(400).json({ message: 'Product details and delivery address are required' });
+    }
+    
+    console.log(`💰 Creating Razorpay order for product: ${productId}, quantity: ${quantity}, amount: ₹${amount} (${amount * 100} paise)`);
+    
+    // Store order details in session for verification
+    req.session.pendingOrder = {
+      productId,
+      quantity,
+      amount,
+      deliveryAddress,
+      userId: req.user.id,
+      timestamp: Date.now()
+    };
     
     // For demo purposes, create a mock order when Razorpay credentials are not available
     try {
@@ -181,6 +195,9 @@ router.post('/razorpay/create-order', auth, async (req, res) => {
         currency,
         receipt: 'order_' + Date.now(),
         notes: {
+          productId: productId,
+          quantity: quantity.toString(),
+          deliveryCharge: '50',
           actual_amount: amount.toString(),
           currency: currency
         }
@@ -215,7 +232,7 @@ router.post('/razorpay/create-order', auth, async (req, res) => {
         amount: Math.round(amount * 100), // Ensure exact amount in paise
         currency: currency,
         status: 'created',
-        receipt: 'order_' + Date.now(),
+        receipt: 'order_mock_' + Date.now(),
         amount_in_rupees: amount.toFixed(2)
       };
       
@@ -231,7 +248,7 @@ router.post('/razorpay/create-order', auth, async (req, res) => {
 // POST /api/orders/razorpay/verify-payment - Verify Razorpay payment
 router.post('/razorpay/verify-payment', auth, async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, realOrderDetails } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
     
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ message: 'Payment verification failed' });
@@ -259,42 +276,59 @@ router.post('/razorpay/verify-payment', auth, async (req, res) => {
     }
     
     if (!isValidPayment) {
-      // Create failed order record
-      const failedOrder = new Order({
-        user: req.user._id,
-        items: realOrderDetails.items || [{
-          item: realOrderDetails.productId,
-          quantity: realOrderDetails.quantity
-        }],
-        total: realOrderDetails.total,
-        recipientName: realOrderDetails.recipientName,
-        mobile: realOrderDetails.mobile,
-        address: realOrderDetails.address,
-        pincode: realOrderDetails.pincode,
-        status: 'failed',
-        paymentMethod: 'Razorpay',
-        paymentStatus: 'Failed',
-        paymentId: razorpay_payment_id,
-        orderTimeline: [{
-          status: 'failed',
-          timestamp: new Date(),
-          description: 'Payment verification failed',
-          updatedBy: req.user._id
-        }]
-      });
-      await failedOrder.save();
-      return res.status(400).json({ success: false, message: 'Invalid payment signature' });
+      return res.status(400).json({ message: 'Payment verification failed' });
     }
-    // Payment is verified, create the order in your DB
-    const order = await orderController.createOrderFromRazorpay(
-      { ...realOrderDetails, user: req.user._id },
-      razorpay_payment_id,
-      razorpay_order_id
-    );
-    res.status(201).json({ success: true, message: 'Order placed successfully', order });
+    
+    // Get pending order details from session
+    const pendingOrder = req.session.pendingOrder;
+    if (!pendingOrder) {
+      return res.status(400).json({ message: 'Order details not found' });
+    }
+    
+    // Create the actual order in database
+    try {
+      const order = new Order({
+        user: req.user.id,
+        items: [{
+          item: pendingOrder.productId,
+          quantity: pendingOrder.quantity
+        }],
+        totalAmount: pendingOrder.amount,
+        deliveryAddress: pendingOrder.deliveryAddress,
+        paymentMethod: 'Razorpay',
+        paymentStatus: 'paid',
+        paymentId: razorpay_payment_id,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpayOrderId: razorpay_order_id,
+        status: 'confirmed',
+        deliveryCharge: 50
+      });
+      
+      await order.save();
+      
+      // Clear pending order from session
+      delete req.session.pendingOrder;
+      
+      console.log('✅ Order created successfully after payment verification:', order._id);
+      
+      res.json({
+        success: true,
+        message: 'Payment verified and order created successfully',
+        order: {
+          id: order._id,
+          totalAmount: order.totalAmount,
+          status: order.status
+        }
+      });
+      
+    } catch (orderError) {
+      console.error('❌ Error creating order after payment verification:', orderError);
+      res.status(500).json({ message: 'Payment verified but failed to create order' });
+    }
+    
   } catch (error) {
-    console.error('Error in /razorpay/verify-payment:', error);
-    res.status(500).json({ success: false, message: error.message || 'Internal Server Error' });
+    console.error('❌ Payment verification error:', error);
+    res.status(500).json({ message: error.message || 'Payment verification failed' });
   }
 });
 
