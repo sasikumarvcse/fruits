@@ -58,6 +58,7 @@ const userSchema = new mongoose.Schema({
     }],
     addresses: [{
         name: { type: String, required: true },
+        recipientName: { type: String, required: true },
         mobile: { type: String, required: true },
         address: { type: String, required: true },
         pincode: { type: String, required: true },
@@ -114,15 +115,5 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
         return false;
     }
 };
-
-addresses: [{
-    name: { type: String, required: true },
-    recipientName: { type: String, required: true },  // ✅ ADDED for consistency
-    mobile: { type: String, required: true },
-    address: { type: String, required: true },
-    pincode: { type: String, required: true },
-    isDefault: { type: Boolean, default: false }
-}],
-
 
 module.exports = mongoose.model('User', userSchema);

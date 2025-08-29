@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Integration Test</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .test-button {
+            background: #22c55e;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        
+        .test-button:hover {
+            background: #16a34a;
+        }
+        
+        .test-button.danger {
+            background: #ef4444;
+        }
+        
+        .test-button.danger:hover {
+            background: #dc2626;
+        }
+        
+        .test-button.warning {
+            background: #f59e0b;
+        }
+        
+        .test-button.warning:hover {
+            background: #d97706;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+        
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .status.error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+        
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Razorpay Integration Test</h1>
+        <p>This page tests the Razorpay integration and address management functionality.</p>
+        
+        <div class="test-section">
+            <h2>🔑 Razorpay Key Test</h2>
+            <button class="test-button" onclick="testRazorpayKey()">Test Razorpay Key</button>
+            <div id="keyStatus" class="status" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🏠 Address Management Test</h2>
+            <button class="test-button" onclick="testAddressManagement()">Test Address Management</button>
+            <button class="test-button warning" onclick="showAddressModal()">Show Address Modal</button>
+            <div id="addressStatus" class="status" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>💳 Checkout Flow Test</h2>
+            <button class="test-button" onclick="testCheckoutFlow()">Test Complete Checkout</button>
+            <div id="checkoutStatus" class="status" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🧹 Cleanup</h2>
+            <button class="test-button danger" onclick="clearTestData()">Clear Test Data</button>
+        </div>
+    </div>
+
+    <!-- Include the enhanced checkout functionality -->
+    <script src="razorpay-checkout.js"></script>
+    
+    <script>
+        // Test Razorpay key loading
+        async function testRazorpayKey() {
+            const statusDiv = document.getElementById('keyStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Testing Razorpay key...';
+            
+            try {
+                const response = await fetch('/api/payment/get-key');
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = `✅ Razorpay key loaded: ${data.key}`;
+                    console.log('✅ Razorpay key test passed:', data);
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `❌ Failed to load key: ${data.message}`;
+                    console.error('❌ Razorpay key test failed:', data);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Network error: ${error.message}`;
+                console.error('❌ Network error:', error);
+            }
+        }
+        
+        // Test address management
+        async function testAddressManagement() {
+            const statusDiv = document.getElementById('addressStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Testing address management...';
+            
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '❌ No authentication token found. Please login first.';
+                    return;
+                }
+                
+                const response = await fetch('/api/user/addresses', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const addresses = await response.json();
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = `✅ Address management working. Found ${addresses.length} addresses.`;
+                    console.log('✅ Address management test passed:', addresses);
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `❌ Address API error: ${response.status}`;
+                    console.error('❌ Address management test failed:', response.status);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Network error: ${error.message}`;
+                console.error('❌ Network error:', error);
+            }
+        }
+        
+        // Test complete checkout flow
+        function testCheckoutFlow() {
+            const statusDiv = document.getElementById('checkoutStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Testing checkout flow...';
+            
+            try {
+                if (typeof window.startCheckoutFlow === 'function') {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ Checkout flow functions loaded successfully!';
+                    console.log('✅ Checkout flow test passed');
+                    
+                    // Test with a sample product
+                    const testProduct = {
+                        id: 'test_product_123',
+                        name: 'Test Product',
+                        price: 100,
+                        image: '/uploads/logoindex.png'
+                    };
+                    
+                    console.log('🧪 Starting test checkout with:', testProduct);
+                    window.startCheckoutFlow(
+                        testProduct.id,
+                        testProduct.name,
+                        testProduct.price,
+                        testProduct.image
+                    );
+                    
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '❌ Checkout flow functions not loaded!';
+                    console.error('❌ Checkout flow test failed: functions not available');
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Checkout flow error: ${error.message}`;
+                console.error('❌ Checkout flow error:', error);
+            }
+        }
+        
+        // Show address modal for testing
+        function showAddressModal() {
+            if (typeof window.showAddressForm === 'function') {
+                window.showAddressForm();
+            } else {
+                alert('Address management not loaded. Please refresh the page.');
+            }
+        }
+        
+        // Clear test data
+        function clearTestData() {
+            localStorage.removeItem('testData');
+            location.reload();
+        }
+        
+        // Page load initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🧪 Razorpay integration test page loaded');
+            
+            // Check if required functions are available
+            const requiredFunctions = [
+                'startCheckoutFlow',
+                'selectAddress',
+                'editAddress',
+                'deleteAddress',
+                'showAddressForm',
+                'proceedToQuantity',
+                'goBackToAddress',
+                'closeModal',
+                'updateQuantity',
+                'saveAddress'
+            ];
+            
+            const availableFunctions = requiredFunctions.filter(func => 
+                typeof window[func] === 'function'
+            );
+            
+            console.log('✅ Available functions:', availableFunctions);
+            console.log('❌ Missing functions:', requiredFunctions.filter(func => 
+                !availableFunctions.includes(func)
+            ));
+            
+            if (availableFunctions.length === requiredFunctions.length) {
+                console.log('🎉 All required functions are available!');
+            } else {
+                console.warn('⚠️ Some functions are missing. Check the console for details.');
+            }
+        });
+    </script>
+</body>
+</html>
