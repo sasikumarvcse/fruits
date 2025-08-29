@@ -12,7 +12,7 @@
             selectedAddress: null,
             quantity: 1,
             total: 0,
-            deliveryCharge: 50 // Fixed delivery charge
+            deliveryCharge: 0 // No delivery charge for now
         },
         userAddresses: []
     };
@@ -403,8 +403,7 @@
         const product = razorpayConfig.checkoutData.product;
         const quantity = razorpayConfig.checkoutData.quantity;
         const basePrice = product.price * quantity;
-        const deliveryCharge = razorpayConfig.checkoutData.deliveryCharge;
-        const total = basePrice + deliveryCharge;
+        const total = basePrice; // No delivery charge
         
         document.getElementById('basePrice').textContent = `₹${basePrice.toFixed(2)}`;
         document.getElementById('quantityDisplay').textContent = quantity;
@@ -496,7 +495,7 @@
             },
             notes: {
                 address: razorpayConfig.checkoutData.selectedAddress.address,
-                delivery_charge: '₹50'
+                delivery_charge: '₹0'
             },
             theme: {
                 color: '#4CAF50'
@@ -552,7 +551,7 @@
                     selectedAddress: null,
                     quantity: 1,
                     total: 0,
-                    deliveryCharge: 50
+                    deliveryCharge: 0
                 };
                 
                 // Redirect to orders page or show success

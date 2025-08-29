@@ -197,7 +197,7 @@ router.post('/razorpay/create-order', auth, async (req, res) => {
         notes: {
           productId: productId,
           quantity: quantity.toString(),
-          deliveryCharge: '50',
+          deliveryCharge: '0',
           actual_amount: amount.toString(),
           currency: currency
         }
@@ -301,7 +301,7 @@ router.post('/razorpay/verify-payment', auth, async (req, res) => {
         razorpayPaymentId: razorpay_payment_id,
         razorpayOrderId: razorpay_order_id,
         status: 'confirmed',
-        deliveryCharge: 50
+        deliveryCharge: 0
       });
       
       await order.save();
