@@ -22,22 +22,22 @@
   <nav class="bg-white shadow-sm border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
-            <div class="flex items-center space-x-4">
-                      <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
-              <i class="fas fa-bowl-food text-white text-sm"></i>
-            </div>
-            <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-              🥗 Arobowl Admin
-            </span>
-                </div>
+        <div class="flex items-center space-x-4">
+          <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-lg flex items-center justify-center">
+            <i class="fas fa-bowl-food text-white text-sm"></i>
+          </div>
+          <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+            🥗 Arobowl Admin
+          </span>
+        </div>
         <div class="flex items-center space-x-4">
           <span id="adminName" class="text-gray-700 font-medium">Admin</span>
           <button onclick="logout()" class="text-red-600 hover:text-red-800 transition-colors">
             <i class="fas fa-sign-out-alt mr-1"></i>Logout
           </button>
-            </div>
-          </div>
         </div>
+      </div>
+    </div>
   </nav>
 
   <div class="flex h-screen bg-gray-50">
@@ -70,62 +70,62 @@
       <div id="dashboard" class="tab-content active p-6">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">🥗 Arobowl Dashboard</h1>
 
-    <!-- Stats Cards -->
+        <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div class="stat-card bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div class="flex items-center">
               <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <i class="fas fa-users text-blue-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
+              </div>
+              <div class="ml-4">
                 <p class="text-sm text-gray-600">Total Users</p>
                 <p id="statUsers" class="text-2xl font-bold text-gray-800">0</p>
-                </div>
               </div>
+            </div>
           </div>
           
           <div class="stat-card bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div class="flex items-center">
-                          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <i class="fas fa-bowl-food text-green-600 text-xl"></i>
-            </div>
-                <div class="ml-4">
+              <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-bowl-food text-green-600 text-xl"></i>
+              </div>
+              <div class="ml-4">
                 <p class="text-sm text-gray-600">Total Products</p>
                 <p id="statProducts" class="text-2xl font-bold text-gray-800">0</p>
-                </div>
               </div>
+            </div>
           </div>
           
           <div class="stat-card bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div class="flex items-center">
               <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <i class="fas fa-shopping-cart text-yellow-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
+              </div>
+              <div class="ml-4">
                 <p class="text-sm text-gray-600">Total Orders</p>
                 <p id="statOrders" class="text-2xl font-bold text-gray-800">0</p>
-                </div>
               </div>
+            </div>
           </div>
           
           <div class="stat-card bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div class="flex items-center">
               <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
                 <i class="fas fa-dollar-sign text-emerald-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
+              </div>
+              <div class="ml-4">
                 <p class="text-sm text-gray-600">Total Revenue</p>
                 <p id="statRevenue" class="text-2xl font-bold text-gray-800">₹0</p>
               </div>
             </div>
-              </div>
-            </div>
+          </div>
+        </div>
             
         <!-- Recent Orders -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200">
           <div class="p-6 border-b border-gray-200">
             <h2 class="text-xl font-semibold text-gray-800">Recent Orders</h2>
-              </div>
+          </div>
           <div class="p-6">
             <div id="recentOrders" class="space-y-4">
               <p class="text-gray-500 text-center">Loading recent orders...</p>
@@ -141,35 +141,32 @@
           <button onclick="openAddProductModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
             <i class="fas fa-plus mr-2"></i>Add New Product
           </button>
-          </div>
+        </div>
 
         <!-- Search and Filters -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div class="flex flex-col md:flex-row gap-4">
             <div class="flex-1">
               <input type="text" id="productSearch" placeholder="Search products..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-              </div>
+            </div>
             <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
               <option value="">All Categories</option>
-              <option value="Apples">🍎 Apples</option>
-              <option value="Bananas">🍌 Bananas</option>
-              <option value="Oranges">🍊 Oranges</option>
-              <option value="Berries">🫐 Berries</option>
-              <option value="Vegetables">🥕 Vegetables</option>
-              <option value="Organic">🌱 Organic</option>
-                </select>
+              <option value="basic">🥉 Basic</option>
+              <option value="standard">🥈 Standard</option>
+              <option value="premium">🥇 Premium</option>
+            </select>
             <button onclick="loadProducts()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
               <i class="fas fa-search mr-2"></i>Search
             </button>
-              </div>
-            </div>
+          </div>
+        </div>
 
         <!-- Products Table -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
@@ -177,12 +174,12 @@
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
+                </tr>
+              </thead>
               <tbody id="productsTableBody" class="bg-white divide-y divide-gray-200">
                 <tr><td colspan="7" class="text-center py-6 text-gray-400">Loading products...</td></tr>
-                </tbody>
-              </table>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -196,17 +193,17 @@
           <div class="flex flex-col md:flex-row gap-4">
             <select id="orderStatusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
               <option value="">All Status</option>
-                <option value="placed">Placed</option>
+              <option value="placed">Placed</option>
               <option value="success">Success</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-                </select>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
             <input type="date" id="orderDateFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
             <button onclick="loadOrders()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
               <i class="fas fa-filter mr-2"></i>Filter
             </button>
-              </div>
-              </div>
+          </div>
+        </div>
 
         <!-- Orders Table -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -227,8 +224,8 @@
                 <tr><td colspan="7" class="text-center py-6 text-gray-400">Loading orders...</td></tr>
               </tbody>
             </table>
-            </div>
           </div>
+        </div>
       </div>
 
       <!-- Users Management Tab -->
@@ -238,24 +235,24 @@
         <!-- Users Table -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Joined</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
+                </tr>
+              </thead>
               <tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
-            <tr><td colspan="6" class="text-center py-6 text-gray-400">Loading users...</td></tr>
-                </tbody>
-              </table>
-            </div>
+                <tr><td colspan="6" class="text-center py-6 text-gray-400">Loading users...</td></tr>
+              </tbody>
+            </table>
           </div>
-            </div>
+        </div>
+      </div>
 
       <!-- Revenue Analytics Tab -->
       <div id="revenue" class="tab-content p-6" style="display: none;">
@@ -266,7 +263,7 @@
           <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Today's Revenue</h3>
             <p id="todayRevenue" class="text-3xl font-bold text-green-600">₹0</p>
-            </div>
+          </div>
           <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">This Month</h3>
             <p id="monthRevenue" class="text-3xl font-bold text-blue-600">₹0</p>
@@ -274,27 +271,27 @@
           <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Total Revenue</h3>
             <p id="totalRevenue" class="text-3xl font-bold text-emerald-600">₹0</p>
+          </div>
         </div>
-      </div>
 
         <!-- Revenue Chart -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-xl font-semibold text-gray-800 mb-4">Revenue Trend</h3>
           <div id="revenueChart" class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
             <p class="text-gray-500">Revenue chart will be displayed here</p>
-              </div>
-            </div>
           </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Add/Edit Product Modal -->
   <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-      <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="flex items-center justify-center min-h-screen p-4">
       <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
         <div class="p-6 border-b border-gray-200">
           <h2 id="modalTitle" class="text-2xl font-bold text-gray-800">Add New Product</h2>
-            </div>
+        </div>
         <form id="productForm" class="p-6 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -305,16 +302,11 @@
               <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
               <select id="productCategory" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                 <option value="">Select Category</option>
-                <option value="breakfast">🥣 Breakfast Bowls</option>
-                <option value="lunch">🥗 Lunch Bowls</option>
-                <option value="dinner">🍽️ Dinner Bowls</option>
-                <option value="snack">🍎 Snack Bowls</option>
-                <option value="dessert">🍰 Dessert Bowls</option>
-                <option value="smoothie">🥤 Smoothie Bowls</option>
-                <option value="salad">🥬 Salad Bowls</option>
-                <option value="protein">💪 Protein Bowls</option>
+                <option value="basic">🥉 Basic - Budget Friendly</option>
+                <option value="standard">🥈 Standard - Quality Choice</option>
+                <option value="premium">🥇 Premium - Luxury Experience</option>
               </select>
-          </div>
+            </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Organic</label>
               <div class="flex items-center mt-2">
@@ -322,16 +314,19 @@
                 <label for="productOrganic" class="ml-2 text-sm text-gray-700">Certified Organic</label>
               </div>
             </div>
-        </div>
-                        <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea id="productDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Short Description (for product cards)</label>
-              <textarea id="productShortDescription" rows="2" placeholder="Brief description for product cards..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
-              <p class="text-sm text-gray-500 mt-1">This will be displayed in product cards and search results</p>
-            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea id="productDescription" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Short Description (for product cards)</label>
+            <textarea id="productShortDescription" rows="2" placeholder="Brief description for product cards..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+            <p class="text-sm text-gray-500 mt-1">This will be displayed in product cards and search results</p>
+          </div>
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
@@ -346,9 +341,10 @@
               <select id="productStatus" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                </select>
-              </div>
+              </select>
             </div>
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Product Image URL</label>
             <input type="url" id="productImage" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
@@ -362,44 +358,44 @@
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Calories</label>
                 <input type="text" id="productCalories" placeholder="e.g., 52 kcal/100g" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-          </div>
-            <div>
+              </div>
+              <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Protein</label>
                 <input type="text" id="productProtein" placeholder="e.g., 0.3g/100g" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-        </div>
-            <div>
+              </div>
+              <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Carbohydrates</label>
                 <input type="text" id="productCarbs" placeholder="e.g., 14g/100g" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-      </div>
-            <div>
+              </div>
+              <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Fiber</label>
                 <input type="text" id="productFiber" placeholder="e.g., 2.4g/100g" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-            </div>
-            <div>
+              </div>
+              <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Vitamins</label>
                 <input type="text" id="productVitamins" placeholder="e.g., Vitamin C, B6" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-          </div>
+              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Minerals</label>
                 <input type="text" id="productMinerals" placeholder="e.g., Potassium, Iron" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-          </div>
+              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Origin</label>
                 <input type="text" id="productOrigin" placeholder="e.g., Himachal Pradesh, India" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-      </div>
+              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Season</label>
                 <input type="text" id="productSeason" placeholder="e.g., September to March" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-    </div>
+              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Storage</label>
                 <input type="text" id="productStorage" placeholder="e.g., Refrigerate at 2-4°C" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-          </div>
+              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Shelf Life</label>
                 <input type="text" id="productShelfLife" placeholder="e.g., 7-10 days" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-        </div>
-          </div>
+              </div>
+            </div>
 
             <!-- Delivery & Offers Section -->
             <div class="mt-6 border-t pt-6">
@@ -408,12 +404,12 @@
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Estimated Delivery</label>
                   <input type="text" id="productDelivery" placeholder="e.g., 27 Aug" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-        </div>
+                </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">MRP (for discount calculation)</label>
                   <input type="number" id="productMRP" step="0.01" placeholder="e.g., 199.99" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-        </div>
-      </div>
+                </div>
+              </div>
 
               <!-- Bank Offers Section -->
               <div class="mt-4">
@@ -422,20 +418,20 @@
                   <div class="flex gap-2">
                     <input type="text" class="bank-offer-input flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g., 10% off on HDFC Credit Cards">
                     <button type="button" onclick="removeBankOffer(this)" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">Remove</button>
-            </div>
-          </div>
+                  </div>
+                </div>
                 <button type="button" onclick="addBankOffer()" class="mt-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm">
                   <i class="fas fa-plus mr-1"></i>Add Bank Offer
                 </button>
-        </div>
-      </div>
+              </div>
+            </div>
 
             <!-- Custom Fields Section -->
             <div class="mt-6">
               <h4 class="text-md font-semibold text-gray-700 mb-3">Custom Fields</h4>
               <div id="customFieldsContainer">
                 <!-- Custom fields will be added here dynamically -->
-    </div>
+              </div>
               <button type="button" onclick="addCustomField()" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
                 <i class="fas fa-plus mr-1"></i>Add Custom Field
               </button>
@@ -452,14 +448,15 @@
               <i class="fas fa-plus mr-1"></i>Add Offer
             </button>
           </div>
+
           <div class="flex justify-end space-x-3 pt-4">
             <button type="button" onclick="closeProductModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
             <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Save Product</button>
-    </div>
-        </form>
           </div>
-        </div>
+        </form>
       </div>
+    </div>
+  </div>
 
   <!-- Order Details Modal -->
   <div id="orderModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
@@ -467,13 +464,13 @@
       <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
         <div class="p-6 border-b border-gray-200">
           <h2 class="text-2xl font-bold text-gray-800">Order Details</h2>
-            </div>
+        </div>
         <div id="orderDetails" class="p-6">
           <!-- Order details will be loaded here -->
-          </div>
         </div>
       </div>
     </div>
+  </div>
 
   <script>
     // Global error handling for Chrome extensions
@@ -497,9 +494,43 @@
     let ordersCache = [];
     let usersCache = [];
 
+    // ✅ UPDATED: Category options for three-tier system
+    const categoryOptions = `
+        <option value="basic">🥉 Basic</option>
+        <option value="standard">🥈 Standard</option>
+        <option value="premium">🥇 Premium</option>
+    `;
+
+    // ✅ UPDATED: Replace existing category dropdown in admin forms
+    function updateCategoryDropdowns() {
+        const categorySelectors = document.querySelectorAll('select[name="category"], #productCategory, #categoryFilter');
+        categorySelectors.forEach(selector => {
+            // Keep the first option if it's "Select Category" or "All Categories"
+            const firstOption = selector.querySelector('option[value=""]');
+            const firstOptionHTML = firstOption ? firstOption.outerHTML : '<option value="">Select Category</option>';
+            
+            if (selector.id === 'categoryFilter') {
+                selector.innerHTML = `
+                    <option value="">All Categories</option>
+                    <option value="basic">🥉 Basic - Budget Friendly</option>
+                    <option value="standard">🥈 Standard - Quality Choice</option>
+                    <option value="premium">🥇 Premium - Luxury Experience</option>
+                `;
+            } else {
+                selector.innerHTML = `
+                    <option value="">Select Category</option>
+                    <option value="basic">🥉 Basic - Budget Friendly</option>
+                    <option value="standard">🥈 Standard - Quality Choice</option>
+                    <option value="premium">🥇 Premium - Luxury Experience</option>
+                `;
+            }
+        });
+    }
+
     // Initialize dashboard
     document.addEventListener('DOMContentLoaded', function() {
       checkAuth();
+      updateCategoryDropdowns(); // ✅ ADDED: Update category dropdowns on page load
       loadDashboardStats();
       loadRecentOrders();
       loadProducts();
@@ -512,9 +543,9 @@
     function checkAuth() {
       const token = localStorage.getItem('adminToken');
       if (!token) {
-      window.location.href = 'admin-login.html';
-          return;
-        }
+        window.location.href = 'admin-login.html';
+        return;
+      }
       
       // Set admin name
       const adminData = JSON.parse(localStorage.getItem('adminData') || '{}');
@@ -560,9 +591,9 @@
         
         if (response.ok) {
           const data = await response.json();
-        document.getElementById('statUsers').textContent = data.totalUsers || 0;
-        document.getElementById('statProducts').textContent = data.totalProducts || 0;
-        document.getElementById('statOrders').textContent = data.totalOrders || 0;
+          document.getElementById('statUsers').textContent = data.totalUsers || 0;
+          document.getElementById('statProducts').textContent = data.totalProducts || 0;
+          document.getElementById('statOrders').textContent = data.totalOrders || 0;
           document.getElementById('statRevenue').textContent = `₹${(data.totalRevenue || 0).toFixed(2)}`;
         }
       } catch (error) {
@@ -584,8 +615,8 @@
           
           if (ordersArray.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-center">No recent orders</p>';
-          return;
-        }
+            return;
+          }
           
           container.innerHTML = ordersArray.map(order => `
             <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
@@ -598,7 +629,7 @@
                 <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(order.status)}">${order.status}</span>
               </div>
             </div>
-        `).join('');
+          `).join('');
         }
       } catch (error) {
         console.error('Error loading recent orders:', error);
@@ -644,14 +675,14 @@
       
       if (!productsCache || productsCache.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-400">No products found</td></tr>';
-          return;
-        }
+        return;
+      }
       
       tbody.innerHTML = productsCache.map(product => `
         <tr>
           <td class="px-6 py-4">
             <img src="${product.image || 'https://via.placeholder.com/50x50?text=🍎'}" alt="${product.name}" class="w-12 h-12 object-cover rounded">
-            </td>
+          </td>
           <td class="px-6 py-4">
             <div>
               <p class="font-semibold text-gray-900">${product.name}</p>
@@ -678,9 +709,9 @@
                 <i class="fas fa-trash"></i>
               </button>
             </div>
-            </td>
-          </tr>
-        `).join('');
+          </td>
+        </tr>
+      `).join('');
     }
 
     // Product modal functions
@@ -699,6 +730,7 @@
         </div>
       `;
       
+      updateCategoryDropdowns(); // ✅ ADDED: Update dropdowns when opening modal
       document.getElementById('productModal').classList.remove('hidden');
     }
 
@@ -809,6 +841,7 @@
       }
       
       document.getElementById('productForm').setAttribute('data-product-id', productId);
+      updateCategoryDropdowns(); // ✅ ADDED: Update dropdowns when editing
       document.getElementById('productModal').classList.remove('hidden');
     }
 
@@ -825,7 +858,7 @@
           loadProducts();
           loadDashboardStats();
           alert('Product deleted successfully!');
-      } else {
+        } else {
           const data = await response.json();
           alert(data.message || 'Failed to delete product');
         }
@@ -866,7 +899,7 @@
           <input type="text" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="e.g., 20% off on bulk purchase">
           <button type="button" onclick="removeOffer(this)" class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">
             <i class="fas fa-trash"></i>
-            </button>
+          </button>
         </div>
       `;
       
@@ -893,17 +926,12 @@
       button.closest('.flex').remove();
     }
 
-    // Helper function to get category display names
+    // ✅ UPDATED: Helper function to get category display names for three-tier system
     function getCategoryDisplayName(category) {
       const categoryNames = {
-        'pome': '🍎 Pome Fruits',
-        'citrus': '🍊 Citrus Fruits',
-        'berry': '🫐 Berries',
-        'stone': '🍑 Stone Fruits',
-        'tropical': '🥭 Tropical & Exotic',
-        'melon': '🍉 Melons',
-        'banana': '🍌 Bananas & Plantains',
-        'grape': '🍇 Grapes'
+        'basic': '🥉 Basic - Budget Friendly',
+        'standard': '🥈 Standard - Quality Choice',
+        'premium': '🥇 Premium - Luxury Experience'
       };
       return categoryNames[category] || category;
     }
@@ -1057,8 +1085,8 @@
       
       if (!ordersCache || ordersCache.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-gray-400">No orders found</td></tr>';
-          return;
-        }
+        return;
+      }
       
       tbody.innerHTML = ordersCache.map(order => `
         <tr>
@@ -1068,7 +1096,7 @@
               <p class="font-semibold">${order.user?.firstName || 'Unknown'} ${order.user?.lastName || ''}</p>
               <p class="text-sm text-gray-600">${order.user?.email || ''}</p>
             </div>
-            </td>
+          </td>
           <td class="px-6 py-4">
             <p class="text-sm">${order.items.length} items</p>
           </td>
@@ -1085,10 +1113,10 @@
           <td class="px-6 py-4">
             <button onclick="viewOrderDetails('${order._id}')" class="text-blue-600 hover:text-blue-800 mr-2" title="View Details">
               <i class="fas fa-eye"></i>
-              </button>
-            </td>
-          </tr>
-        `).join('');
+            </button>
+          </td>
+        </tr>
+      `).join('');
     }
 
     async function updateOrderStatus(orderId, newStatus) {
@@ -1140,7 +1168,7 @@
                   <p><strong>Name:</strong> ${order.user?.firstName || 'Unknown'} ${order.user?.lastName || ''}</p>
                   <p><strong>Email:</strong> ${order.user?.email || 'N/A'}</p>
                   <p><strong>Phone:</strong> ${order.user?.mobile || 'N/A'}</p>
-              </div>
+                </div>
               </div>
               
               <div>
@@ -1153,19 +1181,19 @@
                         <div>
                           <p class="font-semibold">${item.item?.name}</p>
                           <p class="text-sm text-gray-600">Quantity: ${item.quantity}</p>
-              </div>
-                </div>
+                        </div>
+                      </div>
                       <p class="font-semibold">₹${(item.item?.price * item.quantity).toFixed(2)}</p>
-                </div>
+                    </div>
                   `).join('')}
                 </div>
-                </div>
+              </div>
               
               <div class="flex justify-end">
                 <button onclick="closeOrderModal()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Close</button>
               </div>
-                </div>
-              `;
+            </div>
+          `;
           
           document.getElementById('orderModal').classList.remove('hidden');
         }
@@ -1183,7 +1211,7 @@
     async function loadUsers() {
       try {
         const response = await fetch('/api/admin/users', {
-                  headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         
         if (response.ok) {
@@ -1274,4 +1302,4 @@
     }
   </script>
 </body>
-</html> 
+</html>

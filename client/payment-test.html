@@ -16,8 +16,11 @@
         body: JSON.stringify({ amount: 500 }) // Amount in INR
       });
       const order = await response.json();
+      const keyResponse = await fetch("/api/payment/get-key");
+      const { key } = await keyResponse.json();
+
       const options = {
-        key: window.RAZORPAY_KEY_ID || 'rzp_live_gBP9geXusrKWUg', // Live Razorpay key
+        key: key,
         amount: order.amount,
         currency: "INR",
         name: "Test Shop",
