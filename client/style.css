@@ -1388,3 +1388,24 @@ body {
     }
 }
 
+/* Checkbox Styles */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #2563eb;
+}
+
+.checkbox-label:hover {
+    color: #1f2937;
+}
+
