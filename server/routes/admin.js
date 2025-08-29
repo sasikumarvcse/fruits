@@ -335,4 +335,50 @@ router.get('/products/:productId/summary', requireAdmin, async (req, res) => {
   }
 });
 
+// Revenue analytics endpoint
+router.get('/revenue', requireAdmin, async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Today's revenue
+    const todayRevenue = await Order.aggregate([
+      { 
+        $match: { 
+          status: 'delivered',
+          createdAt: { $gte: startOfDay }
+        } 
+      },
+      { $group: { _id: null, total: { $sum: '$total' } } }
+    ]);
+
+    // This month's revenue
+    const monthRevenue = await Order.aggregate([
+      { 
+        $match: { 
+          status: 'delivered',
+          createdAt: { $gte: startOfMonth }
+        } 
+      },
+      { $group: { _id: null, total: { $sum: '$total' } } }
+    ]);
+
+    // Total revenue
+    const totalRevenue = await Order.aggregate([
+      { $match: { status: 'delivered' } },
+      { $group: { _id: null, total: { $sum: '$total' } } }
+    ]);
+
+    res.json({
+      today: todayRevenue[0]?.total || 0,
+      month: monthRevenue[0]?.total || 0,
+      total: totalRevenue[0]?.total || 0
+    });
+  } catch (err) {
+    console.error('Error fetching revenue stats:', err);
+    res.status(500).json({ message: 'Error fetching revenue statistics' });
+  }
+});
+
 module.exports = router; 

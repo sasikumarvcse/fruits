@@ -140,7 +140,7 @@
           container.innerHTML = products.map(product => `
             <div class="border p-4 rounded">
               <div class="flex items-center">
-                <img src="${product.image || 'https://via.placeholder.com/50x50?text=🍎'}" alt="${product.name}" class="w-12 h-12 object-cover rounded mr-4">
+                <img src="${product.image || '/uploads/logoindex.png'}" alt="${product.name}" class="w-12 h-12 object-cover rounded mr-4">
                 <div class="flex-1">
                   <h3 class="font-semibold">${product.name}</h3>
                   <p class="text-sm text-gray-600">${product.description}</p>

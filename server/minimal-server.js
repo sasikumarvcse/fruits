@@ -509,13 +509,14 @@ app.get('/api/payment/get-key', (req, res) => {
 
 app.post('/api/orders/razorpay/create-order', auth, async (req, res) => {
     try {
-        const { amount, currency = 'INR' } = req.body;
+        const { amount, currency = 'INR', productId, quantity, deliveryAddress } = req.body;
         
         if (!amount || amount <= 0) {
             return res.status(400).json({ message: 'Valid amount is required' });
         }
         
         console.log(`💰 Creating order for amount: ₹${amount} (${amount * 100} paise)`);
+        console.log('📦 Order details:', { productId, quantity, deliveryAddress });
         
         // Create a mock order for testing
         const mockOrder = {

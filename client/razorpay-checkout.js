@@ -12,7 +12,7 @@
             selectedAddress: null,
             quantity: 1,
             total: 0,
-            deliveryCharge: 50 // Fixed delivery charge
+            deliveryCharge: 0 // No delivery charge for now
         },
         userAddresses: []
     };
@@ -403,8 +403,7 @@
         const product = razorpayConfig.checkoutData.product;
         const quantity = razorpayConfig.checkoutData.quantity;
         const basePrice = product.price * quantity;
-        const deliveryCharge = razorpayConfig.checkoutData.deliveryCharge;
-        const total = basePrice + deliveryCharge;
+        const total = basePrice; // No delivery charge
         
         document.getElementById('basePrice').textContent = `₹${basePrice.toFixed(2)}`;
         document.getElementById('quantityDisplay').textContent = quantity;
@@ -443,7 +442,7 @@
             const orderData = {
                 productId: razorpayConfig.checkoutData.product._id,
                 quantity: razorpayConfig.checkoutData.quantity,
-                amount: razorpayConfig.checkoutData.total,
+                amount: razorpayConfig.checkoutData.total, // This already includes delivery charge
                 deliveryAddress: razorpayConfig.checkoutData.selectedAddress
             };
 
@@ -496,7 +495,7 @@
             },
             notes: {
                 address: razorpayConfig.checkoutData.selectedAddress.address,
-                delivery_charge: '₹50'
+                delivery_charge: '₹0'
             },
             theme: {
                 color: '#4CAF50'
@@ -516,7 +515,19 @@
                 razorpay_order_id: paymentResponse.razorpay_order_id,
                 razorpay_payment_id: paymentResponse.razorpay_payment_id,
                 razorpay_signature: paymentResponse.razorpay_signature,
-                orderId: order.id
+                realOrderDetails: {
+                    productId: razorpayConfig.checkoutData.product._id,
+                    quantity: razorpayConfig.checkoutData.quantity,
+                    total: razorpayConfig.checkoutData.total,
+                    recipientName: razorpayConfig.checkoutData.selectedAddress.recipientName || razorpayConfig.checkoutData.selectedAddress.name,
+                    mobile: razorpayConfig.checkoutData.selectedAddress.mobile,
+                    address: razorpayConfig.checkoutData.selectedAddress.address,
+                    pincode: razorpayConfig.checkoutData.selectedAddress.pincode,
+                    items: [{
+                        item: razorpayConfig.checkoutData.product._id,
+                        quantity: razorpayConfig.checkoutData.quantity
+                    }]
+                }
             };
 
             const response = await fetch('/api/orders/razorpay/verify-payment', {
@@ -540,7 +551,7 @@
                     selectedAddress: null,
                     quantity: 1,
                     total: 0,
-                    deliveryCharge: 50
+                    deliveryCharge: 0
                 };
                 
                 // Redirect to orders page or show success
