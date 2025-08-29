@@ -2996,12 +2996,37 @@
   </script>
 
   <script>
+    // ✅ Add missing functions to prevent errors
+    function clearCart() {
+        if (confirm('Are you sure you want to clear your cart?')) {
+            localStorage.removeItem('cart');
+            updateCartCount();
+            showNotification('Cart cleared successfully', 'success');
+        }
+    }
+
+    function openCartSidebar() {
+        // This function can be implemented later for cart sidebar
+        showNotification('Cart sidebar feature coming soon', 'info');
+    }
+
     // ✅ FIXED: Clean address display without HTML encoding errors
     function displayAddresses() {
         const addressList = document.getElementById('addressList');
         if (!addressList) {
             console.error('❌ Address list element not found!');
             return;
+        }
+        
+        // Check if razorpayConfig is available
+        if (typeof razorpayConfig === 'undefined' || !razorpayConfig.userAddresses) {
+            console.log('⚠️ Razorpay config not loaded yet, initializing...');
+            // Initialize with empty array if not available
+            if (typeof razorpayConfig === 'undefined') {
+                window.razorpayConfig = {
+                    userAddresses: []
+                };
+            }
         }
         
         if (razorpayConfig.userAddresses.length === 0) {
@@ -3902,5 +3927,6 @@
 
   <!-- Your scripts -->
   <script src="/razorpay-checkout.js"></script>
+  <script src="/error-checker.js"></script>
 </body>
 </html>

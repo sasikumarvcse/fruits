@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete System Test - Arobowl</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .test-container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .test-button.warning {
+            background: #ff9800;
+        }
+        .test-button.danger {
+            background: #f44336;
+        }
+        .test-button.info {
+            background: #2196F3;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .log-container {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .function-test {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .function-test.success { background: #d4edda; }
+        .function-test.error { background: #f8d7da; }
+        .function-test.warning { background: #fff3cd; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Complete System Test - Arobowl</h1>
+        <p>This page performs comprehensive testing of the entire system to identify and fix any remaining errors.</p>
+        
+        <div class="test-section">
+            <h2>1. System Status Check</h2>
+            <div id="systemStatus">
+                <div class="status info">Checking system status...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Function Availability Test</h2>
+            <div id="functionTests">
+                <div class="status info">Running function tests...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. DOM Elements Test</h2>
+            <div id="elementTests">
+                <div class="status info">Checking DOM elements...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. API Endpoints Test</h2>
+            <div id="apiTests">
+                <div class="status info">Testing API endpoints...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>5. Checkout Flow Test</h2>
+            <button class="test-button" onclick="testCompleteCheckout()">🛒 Test Complete Checkout Flow</button>
+            <button class="test-button warning" onclick="testAddressManagement()">📍 Test Address Management</button>
+            <button class="test-button info" onclick="testQuantitySelection()">🔢 Test Quantity Selection</button>
+        </div>
+
+        <div class="test-section">
+            <h2>6. Error Simulation Test</h2>
+            <button class="test-button danger" onclick="simulateErrors()">🚨 Simulate Common Errors</button>
+            <button class="test-button warning" onclick="testErrorHandling()">🛡️ Test Error Handling</button>
+        </div>
+
+        <div class="test-section">
+            <h2>7. Test Results & Logs</h2>
+            <div id="testResults">
+                <p>No tests run yet. Click the buttons above to test the system.</p>
+            </div>
+            <div class="log-container" id="testLogs">
+                <strong>Test Logs:</strong><br>
+                <span id="logContent">No logs yet...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include all required scripts -->
+    <script src="/razorpay-checkout.js"></script>
+    <script src="/error-checker.js"></script>
+    
+    <script>
+        // Test results storage
+        let testResults = {
+            functions: {},
+            elements: {},
+            apis: {},
+            checkout: {},
+            errors: {}
+        };
+
+        // Logging function
+        function log(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}<br>`;
+            logContent.innerHTML += logEntry;
+            logContent.scrollTop = logContent.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Add test result
+        function addTestResult(category, testName, success, message) {
+            if (!testResults[category]) testResults[category] = {};
+            testResults[category][testName] = { success, message };
+            
+            const resultsDiv = document.getElementById('testResults');
+            const resultElement = document.createElement('div');
+            resultElement.className = `status ${success ? 'success' : 'error'}`;
+            resultElement.textContent = `${category}: ${testName} - ${success ? 'PASS' : 'FAIL'}: ${message}`;
+            resultsDiv.appendChild(resultElement);
+        }
+
+        // System status check
+        function checkSystemStatus() {
+            log('Checking system status...', 'info');
+            const statusDiv = document.getElementById('systemStatus');
+            
+            let statusHTML = '';
+            
+            // Check if required scripts are loaded
+            const scriptsLoaded = {
+                'razorpay-checkout.js': typeof startCheckoutFlow !== 'undefined',
+                'error-checker.js': typeof errorChecker !== 'undefined'
+            };
+            
+            Object.entries(scriptsLoaded).forEach(([script, loaded]) => {
+                if (loaded) {
+                    statusHTML += `<div class="status success">✅ ${script} loaded successfully</div>`;
+                    log(`${script} loaded successfully`, 'success');
+                } else {
+                    statusHTML += `<div class="status error">❌ ${script} not loaded</div>`;
+                    log(`${script} not loaded`, 'error');
+                }
+            });
+            
+            // Check global variables
+            if (typeof razorpayConfig !== 'undefined') {
+                statusHTML += `<div class="status success">✅ razorpayConfig initialized</div>`;
+                log('razorpayConfig initialized', 'success');
+            } else {
+                statusHTML += `<div class="status error">❌ razorpayConfig not initialized</div>`;
+                log('razorpayConfig not initialized', 'error');
+            }
+            
+            statusDiv.innerHTML = statusHTML;
+        }
+
+        // Function availability test
+        function testFunctionAvailability() {
+            log('Testing function availability...', 'info');
+            const testsDiv = document.getElementById('functionTests');
+            
+            const requiredFunctions = [
+                'startCheckoutFlow',
+                'selectAddress',
+                'editAddress',
+                'deleteAddress',
+                'showAddressForm',
+                'showNotification',
+                'clearCart',
+                'openCartSidebar',
+                'filterByCategory',
+                'clearSearch',
+                'closeProfileModal',
+                'switchToEditProfile',
+                'switchToViewProfile',
+                'closeWishlistModal',
+                'copyWishlistLink',
+                'closeOrdersModal',
+                'viewProduct',
+                'toggleWishlist',
+                'shareProduct',
+                'addToCart',
+                'buyNow',
+                'removeFromCart',
+                'closeModal',
+                'printProduct',
+                'switchTab',
+                'toggleFaq',
+                'updateQuantity',
+                'markNotificationRead'
+            ];
+            
+            let testsHTML = '';
+            let passedTests = 0;
+            let totalTests = requiredFunctions.length;
+            
+            requiredFunctions.forEach(funcName => {
+                const exists = typeof window[funcName] === 'function';
+                const statusClass = exists ? 'success' : 'error';
+                const statusIcon = exists ? '✅' : '❌';
+                
+                if (exists) passedTests++;
+                
+                testsHTML += `
+                    <div class="function-test ${statusClass}">
+                        <span>${statusIcon}</span>
+                        <span>${funcName}</span>
+                        <span>${exists ? 'Available' : 'Missing'}</span>
+                    </div>
+                `;
+                
+                if (!exists) {
+                    log(`Function ${funcName} is missing`, 'error');
+                }
+            });
+            
+            testsHTML += `<div class="status ${passedTests === totalTests ? 'success' : 'warning'}">
+                Function Tests: ${passedTests}/${totalTests} passed
+            </div>`;
+            
+            testsDiv.innerHTML = testsHTML;
+            addTestResult('functions', 'availability', passedTests === totalTests, `${passedTests}/${totalTests} functions available`);
+        }
+
+        // DOM elements test
+        function testDOMElements() {
+            log('Testing DOM elements...', 'info');
+            const testsDiv = document.getElementById('elementTests');
+            
+            const requiredElements = [
+                'addressList',
+                'addressModal',
+                'addressFormModal',
+                'quantityModal'
+            ];
+            
+            let testsHTML = '';
+            let passedTests = 0;
+            let totalTests = requiredElements.length;
+            
+            requiredElements.forEach(elementId => {
+                const element = document.getElementById(elementId);
+                const exists = element !== null;
+                const statusClass = exists ? 'success' : 'error';
+                const statusIcon = exists ? '✅' : '❌';
+                
+                if (exists) passedTests++;
+                
+                testsHTML += `
+                    <div class="function-test ${statusClass}">
+                        <span>${statusIcon}</span>
+                        <span>${elementId}</span>
+                        <span>${exists ? 'Found' : 'Missing'}</span>
+                    </div>
+                `;
+                
+                if (!exists) {
+                    log(`Element ${elementId} not found`, 'error');
+                }
+            });
+            
+            testsHTML += `<div class="status ${passedTests === totalTests ? 'success' : 'warning'}">
+                DOM Elements: ${passedTests}/${totalTests} found
+            </div>`;
+            
+            testsDiv.innerHTML = testsHTML;
+            addTestResult('elements', 'availability', passedTests === totalTests, `${passedTests}/${totalTests} elements found`);
+        }
+
+        // API endpoints test
+        async function testAPIEndpoints() {
+            log('Testing API endpoints...', 'info');
+            const testsDiv = document.getElementById('apiTests');
+            
+            const endpoints = [
+                { name: 'Payment Key', url: '/api/payment/get-key', method: 'GET' },
+                { name: 'User Addresses', url: '/api/user/addresses', method: 'GET', auth: true }
+            ];
+            
+            let testsHTML = '';
+            let passedTests = 0;
+            let totalTests = endpoints.length;
+            
+            for (const endpoint of endpoints) {
+                try {
+                    let response;
+                    if (endpoint.method === 'GET') {
+                        response = await fetch(endpoint.url);
+                    }
+                    
+                    const isSuccess = response.status === 200 || (endpoint.auth && response.status === 401);
+                    const statusClass = isSuccess ? 'success' : 'error';
+                    const statusIcon = isSuccess ? '✅' : '❌';
+                    
+                    if (isSuccess) passedTests++;
+                    
+                    testsHTML += `
+                        <div class="function-test ${statusClass}">
+                            <span>${statusIcon}</span>
+                            <span>${endpoint.name}</span>
+                            <span>${response.status} ${response.statusText}</span>
+                        </div>
+                    `;
+                    
+                    log(`${endpoint.name}: ${response.status} ${response.statusText}`, isSuccess ? 'success' : 'error');
+                    
+                } catch (error) {
+                    testsHTML += `
+                        <div class="function-test error">
+                            <span>❌</span>
+                            <span>${endpoint.name}</span>
+                            <span>Error: ${error.message}</span>
+                        </div>
+                    `;
+                    log(`${endpoint.name}: Error - ${error.message}`, 'error');
+                }
+            }
+            
+            testsHTML += `<div class="status ${passedTests === totalTests ? 'success' : 'warning'}">
+                API Endpoints: ${passedTests}/${totalTests} working
+            </div>`;
+            
+            testsDiv.innerHTML = testsHTML;
+            addTestResult('apis', 'endpoints', passedTests === totalTests, `${passedTests}/${totalTests} endpoints working`);
+        }
+
+        // Complete checkout flow test
+        function testCompleteCheckout() {
+            log('Testing complete checkout flow...', 'info');
+            
+            try {
+                if (typeof startCheckoutFlow === 'function') {
+                    startCheckoutFlow(
+                        'test_product_123',
+                        'Test Product',
+                        299,
+                        '/uploads/logoindex.png'
+                    );
+                    log('Checkout flow started successfully', 'success');
+                    addTestResult('checkout', 'flow', true, 'Checkout flow started successfully');
+                } else {
+                    log('startCheckoutFlow function not available', 'error');
+                    addTestResult('checkout', 'flow', false, 'startCheckoutFlow function not available');
+                }
+            } catch (error) {
+                log(`Error in checkout test: ${error.message}`, 'error');
+                addTestResult('checkout', 'flow', false, `Error: ${error.message}`);
+            }
+        }
+
+        // Address management test
+        function testAddressManagement() {
+            log('Testing address management...', 'info');
+            
+            try {
+                const addressModal = document.getElementById('addressModal');
+                if (addressModal) {
+                    addressModal.style.display = 'block';
+                    log('Address modal opened successfully', 'success');
+                    addTestResult('checkout', 'address', true, 'Address modal opened successfully');
+                    
+                    // Close after 2 seconds
+                    setTimeout(() => {
+                        addressModal.style.display = 'none';
+                    }, 2000);
+                } else {
+                    log('Address modal not found', 'error');
+                    addTestResult('checkout', 'address', false, 'Address modal not found');
+                }
+            } catch (error) {
+                log(`Error in address test: ${error.message}`, 'error');
+                addTestResult('checkout', 'address', false, `Error: ${error.message}`);
+            }
+        }
+
+        // Quantity selection test
+        function testQuantitySelection() {
+            log('Testing quantity selection...', 'info');
+            
+            try {
+                const quantityModal = document.getElementById('quantityModal');
+                if (quantityModal) {
+                    quantityModal.style.display = 'block';
+                    log('Quantity modal opened successfully', 'success');
+                    addTestResult('checkout', 'quantity', true, 'Quantity modal opened successfully');
+                    
+                    // Close after 2 seconds
+                    setTimeout(() => {
+                        quantityModal.style.display = 'none';
+                    }, 2000);
+                } else {
+                    log('Quantity modal not found', 'error');
+                    addTestResult('checkout', 'quantity', false, 'Quantity modal not found');
+                }
+            } catch (error) {
+                log(`Error in quantity test: ${error.message}`, 'error');
+                addTestResult('checkout', 'quantity', false, `Error: ${error.message}`);
+            }
+        }
+
+        // Error simulation test
+        function simulateErrors() {
+            log('Simulating common errors...', 'warning');
+            
+            try {
+                // Simulate undefined function call
+                if (typeof nonExistentFunction === 'undefined') {
+                    log('Simulating undefined function call', 'warning');
+                    try {
+                        nonExistentFunction();
+                    } catch (error) {
+                        log(`Caught error: ${error.message}`, 'info');
+                    }
+                }
+                
+                // Simulate undefined variable access
+                if (typeof nonExistentVariable === 'undefined') {
+                    log('Simulating undefined variable access', 'warning');
+                    try {
+                        console.log(nonExistentVariable);
+                    } catch (error) {
+                        log(`Caught error: ${error.message}`, 'info');
+                    }
+                }
+                
+                log('Error simulation completed', 'success');
+                addTestResult('errors', 'simulation', true, 'Error simulation completed');
+                
+            } catch (error) {
+                log(`Error in simulation: ${error.message}`, 'error');
+                addTestResult('errors', 'simulation', false, `Error: ${error.message}`);
+            }
+        }
+
+        // Error handling test
+        function testErrorHandling() {
+            log('Testing error handling...', 'info');
+            
+            try {
+                // Test notification system
+                if (typeof showNotification === 'function') {
+                    showNotification('Test notification', 'success');
+                    log('Notification system working', 'success');
+                    addTestResult('errors', 'handling', true, 'Error handling working');
+                } else {
+                    log('Notification system not available', 'error');
+                    addTestResult('errors', 'handling', false, 'Notification system not available');
+                }
+            } catch (error) {
+                log(`Error in error handling test: ${error.message}`, 'error');
+                addTestResult('errors', 'handling', false, `Error: ${error.message}`);
+            }
+        }
+
+        // Initialize all tests
+        function initializeTests() {
+            log('Initializing comprehensive system tests...', 'info');
+            
+            // Run all tests
+            checkSystemStatus();
+            testFunctionAvailability();
+            testDOMElements();
+            testAPIEndpoints();
+            
+            log('All tests initialized', 'success');
+        }
+
+        // Run tests when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            log('Page loaded, starting tests...', 'info');
+            
+            // Wait a bit for scripts to load
+            setTimeout(initializeTests, 1000);
+        });
+    </script>
+</body>
+</html>

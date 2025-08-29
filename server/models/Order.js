@@ -24,25 +24,41 @@ const orderSchema = new mongoose.Schema({
       }
     }
   ],
-  total: {
+  totalAmount: {
     type: Number,
     required: true
   },
+  // Legacy field for backward compatibility
+  total: {
+    type: Number,
+    required: false
+  },
+  // New delivery address structure
+  deliveryAddress: {
+    recipientName: { type: String, required: true },
+    mobile: { type: String, required: true },
+    address: { type: String, required: true },
+    pincode: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    addressType: { type: String, enum: ['home', 'work', 'other'], default: 'home' }
+  },
+  // Legacy fields for backward compatibility
   recipientName: {
     type: String,
-    required: true
+    required: false
   },
   mobile: {
     type: String,
-    required: true
+    required: false
   },
   address: {
     type: String,
-    required: true
+    required: false
   },
   pincode: {
     type: String,
-    required: true
+    required: false
   },
   status: {
     type: String,
@@ -92,6 +108,10 @@ const orderSchema = new mongoose.Schema({
   },
   razorpayPaymentId: String,
   razorpayOrderId: String,
+  deliveryCharge: {
+    type: Number,
+    default: 50
+  },
   createdAt: {
     type: Date,
     default: Date.now
