@@ -59,10 +59,10 @@ router.get('/addresses', auth, async (req, res) => {
 // POST /api/user/addresses - Add new address
 router.post('/addresses', auth, async (req, res) => {
     try {
-        const { recipientName, mobile, address, pincode, name } = req.body;
+        const { recipientName, mobile, address, pincode, city, state, addressType, isDefault } = req.body;
         
-        if (!recipientName || !mobile || !address || !pincode) {
-            return res.status(400).json({ message: 'All fields are required' });
+        if (!recipientName || !mobile || !address || !pincode || !city || !state) {
+            return res.status(400).json({ message: 'All required fields are required' });
         }
         
         const user = await User.findById(req.user._id);
@@ -70,13 +70,21 @@ router.post('/addresses', auth, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
         
+        // If setting as default, unset other addresses as default
+        if (isDefault) {
+            user.addresses.forEach(addr => addr.isDefault = false);
+        }
+        
         const newAddress = {
-            name: name || recipientName,
+            name: recipientName,
             recipientName,
             mobile,
             address,
             pincode,
-            isDefault: user.addresses.length === 0
+            city,
+            state,
+            addressType: addressType || 'home',
+            isDefault: isDefault || user.addresses.length === 0
         };
         
         user.addresses.push(newAddress);
@@ -89,10 +97,11 @@ router.post('/addresses', auth, async (req, res) => {
     }
 });
 
-// PUT /api/user/addresses - Update address
-router.put('/addresses', auth, async (req, res) => {
+// PUT /api/user/addresses/:addressId - Update address
+router.put('/addresses/:addressId', auth, async (req, res) => {
     try {
-        const { addressId, recipientName, mobile, address, pincode, name } = req.body;
+        const { addressId } = req.params;
+        const { recipientName, mobile, address, pincode, city, state, addressType, isDefault } = req.body;
         
         if (!addressId) {
             return res.status(400).json({ message: 'Address ID is required' });
@@ -108,11 +117,19 @@ router.put('/addresses', auth, async (req, res) => {
             return res.status(404).json({ message: 'Address not found' });
         }
         
+        // If setting as default, unset other addresses as default
+        if (isDefault) {
+            user.addresses.forEach(addr => addr.isDefault = false);
+        }
+        
         if (recipientName) user.addresses[addressIndex].recipientName = recipientName;
         if (mobile) user.addresses[addressIndex].mobile = mobile;
         if (address) user.addresses[addressIndex].address = address;
         if (pincode) user.addresses[addressIndex].pincode = pincode;
-        if (name) user.addresses[addressIndex].name = name;
+        if (city) user.addresses[addressIndex].city = city;
+        if (state) user.addresses[addressIndex].state = state;
+        if (addressType) user.addresses[addressIndex].addressType = addressType;
+        if (typeof isDefault === 'boolean') user.addresses[addressIndex].isDefault = isDefault;
         
         await user.save();
         res.json(user.addresses[addressIndex]);
@@ -122,10 +139,10 @@ router.put('/addresses', auth, async (req, res) => {
     }
 });
 
-// DELETE /api/user/addresses - Delete address
-router.delete('/addresses', auth, async (req, res) => {
+// DELETE /api/user/addresses/:addressId - Delete address
+router.delete('/addresses/:addressId', auth, async (req, res) => {
     try {
-        const { addressId } = req.body;
+        const { addressId } = req.params;
         
         if (!addressId) {
             return res.status(400).json({ message: 'Address ID is required' });
