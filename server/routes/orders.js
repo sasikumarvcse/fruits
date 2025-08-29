@@ -472,4 +472,115 @@ router.patch('/:orderId/status', auth, async (req, res) => {
   }
 });
 
+// ===== RAZORPAY PAYMENT ENDPOINTS =====
+
+// POST /api/orders/razorpay/create-order - Create Razorpay order
+router.post('/razorpay/create-order', auth, async (req, res) => {
+  try {
+    const { amount, currency = 'INR', productId, quantity, deliveryAddress } = req.body;
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: 'Valid amount is required' });
+    }
+    
+    console.log(`💰 Creating Razorpay order for amount: ₹${amount} (${amount * 100} paise)`);
+    console.log('📦 Order details:', { productId, quantity, deliveryAddress });
+    
+    // Create a mock order for testing (replace with actual Razorpay SDK in production)
+    const mockOrder = {
+      id: 'order_mock_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      amount: Math.round(amount * 100), // Ensure exact amount in paise
+      currency: currency,
+      status: 'created',
+      receipt: 'order_' + Date.now(),
+      amount_in_rupees: amount.toFixed(2)
+    };
+    
+    console.log('✅ Mock Razorpay order created:', mockOrder);
+    res.json(mockOrder);
+    
+  } catch (error) {
+    console.error('❌ Razorpay order creation error:', error);
+    res.status(500).json({ message: error.message || 'Failed to create payment order' });
+  }
+});
+
+// POST /api/orders/razorpay/verify-payment - Verify Razorpay payment
+router.post('/razorpay/verify-payment', auth, async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, realOrderDetails } = req.body;
+    
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ message: 'Payment verification failed - missing parameters' });
+    }
+    
+    console.log('✅ Payment verification successful (mock)');
+    console.log('Order details:', realOrderDetails);
+    
+    // Create the actual order
+    const order = new Order({
+      user: req.user._id,
+      items: realOrderDetails.items || [{
+        item: realOrderDetails.productId,
+        quantity: realOrderDetails.quantity
+      }],
+      total: realOrderDetails.total,
+      recipientName: realOrderDetails.recipientName,
+      mobile: realOrderDetails.mobile,
+      address: realOrderDetails.address,
+      pincode: realOrderDetails.pincode,
+      status: 'confirmed',
+      paymentMethod: 'Razorpay',
+      paymentStatus: 'Completed',
+      paymentId: razorpay_payment_id,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpayOrderId: razorpay_order_id,
+      orderTimeline: [{
+        status: 'placed',
+        timestamp: new Date(),
+        description: 'Order placed successfully',
+        updatedBy: req.user._id
+      }]
+    });
+    
+    await order.save();
+    
+    // Add order to user's orders array
+    const User = require('../models/User');
+    const user = await User.findById(req.user._id);
+    if (user) {
+      user.orders.push(order._id);
+      await user.save();
+    }
+    
+    // Reduce product stock
+    const Item = require('../models/Item');
+    for (const item of order.items) {
+      const product = await Item.findById(item.item);
+      if (product) {
+        product.stock -= item.quantity;
+        product.sales = (product.sales || 0) + item.quantity;
+        await product.save();
+      }
+    }
+    
+    // Create notification for user
+    await Notification.create({
+      user: req.user._id,
+      message: `Your order #${order._id.toString().slice(-6)} has been placed successfully!`,
+      type: 'order'
+    });
+    
+    res.status(201).json({ 
+      success: true, 
+      message: 'Order placed successfully', 
+      order
+    });
+    
+  } catch (error) {
+    console.error('❌ Payment verification error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Internal Server Error' });
+  }
+});
+
 module.exports = router; 

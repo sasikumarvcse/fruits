@@ -443,7 +443,7 @@
             const orderData = {
                 productId: razorpayConfig.checkoutData.product._id,
                 quantity: razorpayConfig.checkoutData.quantity,
-                amount: razorpayConfig.checkoutData.total,
+                amount: razorpayConfig.checkoutData.total, // This already includes delivery charge
                 deliveryAddress: razorpayConfig.checkoutData.selectedAddress
             };
 
@@ -516,7 +516,19 @@
                 razorpay_order_id: paymentResponse.razorpay_order_id,
                 razorpay_payment_id: paymentResponse.razorpay_payment_id,
                 razorpay_signature: paymentResponse.razorpay_signature,
-                orderId: order.id
+                realOrderDetails: {
+                    productId: razorpayConfig.checkoutData.product._id,
+                    quantity: razorpayConfig.checkoutData.quantity,
+                    total: razorpayConfig.checkoutData.total,
+                    recipientName: razorpayConfig.checkoutData.selectedAddress.recipientName || razorpayConfig.checkoutData.selectedAddress.name,
+                    mobile: razorpayConfig.checkoutData.selectedAddress.mobile,
+                    address: razorpayConfig.checkoutData.selectedAddress.address,
+                    pincode: razorpayConfig.checkoutData.selectedAddress.pincode,
+                    items: [{
+                        item: razorpayConfig.checkoutData.product._id,
+                        quantity: razorpayConfig.checkoutData.quantity
+                    }]
+                }
             };
 
             const response = await fetch('/api/orders/razorpay/verify-payment', {

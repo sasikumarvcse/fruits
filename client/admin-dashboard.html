@@ -681,7 +681,7 @@
       tbody.innerHTML = productsCache.map(product => `
         <tr>
           <td class="px-6 py-4">
-            <img src="${product.image || 'https://via.placeholder.com/50x50?text=🍎'}" alt="${product.name}" class="w-12 h-12 object-cover rounded">
+                            <img src="${product.image || '/uploads/logoindex.png'}" alt="${product.name}" class="w-12 h-12 object-cover rounded">
           </td>
           <td class="px-6 py-4">
             <div>
@@ -1177,7 +1177,7 @@
                   ${order.items.map(item => `
                     <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                       <div class="flex items-center">
-                        <img src="${item.item?.image || 'https://via.placeholder.com/40x40?text=🍎'}" alt="${item.item?.name}" class="w-10 h-10 object-cover rounded mr-3">
+                        <img src="${item.item?.image || '/uploads/logoindex.png'}" alt="${item.item?.name}" class="w-10 h-10 object-cover rounded mr-3">
                         <div>
                           <p class="font-semibold">${item.item?.name}</p>
                           <p class="text-sm text-gray-600">Quantity: ${item.quantity}</p>
