@@ -405,9 +405,14 @@
         const basePrice = product.price * quantity;
         const total = basePrice; // No delivery charge
         
-        document.getElementById('basePrice').textContent = `₹${basePrice.toFixed(2)}`;
-        document.getElementById('quantityDisplay').textContent = quantity;
-        document.getElementById('totalPrice').textContent = `₹${total.toFixed(2)}`;
+        // Update the HTML elements with correct IDs
+        const productPriceDisplay = document.getElementById('productPriceDisplay');
+        const quantityDisplay = document.getElementById('quantityDisplay');
+        const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+        
+        if (productPriceDisplay) productPriceDisplay.textContent = `₹${product.price.toFixed(2)}`;
+        if (quantityDisplay) quantityDisplay.textContent = quantity;
+        if (totalPriceDisplay) totalPriceDisplay.textContent = `₹${total.toFixed(2)}`;
         
         razorpayConfig.checkoutData.total = total;
     }
@@ -627,6 +632,7 @@
     window.editAddress = editAddress;
     window.deleteAddress = deleteAddress;
     window.showAddressForm = showAddressForm;
+    window.saveAddress = saveAddress;
     window.closeAddressModal = closeAddressModal;
     window.closeAddressFormModal = closeAddressFormModal;
     window.closeQuantityModal = closeQuantityModal;

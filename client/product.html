@@ -160,7 +160,133 @@
       </div>
     </div>
   </div>
+
+  <!-- Address Selection Modal -->
+  <div id="addressModal" class="modal enhanced-modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Select Delivery Address</h3>
+        <span class="close" onclick="closeAddressModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div id="addressList" class="address-list"></div>
+        <button id="addAddressBtn" class="btn btn-primary w-full mt-4">+ Add New Address</button>
+      </div>
+      <div class="modal-footer">
+        <button id="addressNextBtn" class="btn btn-primary" disabled>Continue</button>
+        <button onclick="closeAddressModal()" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Address Form Modal -->
+  <div id="addressFormModal" class="modal enhanced-modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="addressFormTitle">Add New Address</h3>
+        <span class="close" onclick="closeAddressFormModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="addressForm" class="address-form">
+          <input type="hidden" id="addressId" name="addressId">
+          <div class="form-group">
+            <label for="recipientName">Recipient Name *</label>
+            <input type="text" id="recipientName" name="recipientName" required>
+          </div>
+          <div class="form-group">
+            <label for="mobile">Mobile Number *</label>
+            <input type="tel" id="mobile" name="mobile" required>
+          </div>
+          <div class="form-group">
+            <label for="address">Address *</label>
+            <textarea id="address" name="address" required></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pincode">PIN Code *</label>
+              <input type="text" id="pincode" name="pincode" required>
+            </div>
+            <div class="form-group">
+              <label for="city">City *</label>
+              <input type="text" id="city" name="city" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="state">State *</label>
+              <input type="text" id="state" name="state" required>
+            </div>
+            <div class="form-group">
+              <label for="addressType">Address Type</label>
+              <select id="addressType" name="addressType">
+                <option value="home">Home</option>
+                <option value="work">Work</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="isDefault" name="isDefault">
+              Set as default address
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="saveAddress()" class="btn btn-primary">Save Address</button>
+        <button type="button" onclick="closeAddressFormModal()" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quantity Selection Modal -->
+  <div id="quantityModal" class="modal enhanced-modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Select Quantity</h3>
+        <span class="close" onclick="closeQuantityModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="product-summary">
+          <img id="quantityProductImage" src="" alt="Product" class="product-image">
+          <div class="product-info">
+            <h4 id="quantityProductName"></h4>
+            <p id="quantityProductPrice" class="price"></p>
+          </div>
+        </div>
+        <div class="quantity-controls">
+          <label for="quantityInput">Quantity:</label>
+          <div class="quantity-input-group">
+            <button id="decreaseQty" class="qty-btn">-</button>
+            <input type="number" id="quantityInput" value="1" min="1" max="10">
+            <button id="increaseQty" class="qty-btn">+</button>
+          </div>
+        </div>
+        <div class="price-breakdown">
+          <div class="price-row">
+            <span>Product Price:</span>
+            <span id="productPriceDisplay"></span>
+          </div>
+          <div class="price-row">
+            <span>Quantity:</span>
+            <span id="quantityDisplay"></span>
+          </div>
+          <div class="price-row total">
+            <span>Total:</span>
+            <span id="totalPriceDisplay"></span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="proceedToPayment" class="btn btn-primary">Proceed to Payment</button>
+        <button id="backToAddressBtn" class="btn btn-secondary">Back to Address</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
+  <script src="razorpay-checkout.js"></script>
   <script>
     // --- Utility: get product ID from URL ---
     function getProductId() {
@@ -542,7 +668,13 @@
           wishlistBtn.classList.add('opacity-60', 'cursor-not-allowed');
         }
       } else {
-      if (buyNowBtn) buyNowBtn.onclick = function() { if (window.buyNow) window.buyNow(product._id); };
+              if (buyNowBtn) buyNowBtn.onclick = function() { 
+          if (window.startCheckoutFlow) {
+            window.startCheckoutFlow(product._id, product.name, product.price, product.image);
+          } else {
+            console.error('startCheckoutFlow function not found');
+          }
+        };
       if (addToCartBtn) addToCartBtn.onclick = function() { if (window.addToCart) window.addToCart(product._id, 1); };
       if (wishlistBtn) {
         wishlistBtn.dataset.productId = product._id;
@@ -898,7 +1030,8 @@
             </div>
             <div class="text-gray-700">${r.comment}</div>
           </div>
-        `).join('');
+        `
+        ).join('');
       } catch (err) {
         reviewsList.innerHTML = '<div class="text-center text-red-500">Failed to load reviews.</div>';
       }
@@ -944,4 +1077,4 @@
     };
   </script>
 </body>
-</html> 
+</html>
