@@ -131,46 +131,71 @@ exports.getCart = async (req, res) => {
 };
 
 exports.addToCart = async (req, res) => {
+  console.log('🛒 addToCart called with:', { body: req.body, user: req.user });
+  
   if (!req.user || !req.user.id) {
+    console.error('❌ addToCart: No user found in request');
     return res.status(401).json({ message: 'Unauthorized: No user found in request.' });
   }
+  
   try {
     const { productId, itemId, quantity = 1 } = req.body;
     const id = productId || itemId; // Accept both for backward compatibility
-    console.log('Backend: addToCart received productId:', productId, 'itemId:', itemId, 'using:', id);
+    console.log('🛒 addToCart received productId:', productId, 'itemId:', itemId, 'using:', id);
+    
     if (!id) {
+      console.error('❌ addToCart: No productId or itemId provided');
       return res.status(400).json({ message: 'No productId or itemId provided' });
     }
+    
     const user = await User.findById(req.user.id);
     if (!user) {
+      console.error('❌ addToCart: User not found for id', req.user.id);
       return res.status(404).json({ message: 'User not found' });
     }
+    
+    console.log('✅ addToCart: User found:', user.email);
+    
     fixCartFormat(user); // Ensure cart is always in correct format
+    
     // Check if product exists
-    const product = await require('../models/Item').findById(id);
-    console.log('Backend: addToCart product lookup result:', product);
+    const Item = require('../models/Item');
+    const product = await Item.findById(id);
+    console.log('🛒 addToCart product lookup result:', product ? product.name : 'Not found');
+    
     if (!product) {
+      console.error('❌ addToCart: Product not found for id', id);
       return res.status(404).json({ message: 'Product not found' });
     }
+    
     // DEBUG: Log cart before
-    console.log('addToCart: cart before =', JSON.stringify(user.cart, null, 2));
+    console.log('🛒 addToCart: cart before =', JSON.stringify(user.cart, null, 2));
+    
     const existing = user.cart.find(c => c.product && c.product.toString() === id.toString());
     if (existing) {
       existing.quantity += quantity;
+      console.log('🛒 addToCart: Updated existing item quantity to', existing.quantity);
     } else {
       user.cart.push({ product: id, quantity });
+      console.log('🛒 addToCart: Added new item to cart');
     }
+    
     await user.save();
     await user.populate('cart.product');
+    
     // DEBUG: Log cart after
-    console.log('addToCart: cart after =', JSON.stringify(user.cart, null, 2));
+    console.log('🛒 addToCart: cart after =', JSON.stringify(user.cart, null, 2));
+    
     const cartWithProduct = user.cart.map(c => ({
       ...c.toObject(),
       product: c.product
     }));
+    
+    console.log('✅ addToCart: Successfully updated cart');
     res.json(cartWithProduct);
+    
   } catch (error) {
-    console.error('addToCart error:', error);
+    console.error('❌ addToCart error:', error);
     res.status(500).json({ message: error.message || 'Server error' });
   }
 };
@@ -249,28 +274,56 @@ exports.getWishlist = async (req, res) => {
 };
 
 exports.addToWishlist = async (req, res) => {
+  console.log('❤️ addToWishlist called with:', { body: req.body, user: req.user });
+  
   if (!req.user || !req.user.id) {
+    console.error('❌ addToWishlist: No user found in request');
     return res.status(401).json({ message: 'Unauthorized: No user found in request.' });
   }
-  console.log('addToWishlist: req.user =', req.user);
-  console.log('addToWishlist: req.body =', req.body);
+  
   try {
     const { productId, itemId } = req.body;
     const id = productId || itemId; // Accept both for backward compatibility
+    console.log('❤️ addToWishlist received productId:', productId, 'itemId:', itemId, 'using:', id);
+    
     if (!id) {
+      console.error('❌ addToWishlist: No productId or itemId provided');
       return res.status(400).json({ message: 'No productId or itemId provided' });
     }
+    
     const user = await User.findById(req.user.id);
     if (!user) {
-      console.log('addToWishlist: User not found for id', req.user.id);
+      console.error('❌ addToWishlist: User not found for id', req.user.id);
       return res.status(404).json({ message: 'User not found' });
     }
-    if (!user.wishlist.includes(id)) user.wishlist.push(id);
+    
+    console.log('✅ addToWishlist: User found:', user.email);
+    
+    // Check if product exists
+    const Item = require('../models/Item');
+    const product = await Item.findById(id);
+    console.log('❤️ addToWishlist product lookup result:', product ? product.name : 'Not found');
+    
+    if (!product) {
+      console.error('❌ addToWishlist: Product not found for id', id);
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    if (!user.wishlist.includes(id)) {
+      user.wishlist.push(id);
+      console.log('❤️ addToWishlist: Added product to wishlist');
+    } else {
+      console.log('❤️ addToWishlist: Product already in wishlist');
+    }
+    
     await user.save();
     await user.populate('wishlist');
+    
+    console.log('✅ addToWishlist: Successfully updated wishlist');
     res.json(user.wishlist);
+    
   } catch (error) {
-    console.error('addToWishlist: Error:', error);
+    console.error('❌ addToWishlist: Error:', error);
     res.status(500).json({ message: error.message });
   }
 };
