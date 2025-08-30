@@ -24,6 +24,7 @@
 
     async function initializeEnhancedCheckout() {
         await loadRazorpayKey();
+        await loadUserAddresses(); // ✅ Load addresses on initialization
         setupCheckoutEventListeners();
         console.log('✅ Enhanced checkout system initialized');
     }
@@ -39,6 +40,36 @@
             }
         } catch (error) {
             console.error('❌ Failed to load Razorpay key:', error);
+        }
+    }
+
+    // ✅ FIXED: Enhanced load user addresses for checkout
+    async function loadUserAddresses() {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.log('❌ No token found, cannot load addresses');
+                razorpayConfig.userAddresses = [];
+                return;
+            }
+
+            const response = await fetch('/api/user/addresses', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                razorpayConfig.userAddresses = await response.json();
+                console.log('✅ User addresses loaded:', razorpayConfig.userAddresses.length);
+            } else {
+                console.error('❌ Failed to load addresses:', response.status);
+                razorpayConfig.userAddresses = [];
+            }
+        } catch (error) {
+            console.error('❌ Error loading addresses:', error);
+            razorpayConfig.userAddresses = [];
         }
     }
 
@@ -118,6 +149,7 @@
         showAddressModal();
     }
 
+    // ✅ FIXED: Enhanced address loading with better error handling
     async function loadUserAddresses() {
         try {
             const token = localStorage.getItem('token');
@@ -131,7 +163,8 @@
 
             const response = await fetch('/api/user/addresses', {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
             

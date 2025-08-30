@@ -2808,119 +2808,356 @@
       }
     }
 
-    // Address Cards UI
+    // Address Cards UI - FIXED with proper error handling
     async function renderAddressCards() {
       const addressBookList = document.getElementById('addressBookList');
+      if (!addressBookList) {
+        console.error('❌ Address book list element not found');
+        return;
+      }
+      
       addressBookList.innerHTML = '<div class="text-gray-500 text-sm">Loading addresses...</div>';
       let addresses = [];
       const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const res = await fetch('/api/user/addresses', { headers: { Authorization: `Bearer ${token}` } });
-          addresses = await res.json();
-        } catch (e) { addresses = []; }
+      
+      if (!token) {
+        addressBookList.innerHTML = '<div class="text-gray-500 text-sm">Please log in to manage addresses.</div>';
+        return;
       }
+      
+      try {
+        const res = await fetch('/api/user/addresses', { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
+        addresses = await res.json();
+        console.log('✅ Addresses loaded:', addresses.length);
+      } catch (error) {
+        console.error('❌ Failed to load addresses:', error);
+        addressBookList.innerHTML = '<div class="text-red-500 text-sm">Failed to load addresses. Please try again.</div>';
+        return;
+      }
+      
       if (!addresses.length) {
         addressBookList.innerHTML = '<div class="text-gray-500 text-sm">No saved addresses. Please add one.</div>';
         return;
       }
-      addressBookList.innerHTML = addresses.map((a, idx) => `
-        <div class="address-card border rounded-lg p-4 mb-2 flex items-start gap-4 ${a.isDefault ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white'}" data-address-id="${a._id}">
-          <input type="radio" name="selectedAddress" ${a.isDefault ? 'checked' : ''} data-idx="${idx}" class="mt-1 accent-blue-600" />
-          <div class="flex-1">
-            <div class="font-semibold">${a.name} ${a.isDefault ? '<span class=\'ml-2 px-2 py-0.5 text-xs rounded bg-blue-600 text-white\'>Default</span>' : ''}</div>
-            <div class="text-gray-700 text-sm mb-1">${a.address}</div>
-            <div class="text-gray-600 text-xs mb-1">${a.pincode}, ${a.mobile}</div>
+      
+      // ✅ Clean HTML generation with proper escaping
+      addressBookList.innerHTML = addresses.map((a, idx) => {
+        const name = a.name || a.recipientName || 'Unknown';
+        const address = a.address || 'No address';
+        const pincode = a.pincode || 'N/A';
+        const mobile = a.mobile || 'N/A';
+        const isDefault = a.isDefault || false;
+        
+        return `
+          <div class="address-card border rounded-lg p-4 mb-2 flex items-start gap-4 ${isDefault ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white'}" data-address-id="${a._id || idx}">
+            <input type="radio" name="selectedAddress" ${isDefault ? 'checked' : ''} data-idx="${idx}" class="mt-1 accent-blue-600" />
+            <div class="flex-1">
+              <div class="font-semibold">${name} ${isDefault ? '<span class="ml-2 px-2 py-0.5 text-xs rounded bg-blue-600 text-white">Default</span>' : ''}</div>
+              <div class="text-gray-700 text-sm mb-1">${address}</div>
+              <div class="text-gray-600 text-xs mb-1">${pincode}, ${mobile}</div>
+            </div>
+            <div class="address-actions">
+              <span class="edit-address cursor-pointer text-blue-600 hover:text-blue-800" title="Edit" data-address-id="${a._id || idx}"><i class="fas fa-pen"></i></span>
+              <span class="delete-address cursor-pointer text-red-600 hover:text-red-800 ml-2" title="Delete" data-address-id="${a._id || idx}"><i class="fas fa-trash"></i></span>
+            </div>
           </div>
-          <div class="address-actions">
-            <span class="edit-address" title="Edit"><i class="fas fa-pen"></i></span>
-            <span class="delete-address" title="Delete"><i class="fas fa-trash"></i></span>
-          </div>
-        </div>
-      `).join('');
-      // Attach icon event listeners
-      addressBookList.querySelectorAll('.edit-address').forEach((btn, idx) => {
+        `;
+      }).join('');
+      
+      // ✅ Attach event listeners with proper error handling
+      attachAddressEventListeners();
+    }
+    // ✅ FIXED: Proper address event listeners attachment
+    function attachAddressEventListeners() {
+      const addressBookList = document.getElementById('addressBookList');
+      if (!addressBookList) return;
+      
+      // Edit address listeners
+      addressBookList.querySelectorAll('.edit-address').forEach((btn) => {
         btn.onclick = function(e) {
           e.preventDefault();
-          editAddressCard(idx);
+          e.stopPropagation();
+          const addressId = this.getAttribute('data-address-id');
+          editAddressCard(addressId);
         };
       });
-      addressBookList.querySelectorAll('.delete-address').forEach((btn, idx) => {
+      
+      // Delete address listeners
+      addressBookList.querySelectorAll('.delete-address').forEach((btn) => {
         btn.onclick = function(e) {
           e.preventDefault();
-          deleteAddressCard(idx);
+          e.stopPropagation();
+          const addressId = this.getAttribute('data-address-id');
+          deleteAddressCard(addressId);
         };
       });
+      
+      // Radio button listeners
       addressBookList.querySelectorAll('input[type=radio][name=selectedAddress]').forEach(radio => {
-        radio.addEventListener('change', function() { setDefaultAddress(this.dataset.idx); });
+        radio.addEventListener('change', function() { 
+          setDefaultAddress(this.dataset.idx); 
+        });
       });
     }
+
     async function setDefaultAddress(idx) {
       // Set selected address as default
       const token = localStorage.getItem('token');
-      if (!token) return;
-      let addresses = [];
+      if (!token) {
+        showNotification('Please log in to manage addresses', 'error');
+        return;
+      }
+      
       try {
-        const res = await fetch('/api/user/addresses', { headers: { Authorization: `Bearer ${token}` } });
-        addresses = await res.json();
-        addresses = addresses.map((a, i) => ({ ...a, isDefault: i == idx }));
-        // Save all addresses with new default
-        for (let i = 0; i < addresses.length; i++) {
-          await fetch('/api/user/addresses', {
-          method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ ...addresses[i], idx: i, isDefault: addresses[i].isDefault })
-          });
-        }
-        renderAddressCards();
-      } catch (e) { showNotification('Failed to set default address', 'error'); }
-    }
-    async function editAddressCard(idx) {
-      // Fetch addresses, populate form with idx
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      let addresses = [];
-      try {
-        const res = await fetch('/api/user/addresses', { headers: { Authorization: `Bearer ${token}` } });
-        addresses = await res.json();
-        const a = addresses[idx];
-        document.getElementById('addressName').value = a.name;
-        document.getElementById('addressMobile').value = a.mobile;
-        document.getElementById('addressLine').value = a.address;
-        document.getElementById('addressPincode').value = a.pincode;
-        document.getElementById('addressState').value = a.state || '';
-        document.getElementById('addressCountry').value = a.country || '';
-        document.getElementById('addressForm').style.display = '';
-        setAddressFormEditable(true);
-        // Store idx for update
-        document.getElementById('addressForm').dataset.editIdx = idx;
-      } catch (e) {}
-    }
-    async function deleteAddressCard(idx) {
-      if (!confirm('Delete this address?')) return;
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      try {
-        await fetch('/api/user/addresses', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ idx: Number(idx) })
+        // First get all addresses
+        const res = await fetch('/api/user/addresses', { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
         });
-        showNotification('Address deleted', 'success');
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
+        const addresses = await res.json();
+        if (!addresses[idx]) {
+          throw new Error('Address not found');
+        }
+        
+        // Update the specific address to be default
+        const addressToUpdate = addresses[idx];
+        const updateRes = await fetch(`/api/user/addresses/${addressToUpdate._id}`, {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${token}` 
+          },
+          body: JSON.stringify({ 
+            ...addressToUpdate,
+            isDefault: true 
+          })
+        });
+        
+        if (!updateRes.ok) {
+          throw new Error(`Failed to update address: ${updateRes.statusText}`);
+        }
+        
+        showNotification('Default address updated successfully', 'success');
         renderAddressCards();
-      } catch (e) { showNotification('Failed to delete address', 'error'); }
+      } catch (error) {
+        console.error('❌ Failed to set default address:', error);
+        showNotification('Failed to set default address', 'error');
+      }
     }
+    async function editAddressCard(addressId) {
+      // Fetch addresses, populate form with addressId
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showNotification('Please log in to edit addresses', 'error');
+        return;
+      }
+      
+      try {
+        const res = await fetch('/api/user/addresses', { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
+        const addresses = await res.json();
+        const address = addresses.find(a => a._id === addressId || a._id === addressId.toString());
+        
+        if (!address) {
+          throw new Error('Address not found');
+        }
+        
+        // Populate form fields
+        const addressForm = document.getElementById('addressForm');
+        if (addressForm) {
+          document.getElementById('recipientName').value = address.recipientName || address.name || '';
+          document.getElementById('mobile').value = address.mobile || '';
+          document.getElementById('address').value = address.address || '';
+          document.getElementById('pincode').value = address.pincode || '';
+          document.getElementById('city').value = address.city || '';
+          document.getElementById('state').value = address.state || '';
+          document.getElementById('addressType').value = address.addressType || 'home';
+          document.getElementById('isDefault').checked = address.isDefault || false;
+          document.getElementById('addressId').value = address._id;
+          
+          // Update form title
+          document.getElementById('addressFormTitle').textContent = 'Edit Address';
+          
+          // Show the form modal
+          showAddressFormModal();
+        }
+      } catch (error) {
+        console.error('❌ Failed to load address for editing:', error);
+        showNotification('Failed to load address details', 'error');
+      }
+    }
+    async function deleteAddressCard(addressId) {
+      if (!confirm('Are you sure you want to delete this address?')) return;
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showNotification('Please log in to delete addresses', 'error');
+        return;
+      }
+      
+      try {
+        const res = await fetch(`/api/user/addresses/${addressId}`, {
+          method: 'DELETE',
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${token}` 
+          }
+        });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
+        showNotification('Address deleted successfully', 'success');
+        renderAddressCards();
+      } catch (error) {
+        console.error('❌ Failed to delete address:', error);
+        showNotification('Failed to delete address', 'error');
+      }
+    }
+    // ✅ FIXED: Address modal management functions
+    function showAddressFormModal() {
+      const modal = document.getElementById('addressFormModal');
+      if (modal) {
+        modal.style.display = 'block';
+      }
+    }
+    
+    function closeAddressFormModal() {
+      const modal = document.getElementById('addressFormModal');
+      if (modal) {
+        modal.style.display = 'none';
+        // Reset form
+        document.getElementById('addressForm').reset();
+        document.getElementById('addressId').value = '';
+        document.getElementById('addressFormTitle').textContent = 'Add New Address';
+      }
+    }
+    
+    function showAddressModal() {
+      const modal = document.getElementById('addressModal');
+      if (modal) {
+        modal.style.display = 'block';
+        displayAddresses();
+      }
+    }
+    
+    function closeAddressModal() {
+      const modal = document.getElementById('addressModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+    
+    // ✅ FIXED: Save address function
+    async function saveAddress() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showNotification('Please log in to save addresses', 'error');
+        return;
+      }
+      
+      const form = document.getElementById('addressForm');
+      const formData = new FormData(form);
+      const addressData = {
+        recipientName: formData.get('recipientName'),
+        mobile: formData.get('mobile'),
+        address: formData.get('address'),
+        pincode: formData.get('pincode'),
+        city: formData.get('city'),
+        state: formData.get('state'),
+        addressType: formData.get('addressType'),
+        isDefault: formData.get('isDefault') === 'on'
+      };
+      
+      // Validate required fields
+      if (!addressData.recipientName || !addressData.mobile || !addressData.address || !addressData.pincode || !addressData.city || !addressData.state) {
+        showNotification('Please fill all required fields', 'error');
+        return;
+      }
+      
+      try {
+        const addressId = document.getElementById('addressId').value;
+        const method = addressId ? 'PUT' : 'POST';
+        const url = addressId ? `/api/user/addresses/${addressId}` : '/api/user/addresses';
+        
+        const res = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(addressData)
+        });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
+        showNotification(addressId ? 'Address updated successfully' : 'Address added successfully', 'success');
+        closeAddressFormModal();
+        renderAddressCards();
+        
+        // Update checkout addresses if in checkout flow
+        if (window.razorpayConfig && window.razorpayConfig.userAddresses) {
+          await loadUserAddresses();
+        }
+      } catch (error) {
+        console.error('❌ Failed to save address:', error);
+        showNotification('Failed to save address', 'error');
+      }
+    }
+    
     // On page load, render address cards
     renderAddressCards();
-    // When address is saved, re-render cards
-    const saveAddressBtn = document.getElementById('saveAddressBtn');
-    if (saveAddressBtn) {
-      const origHandler = saveAddressBtn.onclick;
-      saveAddressBtn.addEventListener('click', function() {
-        setTimeout(renderAddressCards, 500);
-        if (origHandler) origHandler();
-      });
-    }
+    
+    // ✅ FIXED: Enhanced address form event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      const addressForm = document.getElementById('addressForm');
+      if (addressForm) {
+        addressForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          saveAddress();
+        });
+      }
+      
+      // Add new address button
+      const addAddressBtn = document.getElementById('addAddressBtn');
+      if (addAddressBtn) {
+        addAddressBtn.addEventListener('click', function() {
+          document.getElementById('addressFormTitle').textContent = 'Add New Address';
+          document.getElementById('addressId').value = '';
+          document.getElementById('addressForm').reset();
+          showAddressFormModal();
+        });
+      }
+    });
 
     // Add global protectedFetch helper if not present
     async function protectedFetch(url, options = {}) {
