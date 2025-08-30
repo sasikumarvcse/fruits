@@ -84,6 +84,34 @@
             // Load initial data
             showTab('dashboard');
         }
+
+        // Check admin authentication on page load
+        function checkAdminAuth() {
+            const adminToken = localStorage.getItem('adminToken');
+            if (!adminToken) {
+                window.location.href = 'admin-login.html';
+                return;
+            }
+            
+            // Verify token is still valid
+            try {
+                // Simple token validation - in production, you might want to verify with the server
+                const adminData = localStorage.getItem('adminData');
+                if (adminData) {
+                    const admin = JSON.parse(adminData);
+                    if (admin.role === 'admin') {
+                        // Token appears valid, continue
+                        return;
+                    }
+                }
+                throw new Error('Invalid admin data');
+            } catch (error) {
+                console.error('Token validation failed:', error);
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminData');
+                window.location.href = 'admin-login.html';
+            }
+        }
     </script>
 
     <!-- Navigation -->
@@ -876,12 +904,18 @@
         }
 
         // Logout
-            function logout() {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminData');
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-            window.location.href = '/admin-login.html';
+        function logout() {
+            // Clear all admin-related data
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminData');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            
+            // Clear any other session data
+            sessionStorage.clear();
+            
+            // Redirect to admin login
+            window.location.href = 'admin-login.html';
         }
 
         // Event listeners

@@ -34,7 +34,7 @@ const upload = multer({
   }
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Admin login (returns JWT)
 router.post('/login', async (req, res) => {

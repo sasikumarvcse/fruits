@@ -343,10 +343,21 @@ class CartWishlistManager {
 
     // UI Update Methods
     updateUI() {
-        this.updateCartCount();
-        this.updateWishlistCount();
-        this.updateCartSidebar();
-        this.updateWishlistModal();
+        this.renderCart();
+        this.renderWishlist();
+        
+        // Update cart count in header
+        const cartCountElements = document.querySelectorAll('[id*="cartCount"], .cart-count');
+        cartCountElements.forEach(element => {
+            const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+            element.textContent = totalItems;
+        });
+        
+        // Update wishlist count in header
+        const wishlistCountElements = document.querySelectorAll('[id*="wishlistCount"], .wishlist-count');
+        wishlistCountElements.forEach(element => {
+            element.textContent = this.wishlist.length;
+        });
     }
 
     updateCartCount() {
@@ -488,9 +499,33 @@ class CartWishlistManager {
             return;
         }
 
-        // Store cart data for checkout
-        localStorage.setItem('checkoutCart', JSON.stringify(this.cart));
-        window.location.href = 'enhanced-checkout.html';
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        if (!token) {
+            this.showNotification('Please login to proceed to checkout', 'warning');
+            // Redirect to login page
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            // Store cart data for checkout
+            localStorage.setItem('checkoutCart', JSON.stringify(this.cart));
+            localStorage.setItem('checkoutTotal', this.calculateTotal());
+            
+            // Redirect to checkout page
+            window.location.href = 'enhanced-checkout.html';
+        } catch (error) {
+            console.error('Error proceeding to checkout:', error);
+            this.showNotification('Error proceeding to checkout. Please try again.', 'error');
+        }
+    }
+
+    // Calculate total for checkout
+    calculateTotal() {
+        return this.cart.reduce((total, item) => {
+            return total + (item.price * item.quantity);
+        }, 0);
     }
 
     // Notification System
@@ -516,6 +551,86 @@ class CartWishlistManager {
         await this.loadCartFromDatabase();
         await this.loadWishlistFromDatabase();
         this.updateUI();
+    }
+
+    // Render cart items with enhanced UI
+    renderCart() {
+        const cartItems = document.getElementById('cartItems');
+        const cartCount = document.getElementById('cartCount');
+        const cartSubtotal = document.getElementById('cartSubtotal');
+        const cartTotal = document.getElementById('cartTotal');
+        
+        if (!cartItems) return;
+
+        if (this.cart.length === 0) {
+            cartItems.innerHTML = `
+                <div class="empty-cart text-center py-8">
+                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shopping-cart text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-gray-500 text-lg font-medium mb-2">Your cart is empty</p>
+                    <p class="text-gray-400 text-sm">Add some products to get started!</p>
+                </div>
+            `;
+            cartCount.textContent = '0';
+            cartSubtotal.textContent = '₹0';
+            cartTotal.textContent = '₹0';
+            return;
+        }
+
+        const cartHTML = this.cart.map(item => `
+            <div class="cart-item bg-white rounded-lg p-4 mb-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded-lg">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-semibold text-gray-900 truncate">${item.name}</h4>
+                        <p class="text-sm text-gray-500">₹${item.price.toFixed(2)}</p>
+                        <div class="flex items-center space-x-2 mt-2">
+                            <button onclick="cartManager.updateCartQuantity('${item.id}', ${item.quantity - 1})" 
+                                    class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors ${item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    ${item.quantity <= 1 ? 'disabled' : ''}>
+                                <i class="fas fa-minus text-xs"></i>
+                            </button>
+                            <span class="text-sm font-medium text-gray-900 w-8 text-center">${item.quantity}</span>
+                            <button onclick="cartManager.updateCartQuantity('${item.id}', ${item.quantity + 1})" 
+                                    class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors ${item.quantity >= item.stock ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    ${item.quantity >= item.stock ? 'disabled' : ''}>
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end space-y-2">
+                        <div class="text-right">
+                            <p class="text-sm font-semibold text-gray-900">₹${(item.price * item.quantity).toFixed(2)}</p>
+                            <p class="text-xs text-gray-500">${item.quantity} × ₹${item.price.toFixed(2)}</p>
+                        </div>
+                        <button onclick="cartManager.removeFromCart('${item.id}')" 
+                                class="text-red-500 hover:text-red-700 transition-colors p-1">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        cartItems.innerHTML = cartHTML;
+        
+        // Update cart count and totals
+        const totalItems = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+        const subtotal = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const total = subtotal; // Add tax/shipping if needed
+        
+        cartCount.textContent = totalItems;
+        cartSubtotal.textContent = `₹${subtotal.toFixed(2)}`;
+        cartTotal.textContent = `₹${total.toFixed(2)}`;
+        
+        // Update cart summary visibility
+        const cartSummary = document.querySelector('.cart-summary');
+        if (cartSummary) {
+            cartSummary.style.display = this.cart.length > 0 ? 'block' : 'none';
+        }
     }
 }
 
