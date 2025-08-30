@@ -236,12 +236,21 @@ exports.getWishlist = async (req, res) => {
   }
   console.log('getWishlist: req.user =', req.user);
   try {
-    const user = await User.findById(req.user.id).populate('wishlist');
+    const user = await User.findById(req.user.id);
     if (!user) {
       console.log('getWishlist: User not found for id', req.user.id);
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(user.wishlist);
+    
+    // Initialize wishlist if it doesn't exist
+    if (!user.wishlist) {
+      user.wishlist = [];
+      await user.save();
+    }
+    
+    // Populate and return wishlist
+    await user.populate('wishlist');
+    res.json(user.wishlist || []);
   } catch (error) {
     console.error('getWishlist: Error:', error);
     res.status(500).json({ message: error.message });
@@ -260,13 +269,32 @@ exports.addToWishlist = async (req, res) => {
     if (!id) {
       return res.status(400).json({ message: 'No productId or itemId provided' });
     }
+    
+    // Validate that the product exists
+    const Item = require('../models/Item');
+    const product = await Item.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
     const user = await User.findById(req.user.id);
     if (!user) {
       console.log('addToWishlist: User not found for id', req.user.id);
       return res.status(404).json({ message: 'User not found' });
     }
-    if (!user.wishlist.includes(id)) user.wishlist.push(id);
-    await user.save();
+    
+    // Initialize wishlist if it doesn't exist
+    if (!user.wishlist) {
+      user.wishlist = [];
+    }
+    
+    // Check if product is already in wishlist
+    if (!user.wishlist.includes(id)) {
+      user.wishlist.push(id);
+      await user.save();
+    }
+    
+    // Populate and return updated wishlist
     await user.populate('wishlist');
     res.json(user.wishlist);
   } catch (error) {

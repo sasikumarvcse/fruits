@@ -191,7 +191,7 @@
         console.log('🔄 Attempting admin login for:', email);
         
         // ✅ FIXED: Correct API endpoint
-        const response = await fetch('/api/auth/admin-login', {
+        const response = await fetch('/api/admin/login', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',

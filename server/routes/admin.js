@@ -8,6 +8,7 @@ const Item = require('../models/Item');
 const Order = require('../models/Order');
 const bcrypt = require('bcryptjs');
 const adminController = require('../controllers/adminController');
+const adminAuth = require('../middleware/adminAuth');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -43,42 +44,33 @@ router.post('/login', async (req, res) => {
   if (!user) return res.status(401).json({ message: 'Invalid credentials' });
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
-  const token = jwt.sign({ user: { id: user.id, role: user.role } }, JWT_SECRET, { expiresIn: '5d' });
-  res.json({ token, user: { id: user.id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName } });
+  const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: '5d' });
+  res.json({ 
+    success: true,
+    token, 
+    user: { id: user.id, email: user.email, role: user.role, firstName: user.firstName, lastName: user.lastName } 
+  });
 });
 
-// Middleware: require admin JWT
-function requireAdmin(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ message: 'No token' });
-  const token = auth.split(' ')[1];
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    if (payload.user && payload.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' });
-    req.user = payload.user || payload;
-    next();
-  } catch (e) {
-    return res.status(401).json({ message: 'Token invalid' });
-  }
-}
+
 
 // Dashboard statistics (FIXED)
-router.get('/dashboard', requireAdmin, adminController.getDashboardStats);
+router.get('/dashboard', adminAuth, adminController.getDashboardStats);
 
 // Revenue analytics (NEW)
-router.get('/revenue', requireAdmin, adminController.getRevenueAnalytics);
+router.get('/revenue', adminAuth, adminController.getRevenueAnalytics);
 
 // Products management with enhanced functionality
-router.get('/products', requireAdmin, adminController.getProducts);
+router.get('/products', adminAuth, adminController.getProducts);
 
 // Update product status (NEW)
-router.patch('/products/:productId/status', requireAdmin, adminController.updateProductStatus);
+router.patch('/products/:productId/status', adminAuth, adminController.updateProductStatus);
 
 // Bulk update product status (NEW)
-router.patch('/products/bulk-status', requireAdmin, adminController.bulkUpdateProductStatus);
+router.patch('/products/bulk-status', adminAuth, adminController.bulkUpdateProductStatus);
 
 // Add new product
-router.post('/products', requireAdmin, upload.single('image'), async (req, res) => {
+router.post('/products', adminAuth, upload.single('image'), async (req, res) => {
   try {
     const itemController = require('../controllers/itemController');
     await itemController.createItem(req, res);
@@ -88,7 +80,7 @@ router.post('/products', requireAdmin, upload.single('image'), async (req, res) 
 });
 
 // Update product
-router.put('/products/:id', requireAdmin, upload.single('image'), async (req, res) => {
+router.put('/products/:id', adminAuth, upload.single('image'), async (req, res) => {
   try {
     const itemController = require('../controllers/itemController');
     await itemController.updateItem(req, res);
@@ -98,7 +90,7 @@ router.put('/products/:id', requireAdmin, upload.single('image'), async (req, re
 });
 
 // Delete product
-router.delete('/products/:id', requireAdmin, async (req, res) => {
+router.delete('/products/:id', adminAuth, async (req, res) => {
   try {
     const itemController = require('../controllers/itemController');
     await itemController.deleteItem(req, res);
@@ -108,19 +100,19 @@ router.delete('/products/:id', requireAdmin, async (req, res) => {
 });
 
 // Enhanced order management
-router.get('/orders', requireAdmin, adminController.getOrders);
+router.get('/orders', adminAuth, adminController.getOrders);
 
 // Update order status (NEW)
-router.patch('/orders/:orderId/status', requireAdmin, adminController.updateOrderStatus);
+router.patch('/orders/:orderId/status', adminAuth, adminController.updateOrderStatus);
 
 // User management
-router.get('/users', requireAdmin, adminController.getUsers);
+router.get('/users', adminAuth, adminController.getUsers);
 
 // Update user status (NEW)
-router.patch('/users/:userId/status', requireAdmin, adminController.updateUserStatus);
+router.patch('/users/:userId/status', adminAuth, adminController.updateUserStatus);
 
 // Update user
-router.put('/users/:id', requireAdmin, async (req, res) => {
+router.put('/users/:id', adminAuth, async (req, res) => {
   try {
     const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updated) return res.status(404).json({ message: 'User not found' });
@@ -131,7 +123,7 @@ router.put('/users/:id', requireAdmin, async (req, res) => {
 });
 
 // Delete user
-router.delete('/users/:id', requireAdmin, async (req, res) => {
+router.delete('/users/:id', adminAuth, async (req, res) => {
   try {
     const deleted = await User.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: 'User not found' });
@@ -142,7 +134,7 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
 });
 
 // Suspend/Activate user
-router.patch('/users/:id/status', requireAdmin, async (req, res) => {
+router.patch('/users/:id/status', adminAuth, async (req, res) => {
   try {
     const { status } = req.body;
     const updated = await User.findByIdAndUpdate(req.params.id, { status }, { new: true });
@@ -186,7 +178,7 @@ router.get('/stats', requireAdmin, async (req, res) => {
 });
 
 // Product summary for admin
-router.get('/products/:productId/summary', requireAdmin, async (req, res) => {
+router.get('/products/:productId/summary', adminAuth, async (req, res) => {
   try {
     const { productId } = req.params;
 
