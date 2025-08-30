@@ -1273,16 +1273,27 @@
         <div id="addressBookList" class="mb-2"></div>
         <button id="addNewAddressBtn" class="bg-gray-100 text-blue-600 px-3 py-1 rounded mb-2">+ Add New Address</button>
         <div id="addressFormDiv" style="display:none;">
-          <input id="addressName" class="w-full border rounded p-2 mb-2" placeholder="Full Name" />
-          <input id="addressMobile" class="w-full border rounded p-2 mb-2" placeholder="Mobile Number" maxlength="10" />
-          <textarea id="addressLine" class="w-full border rounded p-2 mb-2" rows="2" placeholder="Address"></textarea>
-          <input id="addressPincode" class="w-full border rounded p-2 mb-2" placeholder="Pincode" maxlength="6" />
-          <input id="addressState" class="w-full border rounded p-2 mb-2" placeholder="State" readonly />
-          <input id="addressCountry" class="w-full border rounded p-2 mb-2" placeholder="Country" readonly />
+          <label for="addressName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+          <input id="addressName" name="recipientName" class="w-full border rounded p-2 mb-2" placeholder="Enter your full name" title="Enter your full name" required />
+          
+          <label for="addressMobile" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+          <input id="addressMobile" name="mobile" type="tel" class="w-full border rounded p-2 mb-2" placeholder="Enter 10-digit mobile number" title="Enter 10-digit mobile number" maxlength="10" pattern="[0-9]{10}" required />
+          
+          <label for="addressLine" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+          <textarea id="addressLine" name="address" class="w-full border rounded p-2 mb-2" rows="2" placeholder="Enter your complete address" title="Enter your complete address" required></textarea>
+          
+          <label for="addressPincode" class="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+          <input id="addressPincode" name="pincode" type="text" class="w-full border rounded p-2 mb-2" placeholder="Enter 6-digit pincode" title="Enter 6-digit pincode" maxlength="6" pattern="[0-9]{6}" required />
+          
+          <label for="addressState" class="block text-sm font-medium text-gray-700 mb-1">State</label>
+          <input id="addressState" name="state" class="w-full border rounded p-2 mb-2" placeholder="State" title="State will be auto-filled based on pincode" readonly />
+          
+          <label for="addressCountry" class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+          <input id="addressCountry" name="country" class="w-full border rounded p-2 mb-2" placeholder="Country" title="Country will be auto-filled" readonly />
           <div class="flex gap-2">
-            <button id="saveAddressBtn" class="flex-1 bg-blue-600 text-white py-2 rounded mb-2">Save Address</button>
-            <button id="cancelAddressBtn" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded mb-2">Cancel</button>
-            <button id="editAddressBtn" class="flex-1 bg-gray-100 text-blue-600 py-2 rounded mb-2" style="display:none;">Edit</button>
+            <button id="saveAddressBtn" class="flex-1 bg-blue-600 text-white py-2 rounded mb-2" title="Save this address" aria-label="Save address">Save Address</button>
+            <button id="cancelAddressBtn" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded mb-2" title="Cancel address form" aria-label="Cancel">Cancel</button>
+            <button id="editAddressBtn" class="flex-1 bg-gray-100 text-blue-600 py-2 rounded mb-2" style="display:none;" title="Edit this address" aria-label="Edit address">Edit</button>
           </div>
         </div>
       </div>
@@ -1312,7 +1323,8 @@
   <div id="orderHistorySection" class="hidden">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-bold text-gray-900">My Orders</h2>
-      <select id="orderStatusFilter" class="border rounded px-3 py-1">
+      <label for="orderStatusFilter" class="sr-only">Filter orders by status</label>
+      <select id="orderStatusFilter" class="border rounded px-3 py-1" title="Filter orders by status" aria-label="Filter orders by status">
         <option value="all">All</option>
         <option value="pending">Pending</option>
         <option value="paid">Paid</option>
@@ -1993,10 +2005,20 @@
     
     // Apply filters and search (for filter sidebar)
     function applyFilters() {
-      const searchTerm = document.getElementById('mainSearchInput').value.trim().toLowerCase();
-      const priceRange = document.getElementById('priceRange').value;
+      const mainSearchInput = document.getElementById('mainSearchInput');
+      const priceRangeEl = document.getElementById('priceRange');
+      const sortSelectEl = document.getElementById('sortSelect');
+      
+      // Check if elements exist before accessing their values
+      if (!mainSearchInput || !priceRangeEl || !sortSelectEl) {
+        console.warn('Search elements not found, skipping filter application');
+        return;
+      }
+      
+      const searchTerm = mainSearchInput.value.trim().toLowerCase();
+      const priceRange = priceRangeEl.value;
       const selectedCategories = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-      const sortBy = document.getElementById('sortSelect').value;
+      const sortBy = sortSelectEl.value;
       
       // Start with search filter
       let filtered = allProducts.filter(product =>
@@ -3698,6 +3720,14 @@
         // Check if we're in checkout flow
         const isInCheckout = window.razorpayConfig && window.razorpayConfig.checkoutData && window.razorpayConfig.checkoutData.product;
         
+        console.log('💳 Checkout status:', {
+          isInCheckout,
+          hasRazorpayConfig: !!window.razorpayConfig,
+          hasCheckoutData: !!(window.razorpayConfig && window.razorpayConfig.checkoutData),
+          hasProduct: !!(window.razorpayConfig && window.razorpayConfig.checkoutData && window.razorpayConfig.checkoutData.product),
+          hasShowQuantityModal: !!window.showQuantityModal
+        });
+        
         if (isInCheckout) {
           // If in checkout flow, close form and continue with checkout
           closeAddressFormModal();
@@ -3717,7 +3747,20 @@
           
           // Continue with checkout flow - show quantity modal
           if (window.showQuantityModal) {
+            console.log('✅ Calling showQuantityModal to continue checkout');
             window.showQuantityModal();
+          } else {
+            console.error('❌ showQuantityModal function not available! Checkout flow broken.');
+            // Try to load razorpay-checkout.js and retry
+            setTimeout(() => {
+              if (window.showQuantityModal) {
+                console.log('⏰ Retrying showQuantityModal after delay');
+                window.showQuantityModal();
+              } else {
+                console.error('❌ showQuantityModal still not available after retry');
+                showNotification('Checkout flow error. Please try again.', 'error');
+              }
+            }, 500);
           }
         } else {
           // Normal address management - close form and refresh address cards
@@ -3918,10 +3961,19 @@
     // ✅ FIXED: Setup address modal event listeners
     function setupAddressModalListeners() {
       const addAddressBtn = document.getElementById('addAddressBtn');
+      const addAddressBtn2 = document.getElementById('addAddressBtn2');
       const addressNextBtn = document.getElementById('addressNextBtn');
 
       if (addAddressBtn) {
         addAddressBtn.addEventListener('click', function() {
+          if (window.showAddressForm) {
+            window.showAddressForm();
+          }
+        });
+      }
+
+      if (addAddressBtn2) {
+        addAddressBtn2.addEventListener('click', function() {
           if (window.showAddressForm) {
             window.showAddressForm();
           }
@@ -4464,12 +4516,23 @@
       </div>
       <button id="addNewAddressSelectionBtn" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg mb-2">Add New Address</button>
       <form id="addressForm" style="display:none;" class="mb-4">
-        <input id="addressName" class="w-full mb-2 p-2 border rounded" placeholder="Name" required />
-        <input id="addressMobile" class="w-full mb-2 p-2 border rounded" placeholder="Mobile" required />
-        <input id="addressLine" class="w-full mb-2 p-2 border rounded" placeholder="Address" required />
-        <input id="addressPincode" class="w-full mb-2 p-2 border rounded" placeholder="Pincode" required />
-        <input id="addressState" class="w-full mb-2 p-2 border rounded" placeholder="State" readonly />
-        <input id="addressCountry" class="w-full mb-2 p-2 border rounded" placeholder="Country" readonly />
+        <label for="addressName2" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+        <input id="addressName2" name="recipientName" class="w-full mb-2 p-2 border rounded" placeholder="Enter your full name" title="Enter your full name" required />
+        
+        <label for="addressMobile2" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+        <input id="addressMobile2" name="mobile" class="w-full mb-2 p-2 border rounded" placeholder="Enter mobile number" title="Enter 10-digit mobile number" maxlength="10" required />
+        
+        <label for="addressLine2" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+        <textarea id="addressLine2" name="address" class="w-full mb-2 p-2 border rounded" rows="2" placeholder="Enter your complete address" title="Enter your complete address" required></textarea>
+        
+        <label for="addressPincode2" class="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+        <input id="addressPincode2" name="pincode" class="w-full mb-2 p-2 border rounded" placeholder="Enter pincode" title="Enter 6-digit pincode" maxlength="6" required />
+        
+        <label for="addressState2" class="block text-sm font-medium text-gray-700 mb-1">State</label>
+        <input id="addressState2" name="state" class="w-full mb-2 p-2 border rounded" placeholder="State" title="State will be auto-filled based on pincode" readonly />
+        
+        <label for="addressCountry2" class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+        <input id="addressCountry2" name="country" class="w-full mb-2 p-2 border rounded" placeholder="Country" title="Country will be auto-filled" readonly />
         <button id="saveAddressBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg mb-2">Save Address</button>
         <button id="cancelAddressBtn" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg">Cancel</button>
       </form>
@@ -4884,11 +4947,11 @@
       <h2><i class="fas fa-map-marker-alt mr-2"></i>Select Delivery Address</h2>
       <div id="addressList"></div>
       <div class="form-actions">
-        <button id="addAddressBtn" class="btn btn-primary">
-          <i class="fas fa-plus mr-2"></i>Add New Address
+        <button id="addAddressBtn" class="btn btn-primary" title="Add a new delivery address" aria-label="Add new address">
+          <i class="fas fa-plus mr-2" aria-hidden="true"></i>Add New Address
         </button>
-        <button id="addressNextBtn" class="btn btn-success" disabled>
-          <i class="fas fa-arrow-right mr-2"></i>Continue
+        <button id="addressNextBtn" class="btn btn-success" disabled title="Continue to quantity selection" aria-label="Continue to quantity selection">
+          <i class="fas fa-arrow-right mr-2" aria-hidden="true"></i>Continue
         </button>
       </div>
     </div>
@@ -4926,17 +4989,17 @@
           <input type="text" id="state" name="state" placeholder="Enter state name" required>
         </div>
         <div class="form-group">
-          <label for="addressType"><i class="fas fa-home mr-1"></i>Address Type</label>
-          <select id="addressType" name="addressType">
+          <label for="addressType" class="block text-sm font-medium text-gray-700 mb-1"><i class="fas fa-home mr-1"></i>Address Type</label>
+          <select id="addressType" name="addressType" class="w-full mb-2 p-2 border rounded" title="Select address type" aria-label="Select address type">
             <option value="home">🏠 Home</option>
             <option value="work">🏢 Work</option>
             <option value="other">📍 Other</option>
           </select>
         </div>
         <div class="form-group">
-          <label>
-            <input type="checkbox" id="isDefault" name="isDefault">
-            <i class="fas fa-star mr-1"></i>Set as default address
+          <label for="isDefault" class="flex items-center">
+            <input type="checkbox" id="isDefault" name="isDefault" title="Set this as your default address" aria-label="Set as default address">
+            <i class="fas fa-star ml-2 mr-1" aria-hidden="true"></i>Set as default address
           </label>
         </div>
         <div class="form-actions">
@@ -4960,11 +5023,11 @@
         <!-- Addresses will be loaded here -->
       </div>
       <div class="modal-actions">
-        <button id="addAddressBtn" class="btn btn-secondary">
-          <i class="fas fa-plus mr-2"></i>Add New Address
+        <button id="addAddressBtn2" class="btn btn-secondary" title="Add a new delivery address" aria-label="Add new address">
+          <i class="fas fa-plus mr-2" aria-hidden="true"></i>Add New Address
         </button>
-        <button id="addressNextBtn" class="btn btn-primary" disabled>
-          <i class="fas fa-arrow-right mr-2"></i>Continue to Quantity
+        <button id="addressNextBtn" class="btn btn-primary" disabled title="Continue to quantity selection" aria-label="Continue to quantity selection">
+          <i class="fas fa-arrow-right mr-2" aria-hidden="true"></i>Continue to Quantity
         </button>
       </div>
     </div>
