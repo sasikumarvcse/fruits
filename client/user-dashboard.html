@@ -98,6 +98,21 @@
     
     .banner-slide:nth-child(1) { background: linear-gradient(135deg, var(--arobowl-dark-blue) 0%, var(--arobowl-green) 100%); }
     .banner-slide:nth-child(2) { background: linear-gradient(135deg, var(--arobowl-green) 0%, var(--arobowl-orange) 100%); }
+    
+    /* Line clamp utilities for text truncation */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
     .banner-slide:nth-child(3) { background: linear-gradient(135deg, var(--arobowl-orange) 0%, var(--arobowl-dark-blue) 100%); }
     
     .category-card {
@@ -1154,6 +1169,15 @@
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-900">All Products</h2>
             <div class="flex items-center gap-4">
+              <!-- View Toggle Buttons -->
+              <div class="flex items-center bg-gray-100 rounded-lg p-1">
+                <button id="gridViewBtn" onclick="switchToGridView()" class="px-3 py-2 rounded-md bg-blue-600 text-white transition-all duration-200 hover:bg-blue-700" title="Grid View (Layout 2)">
+                  <i class="fas fa-th-large mr-2"></i>Grid
+                </button>
+                <button id="cardViewBtn" onclick="switchToCardView()" class="px-3 py-2 rounded-md bg-gray-200 text-gray-700 transition-all duration-200 hover:bg-gray-300" title="Card View">
+                  <i class="fas fa-th mr-2"></i>Cards
+                </button>
+              </div>
               <span id="productCount" class="text-gray-600">Loading...</span>
               <button id="clearSearchBtn" onclick="clearSearch()" class="hidden bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300 transition-colors text-sm">
                 <i class="fas fa-times mr-1"></i>Show All Products
@@ -1161,7 +1185,7 @@
             </div>
           </div>
           
-          <div id="productsGrid" class="grid grid-cols-1 gap-6">
+          <div id="productsGrid" class="grid grid-cols-1 gap-6" data-view="grid">
             <!-- Products will be loaded here -->
           </div>
         
@@ -1963,12 +1987,47 @@
         showNotification('Error during checkout', 'error');
       }
     }
+
     
-    // Display products in grid - Modern layout with left image, right description
+    // View switching functions
+    function switchToGridView() {
+      const grid = document.getElementById('productsGrid');
+      const gridBtn = document.getElementById('gridViewBtn');
+      const cardBtn = document.getElementById('cardViewBtn');
+      
+      grid.setAttribute('data-view', 'grid');
+      grid.className = 'grid grid-cols-1 gap-6';
+      
+      // Update button states
+      gridBtn.className = 'px-3 py-2 rounded-md bg-blue-600 text-white transition-all duration-200 hover:bg-blue-700';
+      cardBtn.className = 'px-3 py-2 rounded-md bg-gray-200 text-gray-700 transition-all duration-200 hover:bg-gray-300';
+      
+      // Re-display products in grid view
+      displayProducts();
+    }
+    
+    function switchToCardView() {
+      const grid = document.getElementById('productsGrid');
+      const gridBtn = document.getElementById('gridViewBtn');
+      const cardBtn = document.getElementById('cardViewBtn');
+      
+      grid.setAttribute('data-view', 'card');
+      grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
+      
+      // Update button states
+      gridBtn.className = 'px-3 py-2 rounded-md bg-gray-200 text-gray-700 transition-all duration-200 hover:bg-gray-300';
+      cardBtn.className = 'px-3 py-2 rounded-md bg-blue-600 text-white transition-all duration-200 hover:bg-blue-700';
+      
+      // Re-display products in card view
+      displayProducts();
+    }
+    
+    // Modified displayProducts function to support both views
     function displayProducts() {
       const grid = document.getElementById('productsGrid');
       const loadingState = document.getElementById('loadingState');
       const noProductsState = document.getElementById('noProductsState');
+      const currentView = grid.getAttribute('data-view') || 'grid';
       
       loadingState.classList.add('hidden');
       
@@ -1979,38 +2038,139 @@
       }
       
       noProductsState.classList.add('hidden');
-      grid.innerHTML = filteredProducts.map(product => {
-        // Calculate discount percentage if MRP is available
-        const discountPercent = product.mrp && product.mrp > product.price ? 
-          Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
-        
-        // Get delivery and offers info
-        const deliveryInfo = product.deliveryInfo || {};
-        const bankOffers = product.bankOffers || [];
-        
-        return `
-          <div class="product-card bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group" onclick="viewProduct('${product._id}')">
-            <div class="flex flex-col md:flex-row">
-              <!-- Left Side - Product Image -->
-              <div class="md:w-1/3 relative">
+      
+      if (currentView === 'grid') {
+        // Grid Layout 2 - Left image, right description
+        grid.innerHTML = filteredProducts.map(product => {
+          // Calculate discount percentage if MRP is available
+          const discountPercent = product.mrp && product.mrp > product.price ? 
+            Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+          
+          // Get delivery and offers info
+          const deliveryInfo = product.deliveryInfo || {};
+          const bankOffers = product.bankOffers || [];
+          
+          return `
+            <div class="product-card bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group" onclick="viewProduct('${product._id}')">
+              <div class="flex flex-col md:flex-row">
+                <!-- Left Side - Product Image -->
+                <div class="md:w-1/3 relative">
+                  <img src="${getProductImageUrl(product)}" 
+                       alt="${product.name}" 
+                       class="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                       onerror="this.onerror=null;this.src='/uploads/default-item.jpg';">
+                  
+                  <!-- Wishlist Button -->
+                  <button onclick="event.stopPropagation(); handleToggleWishlist(this)" 
+                          class="absolute top-4 right-12 bg-white border border-gray-200 rounded-full p-2 shadow-lg hover:bg-pink-50 transition-colors flex items-center justify-center hover:scale-110 transform duration-200" 
+                          data-product-id="${product._id}" 
+                          aria-label="Add to Wishlist">
+                    <i class="fas fa-heart ${product.inWishlist ? 'text-red-500' : 'text-gray-400'} text-lg"></i>
+                  </button>
+                  
+                  <!-- Share Button -->
+                  <button onclick="event.stopPropagation(); shareProduct('${product._id}')" 
+                          class="absolute top-4 right-4 bg-white border border-gray-200 rounded-full p-2 shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center" 
+                          aria-label="Share Product">
+                    <i class="fas fa-share-alt text-blue-600 text-lg"></i>
+                  </button>
+                  
+                  <!-- Badges -->
+                  ${product.isBestSeller ? `<span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Amazon's Choice</span>` : ''}
+                  ${discountPercent > 0 ? `<span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">${discountPercent}% off</span>` : ''}
+                </div>
+                
+                <!-- Right Side - Product Info -->
+                <div class="md:w-2/3 p-6 flex flex-col justify-between">
+                  <div>
+                    <!-- Product Title -->
+                    <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2">${product.name}</h3>
+                    
+                    <!-- Rating and Reviews -->
+                    <div class="flex items-center mb-3">
+                      <div class="flex items-center">
+                        <span class="text-yellow-400 text-lg">★★★★☆</span>
+                        <span class="text-sm text-gray-600 ml-2">4.0</span>
+                      </div>
+                      <span class="text-sm text-gray-500 ml-3">(1,234 reviews)</span>
+                    </div>
+                    
+                    <!-- Price Section -->
+                    <div class="mb-4">
+                      <div class="flex items-center gap-3">
+                        <span class="text-2xl font-bold text-gray-900">₹${product.price.toFixed(2)}</span>
+                        ${product.mrp && product.mrp > product.price ? 
+                          `<span class="text-lg text-gray-500 line-through">₹${product.mrp.toFixed(2)}</span>` : ''}
+                      </div>
+                      ${discountPercent > 0 ? 
+                        `<span class="text-sm text-green-600 font-medium">${discountPercent}% off</span>` : ''}
+                    </div>
+                    
+                    <!-- Short Description -->
+                    <p class="text-gray-600 mb-4 line-clamp-3">${product.shortDescription || product.description || 'Fresh and healthy product for your wellness journey.'}</p>
+                    
+                    <!-- Delivery Info -->
+                    ${deliveryInfo.estimatedDelivery ? `
+                      <div class="text-sm text-gray-600 mb-3">
+                        <span class="font-medium">🚚 Estimated Delivery:</span> ${deliveryInfo.estimatedDelivery}
+                      </div>
+                    ` : ''}
+                    
+                    <!-- Bank Offers -->
+                    ${bankOffers.length > 0 ? `
+                      <div class="text-sm text-gray-600 mb-4">
+                        <span class="font-medium">💳 Bank Offers:</span>
+                        <ul class="list-disc list-inside mt-1">
+                          ${bankOffers.map(offer => `<li>${offer}</li>`).join('')}
+                        </ul>
+                      </div>
+                    ` : ''}
+                  </div>
+                  
+                  <!-- Action Buttons -->
+                  <div class="flex flex-col gap-3">
+                    <div class="flex gap-2 mb-2">
+                      <button onclick="event.stopPropagation(); handleAddToCart('${product._id}', this)" 
+                              class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 px-4 rounded-lg border border-yellow-400 transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
+                        🛒 Add to Cart
+                      </button>
+                      <button onclick="event.stopPropagation(); handleAddToWishlist('${product._id}', this)" 
+                              class="bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
+                        <i class="fas fa-heart"></i>
+                      </button>
+                    </div>
+                    <button onclick="event.stopPropagation(); handleBuyNow('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${getProductImageUrl(product)}', this)" 
+                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
+                      ⚡ Buy Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        // Card View - Compact cards
+        grid.innerHTML = filteredProducts.map(product => {
+          // Calculate discount percentage if MRP is available
+          const discountPercent = product.mrp && product.mrp > product.price ? 
+            Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+          
+          return `
+            <div class="product-card bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group" onclick="viewProduct('${product._id}')">
+              <!-- Product Image -->
+              <div class="relative">
                 <img src="${getProductImageUrl(product)}" 
                      alt="${product.name}" 
-                     class="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                     class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                      onerror="this.onerror=null;this.src='/uploads/default-item.jpg';">
                 
                 <!-- Wishlist Button -->
                 <button onclick="event.stopPropagation(); handleToggleWishlist(this)" 
-                        class="absolute top-4 right-12 bg-white border border-gray-200 rounded-full p-2 shadow-lg hover:bg-pink-50 transition-colors flex items-center justify-center hover:scale-110 transform duration-200" 
+                        class="absolute top-4 right-4 bg-white border border-gray-200 rounded-full p-2 shadow-lg hover:bg-pink-50 transition-colors flex items-center justify-center hover:scale-110 transform duration-200" 
                         data-product-id="${product._id}" 
                         aria-label="Add to Wishlist">
                   <i class="fas fa-heart ${product.inWishlist ? 'text-red-500' : 'text-gray-400'} text-lg"></i>
-                </button>
-                
-                <!-- Share Button -->
-                <button onclick="event.stopPropagation(); shareProduct('${product._id}')" 
-                        class="absolute top-4 right-4 bg-white border border-gray-200 rounded-full p-2 shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center" 
-                        aria-label="Share Product">
-                  <i class="fas fa-share-alt text-blue-600 text-lg"></i>
                 </button>
                 
                 <!-- Badges -->
@@ -2018,75 +2178,48 @@
                 ${discountPercent > 0 ? `<span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">${discountPercent}% off</span>` : ''}
               </div>
               
-              <!-- Right Side - Product Info -->
-              <div class="md:w-2/3 p-6 flex flex-col justify-between">
-                <div>
-                  <!-- Product Title -->
-                  <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2">${product.name}</h3>
-                  
-                  <!-- Rating and Reviews -->
-                  <div class="flex items-center mb-3">
-                    <div class="flex items-center">
-                      <span class="text-yellow-400 text-lg">★★★★☆</span>
-                      <span class="text-sm text-gray-600 ml-2">4.0</span>
-                    </div>
-                    <span class="text-sm text-gray-500 ml-3">(1,234 reviews)</span>
-                  </div>
-                  
-                  <!-- Price Section -->
-                  <div class="mb-4">
-                    <div class="flex items-center gap-3">
-                      <span class="text-2xl font-bold text-gray-900">₹${product.price.toFixed(2)}</span>
-                      ${product.mrp && product.mrp > product.price ? 
-                        `<span class="text-lg text-gray-500 line-through">₹${product.mrp.toFixed(2)}</span>` : ''}
-                    </div>
-                    ${discountPercent > 0 ? 
-                      `<span class="text-sm text-green-600 font-medium">${discountPercent}% off</span>` : ''}
-                  </div>
-                  
-                  <!-- Short Description -->
-                  <p class="text-gray-600 mb-4 line-clamp-3">${product.shortDescription || product.description || 'Fresh and healthy product for your wellness journey.'}</p>
-                  
-                  <!-- Delivery Info -->
-                  ${deliveryInfo.estimatedDelivery ? `
-                    <div class="text-sm text-gray-600 mb-3">
-                      <span class="font-medium">🚚 Estimated Delivery:</span> ${deliveryInfo.estimatedDelivery}
-                    </div>
-                  ` : ''}
-                  
-                  <!-- Bank Offers -->
-                  ${bankOffers.length > 0 ? `
-                    <div class="text-sm text-gray-600 mb-4">
-                      <span class="font-medium">💳 Bank Offers:</span>
-                      <ul class="list-disc list-inside mt-1">
-                        ${bankOffers.map(offer => `<li>${offer}</li>`).join('')}
-                      </ul>
-                    </div>
-                  ` : ''}
+              <!-- Product Info -->
+              <div class="p-4">
+                <!-- Product Title -->
+                <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2">${product.name}</h3>
+                
+                <!-- Rating -->
+                <div class="flex items-center mb-2">
+                  <span class="text-yellow-400 text-sm">★★★★☆</span>
+                  <span class="text-xs text-gray-600 ml-1">4.0</span>
                 </div>
                 
-                <!-- Action Buttons -->
-                <div class="flex flex-col gap-3">
-                  <div class="flex gap-2 mb-2">
-                    <button onclick="event.stopPropagation(); handleAddToCart('${product._id}', this)" 
-                            class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 px-4 rounded-lg border border-yellow-400 transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
-                      🛒 Add to Cart
-                    </button>
-                    <button onclick="event.stopPropagation(); handleAddToWishlist('${product._id}', this)" 
-                            class="bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
-                      <i class="fas fa-heart"></i>
-                    </button>
+                <!-- Price Section -->
+                <div class="mb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xl font-bold text-gray-900">₹${product.price.toFixed(2)}</span>
+                    ${product.mrp && product.mrp > product.price ? 
+                      `<span class="text-sm text-gray-500 line-through">₹${product.mrp.toFixed(2)}</span>` : ''}
                   </div>
+                  ${discountPercent > 0 ? 
+                    `<span class="text-xs text-green-600 font-medium">${discountPercent}% off</span>` : ''}
+                </div>
+                
+                <!-- Short Description -->
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.shortDescription || product.description || 'Fresh and healthy product for your wellness journey.'}</p>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-col gap-2">
+                  <button onclick="event.stopPropagation(); handleAddToCart('${product._id}', this)" 
+                          class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-2 px-3 rounded-lg border border-yellow-400 transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
+                    🛒 Add to Cart
+                  </button>
                   <button onclick="event.stopPropagation(); handleBuyNow('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${getProductImageUrl(product)}', this)" 
-                          class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
+                          class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-3 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
                     ⚡ Buy Now
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
+      }
+      
       updateProductCount();
       attachProductCardListeners();
     }
