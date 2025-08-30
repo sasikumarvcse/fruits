@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🍎 FreshFruits</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/cart-wishlist.css">
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
@@ -13,7 +14,7 @@
         <div class="container">
             <h1>🍎 FreshFruits</h1>
             <div class="nav-right">
-                <div class="cart-toggle" onclick="toggleCart()">
+                <div class="cart-toggle" onclick="cartManager.toggleCart()">
                     <span>🛒</span>
                     <span id="cartCount">0</span>
                 </div>
@@ -32,11 +33,11 @@
     </header>
 
     <div class="container">
-        <!-- Shopping Cart Sidebar (Your Existing) -->
+        <!-- Shopping Cart Sidebar -->
         <div id="cartSidebar" class="cart-sidebar">
             <div class="cart-header">
                 <h3>Shopping Cart</h3>
-                <span class="close-cart" onclick="toggleCart()">&times;</span>
+                <span class="close-cart" onclick="cartManager.toggleCart()">&times;</span>
             </div>
             <div class="cart-content">
                 <div id="cartItems">
@@ -51,15 +52,15 @@
                         <span>Total:</span>
                         <span id="cartTotal">₹0</span>
                     </div>
-                    <button id="checkoutCartBtn" class="checkout-btn">💳 Proceed to Checkout</button>
-                    <button onclick="clearCart()" class="clear-cart-btn">Clear Cart</button>
+                    <button id="checkoutCartBtn" class="checkout-btn" onclick="cartManager.proceedToCheckout()">💳 Proceed to Checkout</button>
+                    <button onclick="cartManager.clearCart()" class="clear-cart-btn">Clear Cart</button>
                 </div>
             </div>
         </div>
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Filters Section (Your Existing) -->
+            <!-- Filters Section -->
             <aside class="filters-section">
                 <h3>Show Filters</h3>
                 <div class="filters-container">
@@ -90,7 +91,7 @@
                 </div>
             </aside>
 
-            <!-- Products Section (Your Existing) -->
+            <!-- Products Section -->
             <section class="products-section">
                 <h2>All Products</h2>
                 
@@ -99,237 +100,74 @@
                     <div class="loading-spinner"></div>
                     <p>Loading products...</p>
                 </div>
-                
+
                 <!-- No Products State -->
                 <div id="noProductsState" class="no-products-state hidden">
-                    <div class="no-products-icon">🔍</div>
-                    <p>No products found</p>
-                    <small>Try adjusting your search or filters</small>
+                    <p>No products found matching your criteria.</p>
                 </div>
-                
+
                 <!-- Products Grid -->
                 <div id="productsGrid" class="products-grid">
-                    <!-- Products loaded dynamically -->
+                    <!-- Products will be loaded here -->
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- ===== YOUR EXISTING MODALS ===== -->
-    
-    <!-- Order Summary Modal -->
-    <div id="orderSummaryModal" class="modal" style="display: none;">
+    <!-- Product Quick View Modal -->
+    <div id="productModal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Order Summary</h2>
-                <span class="close" onclick="closeModal('orderSummaryModal')">&times;</span>
+                <h2 id="modalProductName">Product Name</h2>
+                <span class="close" onclick="closeModal('productModal')">&times;</span>
             </div>
             <div class="modal-body">
-                <div id="orderSummary">
-                    <!-- Order summary content -->
-                </div>
-                <div class="modal-actions">
-                    <button class="btn-primary">💳 Proceed to Checkout</button>
-                    <button class="btn-secondary" onclick="closeModal('orderSummaryModal')">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Delivery Details Modal -->
-    <div id="deliveryModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Delivery Details</h2>
-                <span class="close" onclick="closeModal('deliveryModal')">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="deliveryForm">
-                    <div class="form-group">
-                        <label for="recipientName">Recipient Name</label>
-                        <input type="text" id="recipientName" name="recipientName" required>
+                <div class="product-modal-content">
+                    <div class="product-modal-image">
+                        <img id="modalProductImage" src="" alt="Product">
                     </div>
-                    <div class="form-group">
-                        <label for="mobileNumber">Mobile Number</label>
-                        <input type="tel" id="mobileNumber" name="mobile" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addressField">Address</label>
-                        <textarea id="addressField" name="address" placeholder="123 Main Street, City" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="pincode">Pincode</label>
-                        <input type="text" id="pincode" name="pincode" required>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" onclick="closeModal('deliveryModal')" class="btn-secondary">Cancel</button>
-                        <button type="submit" class="btn-primary">Continue to Payment</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Checkout Cart Modal -->
-    <div id="checkoutCartModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Checkout Cart</h2>
-                <span class="close" onclick="closeModal('checkoutCartModal')">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div id="checkoutCartContent">
-                    <!-- Cart checkout content -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== ENHANCED CHECKOUT MODALS (NEW) ===== -->
-    
-    <!-- 1. Address Selection Modal -->
-    <div id="addressModal" class="modal enhanced-modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Select Delivery Address</h2>
-                <span class="close" onclick="closeModal('addressModal')">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div id="addressList" class="address-list">
-                    <!-- Addresses loaded dynamically -->
-                </div>
-                <div class="address-actions">
-                    <button id="addAddressBtn" class="btn-secondary">Add New Address</button>
-                    <button id="addressNextBtn" class="btn-primary" disabled>Continue to Quantity</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 2. Add/Edit Address Form Modal -->
-    <div id="addressFormModal" class="modal enhanced-modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="addressFormTitle">Add New Address</h2>
-                <span class="close" onclick="closeModal('addressFormModal')">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="addressForm">
-                    <input type="hidden" id="addressId" name="addressId">
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="recipientNameNew">Recipient Name *</label>
-                            <input type="text" id="recipientNameNew" name="recipientName" required 
-                                   placeholder="Enter full name">
+                    <div class="product-modal-details">
+                        <h3 id="modalProductTitle">Product Title</h3>
+                        <p id="modalProductDescription">Product description...</p>
+                        <div class="product-modal-price">
+                            <span id="modalProductPrice">₹0</span>
                         </div>
-                        <div class="form-group">
-                            <label for="mobileNew">Mobile Number *</label>
-                            <input type="tel" id="mobileNew" name="mobile" required 
-                                   placeholder="Enter mobile number" maxlength="10">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="addressNew">Complete Address *</label>
-                        <textarea id="addressNew" name="address" required 
-                                  placeholder="House/Flat No, Building, Street, Area, City, State"
-                                  rows="3"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="pincodeNew">Pincode *</label>
-                        <input type="text" id="pincodeNew" name="pincode" required 
-                               placeholder="Enter pincode" maxlength="6">
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="button" onclick="closeModal('addressFormModal')" class="btn-secondary">Cancel</button>
-                        <button type="submit" class="btn-primary">Save Address</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. Quantity Selection Modal -->
-    <div id="quantityModal" class="modal enhanced-modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Select Quantity</h2>
-                <span class="close" onclick="closeModal('quantityModal')">&times;</span>
-            </div>
-            <div class="modal-body">
-                <!-- Product Preview -->
-                <div class="product-preview">
-                    <img id="qtyProductImage" src="" alt="Product" class="product-image">
-                    <div class="product-details">
-                        <h3 id="qtyProductName">Product Name</h3>
-                        <p class="product-price" id="qtyProductPrice">₹0</p>
-                    </div>
-                </div>
-                
-                <!-- Quantity Selector -->
-                <div class="quantity-selector">
-                    <label>Select Quantity:</label>
-                    <div class="quantity-controls">
-                        <button type="button" id="decreaseQty" class="qty-btn">-</button>
-                        <input type="number" id="quantityInput" value="1" min="1" max="10" readonly>
-                        <button type="button" id="increaseQty" class="qty-btn">+</button>
-                    </div>
-                </div>
-                
-                <!-- Delivery Information -->
-                <div class="delivery-info">
-                    <h4>Delivery Address:</h4>
-                    <p id="selectedAddress">Address will be shown here</p>
-                </div>
-                
-                <!-- Price Breakdown -->
-                <div class="total-section">
-                    <div class="total-breakdown">
-                        <div class="total-row">
-                            <span>Price per item:</span>
-                            <span id="unitPrice">₹0</span>
-                        </div>
-                        <div class="total-row">
-                            <span>Quantity:</span>
-                            <span id="selectedQuantity">1</span>
-                        </div>
-                        <div class="total-row final-total">
-                            <span><strong>Total Amount:</strong></span>
-                            <span id="finalTotal"><strong>₹0</strong></span>
+                        <div class="product-modal-actions">
+                            <button onclick="addToCartFromModal()" class="btn-primary">Add to Cart</button>
+                            <button onclick="addToWishlistFromModal()" class="btn-secondary">Add to Wishlist</button>
+                            <button onclick="buyNowFromModal()" class="btn-success">Buy Now</button>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Modal Actions -->
-                <div class="modal-actions">
-                    <button type="button" id="backToAddressBtn" onclick="goBackToAddress()" class="btn-secondary">
-                        ← Back to Address
-                    </button>
-                    <button type="button" id="proceedToPayment" class="btn-primary">
-                        Continue to Payment →
-                    </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wishlist Modal -->
+    <div id="wishlistModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>My Wishlist</h2>
+                <span class="close" onclick="cartManager.toggleWishlist()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="wishlistContent">
+                    <!-- Wishlist items will be loaded here -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ===== SCRIPTS (CORRECT ORDER) ===== -->
-    
-    <!-- Load your existing scripts first -->
+    <!-- Scripts -->
+    <script src="js/cart-wishlist.js"></script>
     <script src="js/products.js"></script>
-    
-    <!-- Load the enhanced checkout functionality -->
     <script src="razorpay-checkout.js"></script>
     
-    <!-- Initialize everything -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ All scripts loaded, initializing page...');
             
-            // Initialize user greeting (your existing functionality)
+            // Initialize user greeting
             const user = JSON.parse(localStorage.getItem('user') || '{}');
             if (user.firstName) {
                 const userGreeting = document.getElementById('userGreeting');
@@ -338,29 +176,34 @@
                 }
             }
             
-            // Check if enhanced checkout is available
-            if (typeof window.startCheckoutFlow === 'function') {
-                console.log('✅ Enhanced checkout flow ready');
-                console.log('🔄 Flow: Buy Now → Address → Quantity → Payment');
+            // Initialize price range display
+            const priceRange = document.getElementById('priceRange');
+            const priceValue = document.getElementById('priceValue');
+            if (priceRange && priceValue) {
+                priceRange.addEventListener('input', function() {
+                    priceValue.textContent = `₹${this.value}`;
+                });
+            }
+
+            // Wait for cart manager to initialize
+            if (window.cartManager && window.cartManager.isInitialized) {
+                console.log('✅ Cart manager ready');
             } else {
-                console.log('⚠️ Enhanced checkout flow not loaded');
+                // Wait for cart manager to be ready
+                const checkCartManager = setInterval(() => {
+                    if (window.cartManager && window.cartManager.isInitialized) {
+                        clearInterval(checkCartManager);
+                        console.log('✅ Cart manager ready');
+                    }
+                }, 100);
             }
         });
 
-        // Enhanced modal close function (works with both old and new modals)
+        // Global functions
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.style.display = 'none';
-                console.log(`✅ Closed modal: ${modalId}`);
-            }
-        }
-        
-        // Your existing functions (preserved)
-        function toggleCart() {
-            const cartSidebar = document.getElementById('cartSidebar');
-            if (cartSidebar) {
-                cartSidebar.classList.toggle('active');
             }
         }
         
@@ -371,29 +214,40 @@
             window.location.href = '/login.html';
         }
         
-        function clearCart() {
-            localStorage.removeItem('cartItems');
-            document.getElementById('cartItems').innerHTML = '<p class="empty-cart">Your cart is empty</p>';
-            document.getElementById('cartSubtotal').textContent = '₹0';
-            document.getElementById('cartTotal').textContent = '₹0';
-            document.getElementById('cartCount').textContent = '0';
-            console.log('Cart cleared');
+        // Modal functions
+        function addToCartFromModal() {
+            if (window.currentProduct) {
+                cartManager.addToCart(window.currentProduct._id);
+                closeModal('productModal');
+            }
         }
         
-        // Filter functions (your existing functionality)
+        function addToWishlistFromModal() {
+            if (window.currentProduct) {
+                cartManager.addToWishlist(window.currentProduct._id);
+                closeModal('productModal');
+            }
+        }
+        
+        function buyNowFromModal() {
+            if (window.currentProduct) {
+                // Store product for checkout
+                localStorage.setItem('buyNowProduct', JSON.stringify(window.currentProduct));
+                window.location.href = 'enhanced-checkout.html?buyNow=true';
+                closeModal('productModal');
+            }
+        }
+        
+        // Filter functions
         function applyFilters() {
             if (typeof window.applyFilters === 'function') {
                 window.applyFilters();
-            } else {
-                console.log('Applying filters...');
             }
         }
         
         function clearFilters() {
             if (typeof window.clearFilters === 'function') {
                 window.clearFilters();
-            } else {
-                console.log('Clearing filters...');
             }
         }
     </script>
