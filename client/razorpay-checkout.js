@@ -73,16 +73,22 @@
         }
     }
 
-    // ✅ FIXED: Select address function
+    // ✅ FIXED: Enhanced address selection with persistence
     function selectAddress(addressId) {
+        console.log('📍 Selecting address:', addressId);
         const selectedAddress = razorpayConfig.userAddresses.find(addr => addr._id === addressId);
         
         if (!selectedAddress) {
+            console.error('❌ Address not found:', addressId);
             showNotification('Address not found', 'error');
             return;
         }
         
+        // Store selected address globally
         razorpayConfig.checkoutData.selectedAddress = selectedAddress;
+        
+        // Save to session storage for persistence
+        sessionStorage.setItem('selectedCheckoutAddress', JSON.stringify(selectedAddress));
         
         // Update UI to show selected address
         document.querySelectorAll('.address-item').forEach(item => {
@@ -92,15 +98,24 @@
         const selectedItem = document.querySelector(`[data-address-id="${addressId}"]`);
         if (selectedItem) {
             selectedItem.classList.add('selected');
+            
+            // Add visual feedback
+            selectedItem.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                selectedItem.style.transform = 'scale(1)';
+            }, 200);
         }
         
-        showNotification('Address selected successfully', 'success');
+        showNotification('✅ Address selected successfully', 'success');
         
         // Enable next button if available
         const addressNextBtn = document.getElementById('addressNextBtn');
         if (addressNextBtn) {
             addressNextBtn.disabled = false;
+            addressNextBtn.innerHTML = '<i class="fas fa-arrow-right"></i> Continue to Quantity';
         }
+        
+        console.log('✅ Address selected and stored:', selectedAddress);
     }
 
     // ✅ FIXED: Edit address function
@@ -141,22 +156,38 @@
         }
     }
 
-    // ✅ FIXED: Start checkout flow
-    function startCheckoutFlow(product) {
-        console.log('🚀 Starting checkout flow for product:', product);
+    // ✅ FIXED: Enhanced checkout flow with persistence
+    function startCheckoutFlow(productId, productName, productPrice, productImage) {
+        console.log('🚀 Starting enhanced checkout flow for:', {productId, productName, productPrice, productImage});
         
         // Initialize checkout data
         razorpayConfig.checkoutData = {
-            product: product,
+            product: {
+                _id: productId,
+                name: productName,
+                price: parseFloat(productPrice),
+                image: productImage || '/uploads/default-item.jpg'
+            },
             selectedAddress: null,
             quantity: 1,
-            total: product.price,
+            total: parseFloat(productPrice),
             deliveryCharge: 0
         };
         
-        // Load user addresses
+        // Try to restore previously selected address
+        const savedAddress = sessionStorage.getItem('selectedCheckoutAddress');
+        if (savedAddress) {
+            try {
+                razorpayConfig.checkoutData.selectedAddress = JSON.parse(savedAddress);
+                console.log('🔄 Restored previous address selection:', razorpayConfig.checkoutData.selectedAddress);
+            } catch (error) {
+                console.warn('⚠️ Failed to restore address:', error);
+                sessionStorage.removeItem('selectedCheckoutAddress');
+            }
+        }
+        
+        // Load user addresses and show modal
         loadUserAddresses().then(() => {
-            // Show address selection modal
             showAddressModal();
         });
     }
@@ -174,7 +205,7 @@
         }
     }
 
-    // ✅ FIXED: Display addresses in modal
+    // ✅ FIXED: Enhanced display addresses with selection restoration
     function displayAddresses() {
         const addressList = document.getElementById('addressList');
         if (!addressList) {
@@ -195,36 +226,58 @@
             return;
         }
         
-        addressList.innerHTML = razorpayConfig.userAddresses.map(address => `
-            <div class="address-item ${address.isDefault ? 'default' : ''}" 
-                 data-address-id="${address._id}" 
-                 onclick="selectAddress('${address._id}')">
-                <div class="address-header">
-                    <h4>
-                        <i class="fas fa-user"></i> 
-                        ${address.recipientName || address.name || 'Recipient'}
-                    </h4>
-                    ${address.isDefault ? '<span class="default-badge"><i class="fas fa-star"></i> Default</span>' : ''}
-                </div>
-                <div class="address-details">
-                    <p><i class="fas fa-phone"></i> ${address.mobile || 'N/A'}</p>
-                    <p><i class="fas fa-map-marker-alt"></i> ${address.address || 'N/A'}</p>
-                    <p><i class="fas fa-map-pin"></i> ${address.pincode || 'N/A'}, ${address.city || 'N/A'}, ${address.state || 'N/A'}</p>
-                    <p><i class="fas fa-home"></i> ${address.addressType || 'home'} address</p>
-                </div>
-                <div class="address-actions" onclick="event.stopPropagation()">
-                    <button onclick="editAddress('${address._id}')" class="edit-btn" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="deleteAddress('${address._id}')" class="delete-btn" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        `).join('');
+        // Check if we have a previously selected address
+        const selectedAddressId = razorpayConfig.checkoutData.selectedAddress?._id;
         
+        addressList.innerHTML = razorpayConfig.userAddresses.map(address => {
+            const isSelected = selectedAddressId === address._id;
+            const isDefault = address.isDefault;
+            
+            return `
+                <div class="address-item ${isDefault ? 'default' : ''} ${isSelected ? 'selected' : ''}" 
+                     data-address-id="${address._id}" 
+                     onclick="selectAddress('${address._id}')">
+                    <div class="address-header">
+                        <h4>
+                            <i class="fas fa-user"></i> 
+                            ${address.recipientName || address.name || 'Recipient'}
+                        </h4>
+                        <div>
+                            ${isDefault ? '<span class="default-badge"><i class="fas fa-star"></i> Default</span>' : ''}
+                            ${isSelected ? '<span class="default-badge" style="background: #10b981;"><i class="fas fa-check"></i> Selected</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="address-details">
+                        <p><i class="fas fa-phone"></i> ${address.mobile || 'N/A'}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> ${address.address || 'N/A'}</p>
+                        <p><i class="fas fa-map-pin"></i> ${address.pincode || 'N/A'}, ${address.city || 'N/A'}, ${address.state || 'N/A'}</p>
+                        <p><i class="fas fa-home"></i> ${address.addressType || 'home'} address</p>
+                    </div>
+                    <div class="address-actions" onclick="event.stopPropagation()">
+                        <button onclick="editAddress('${address._id}')" class="edit-btn" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteAddress('${address._id}')" class="delete-btn" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Enable/disable continue button based on selection
         const addressNextBtn = document.getElementById('addressNextBtn');
-        if (addressNextBtn) addressNextBtn.disabled = false;
+        if (addressNextBtn) {
+            if (selectedAddressId) {
+                addressNextBtn.disabled = false;
+                addressNextBtn.innerHTML = '<i class="fas fa-arrow-right"></i> Continue to Quantity';
+            } else {
+                addressNextBtn.disabled = true;
+                addressNextBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Select Address First';
+            }
+        }
+        
+        console.log(`📍 Displayed ${razorpayConfig.userAddresses.length} addresses, selected: ${selectedAddressId || 'none'}`);
     }
 
     // ✅ FIXED: Save address function for checkout flow
@@ -807,19 +860,35 @@
         const modal = document.getElementById('quantityModal');
         const product = razorpayConfig.checkoutData.product;
         
+        if (!modal) {
+            console.error('❌ Quantity modal not found!');
+            showNotification('Quantity selection not available', 'error');
+            return;
+        }
+        
+        console.log('🔢 Showing quantity modal for:', product);
+        
         // Update product info
-        document.getElementById('quantityProductImage').src = product.image;
-        document.getElementById('quantityProductName').textContent = product.name;
-        document.getElementById('quantityProductPrice').textContent = `₹${product.price}`;
+        const productImage = document.getElementById('quantityProductImage');
+        const productName = document.getElementById('quantityProductName');
+        const productPrice = document.getElementById('quantityProductPrice');
+        
+        if (productImage) productImage.src = product.image || '/uploads/default-item.jpg';
+        if (productName) productName.textContent = product.name || 'Product';
+        if (productPrice) productPrice.textContent = `₹${product.price?.toFixed(2) || '0.00'}`;
         
         // Reset quantity
         razorpayConfig.checkoutData.quantity = 1;
-        document.getElementById('quantityInput').value = '1';
+        const quantityInput = document.getElementById('quantityInput');
+        if (quantityInput) quantityInput.value = '1';
         
         // Update price breakdown
         updatePriceBreakdown();
         
+        // Show the modal
         modal.style.display = 'block';
+        
+        console.log('✅ Quantity modal displayed');
     }
 
     function changeQuantity(delta) {
@@ -1045,12 +1114,18 @@
         openRazorpayWithFallback();
     }
 
-    // ✅ FIXED: Enhanced payment verification
+    // ✅ FIXED: Enhanced payment verification with better error handling
     async function verifyPayment(paymentResponse, order) {
         try {
             showNotification('Verifying payment...', 'info');
             
             const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('Authentication required. Please login again.', 'error');
+                setTimeout(() => window.location.href = '/login.html', 2000);
+                return;
+            }
+            
             const verifyData = {
                 razorpay_order_id: paymentResponse.razorpay_order_id,
                 razorpay_payment_id: paymentResponse.razorpay_payment_id,
@@ -1073,6 +1148,8 @@
                 }
             };
 
+            console.log('📦 Verifying payment with data:', verifyData);
+
             const response = await fetch('/api/orders/razorpay/verify-payment', {
                 method: 'POST',
                 headers: {
@@ -1086,7 +1163,10 @@
                 const result = await response.json();
                 console.log('✅ Payment verified:', result);
                 
-                showNotification('Payment successful! Order placed successfully.', 'success');
+                // Clear session storage
+                sessionStorage.removeItem('selectedCheckoutAddress');
+                
+                showNotification('🎉 Payment successful! Order placed successfully.', 'success');
                 
                 // Reset checkout data
                 razorpayConfig.checkoutData = {
@@ -1102,17 +1182,29 @@
                 closeQuantityModal();
                 closeAddressFormModal();
                 
-                // Redirect to orders page or show success
+                // Show success message with order details
+                const orderId = result.order?._id || result._id;
+                if (orderId) {
+                    showNotification(`Order #${orderId.slice(-6)} created successfully!`, 'success');
+                }
+                
+                // Redirect to orders page or dashboard
                 setTimeout(() => {
-                    window.location.href = '/orders.html';
-                }, 2000);
+                    const orderPage = '/orders.html';
+                    if (window.location.pathname.includes('orders.html')) {
+                        window.location.reload(); // Refresh if already on orders page
+                    } else {
+                        window.location.href = orderPage;
+                    }
+                }, 3000);
             } else {
                 const error = await response.json();
-                showNotification(error.message || 'Payment verification failed', 'error');
+                console.error('❌ Payment verification failed:', error);
+                showNotification(error.message || 'Payment verification failed. Please contact support.', 'error');
             }
         } catch (error) {
             console.error('❌ Error verifying payment:', error);
-            showNotification('Payment verification failed', 'error');
+            showNotification('Payment verification failed. Please check your connection and contact support if the issue persists.', 'error');
         }
     }
 

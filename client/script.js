@@ -3,6 +3,40 @@ function getToken() {
   return localStorage.getItem('token');
 }
 
+// ✅ FIXED: Protected fetch function for authenticated requests
+async function protectedFetch(url, options = {}) {
+  const token = localStorage.getItem('token');
+  const defaultHeaders = {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+  };
+  
+  const mergedOptions = {
+    ...options,
+    headers: {
+      ...defaultHeaders,
+      ...options.headers,
+    },
+  };
+  
+  try {
+    const response = await fetch(url, mergedOptions);
+    
+    // If unauthorized, redirect to login
+    if (response.status === 401) {
+      console.log('🔐 Unauthorized request, redirecting to login');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Don't redirect immediately in all cases, let the calling function handle it
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('❌ Protected fetch error:', error);
+    throw error;
+  }
+}
+
 // Modern Toast Notification
 function showNotification(message, type = 'success') {
   const toast = document.getElementById('toastNotification');
@@ -19,8 +53,18 @@ function showNotification(message, type = 'success') {
   }, 3000);
 }
 
-// Enhanced Cart Functions
+// ✅ FIXED: Enhanced Cart Functions with better error handling
 async function addToCart(productId, quantity = 1) {
+  console.log('🛒 Adding to cart:', { productId, quantity });
+  
+  // Check authentication
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showNotification('Please login to add items to cart', 'error');
+    setTimeout(() => window.location.href = 'login.html', 1500);
+    return;
+  }
+  
   try {
     const response = await protectedFetch('/api/cart/add', {
       method: 'POST',
@@ -29,21 +73,28 @@ async function addToCart(productId, quantity = 1) {
       },
       body: JSON.stringify({ itemId: productId, quantity })
     });
+    
     if (response.ok) {
-      showNotification('Product added to cart!');
+      const result = await response.json();
+      console.log('✅ Cart updated:', result);
+      showNotification('Product added to cart!', 'success');
       updateCartCount();
       fetchCart();
     } else {
       const error = await response.json();
+      console.error('❌ Cart error:', error);
       if (response.status === 404 && error.message === 'Product not found') {
         showNotification('This product no longer exists.', 'error');
+      } else if (response.status === 401) {
+        showNotification('Please login to add to cart', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1500);
       } else {
         showNotification(error.message || 'Failed to add to cart', 'error');
       }
     }
   } catch (error) {
-    console.error('Error adding to cart:', error);
-    showNotification('Error adding to cart', 'error');
+    console.error('❌ Error adding to cart:', error);
+    showNotification('Error adding to cart. Please try again.', 'error');
   }
 }
 
@@ -61,29 +112,65 @@ async function getCart() {
 }
 
 async function updateCartCount() {
-  const cart = await getCart();
-  const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const countElement = document.getElementById('sidebarCartCount');
-  if (countElement) {
-    countElement.textContent = count;
+  try {
+    const cart = await getCart();
+    const count = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
+    
+    // Update all cart count elements
+    const countElements = [
+      document.getElementById('sidebarCartCount'),
+      document.getElementById('navbarCartCount'),
+      document.getElementById('cartCount')
+    ].filter(Boolean);
+    
+    countElements.forEach(element => {
+      element.textContent = count;
+      element.style.display = count > 0 ? 'flex' : 'none';
+    });
+    
+    console.log('🛒 Cart count updated:', count);
+  } catch (error) {
+    console.error('❌ Error updating cart count:', error);
   }
 }
 
-// Enhanced Wishlist Functions
+// ✅ FIXED: Enhanced Wishlist Functions with better error handling
 async function toggleWishlist(button) {
+  console.log('❤️ Toggling wishlist:', button);
+  
   if (!button || !button.dataset || !button.dataset.productId) {
-    console.error('toggleWishlist: No productId found on button:', button);
+    console.error('❌ toggleWishlist: No productId found on button:', button);
     showNotification('Wishlist error: Product not found', 'error');
     return;
   }
+  
+  // Check authentication
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showNotification('Please login to manage wishlist', 'error');
+    setTimeout(() => window.location.href = 'login.html', 1500);
+    return;
+  }
+  
   try {
     button.disabled = true;
     const productId = button.dataset.productId;
+    console.log('❤️ Processing wishlist for product:', productId);
+    
     // Fetch current wishlist
     const wishlistRes = await protectedFetch('/api/wishlist');
+    if (!wishlistRes.ok && wishlistRes.status === 401) {
+      showNotification('Please login to manage wishlist', 'error');
+      setTimeout(() => window.location.href = 'login.html', 1500);
+      return;
+    }
+    
     const wishlist = wishlistRes.ok ? await wishlistRes.json() : [];
     const isInWishlist = wishlist.some(item => item._id === productId);
     const endpoint = isInWishlist ? '/api/wishlist/remove' : '/api/wishlist/add';
+    
+    console.log(`${isInWishlist ? '➖' : '➕'} ${isInWishlist ? 'Removing from' : 'Adding to'} wishlist`);
+    
     const response = await protectedFetch(endpoint, {
       method: 'POST',
       headers: {
@@ -91,8 +178,14 @@ async function toggleWishlist(button) {
       },
       body: JSON.stringify({ itemId: productId })
     });
-    if (!response.ok) throw new Error('Request failed');
-    document.querySelectorAll(`.wishlist-icon[data-product-id='${productId}']`).forEach(btn => {
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Request failed');
+    }
+    
+    // Update all wishlist buttons for this product
+    document.querySelectorAll(`[data-product-id='${productId}']`).forEach(btn => {
       const heart = btn.querySelector('i');
       if (heart) {
         heart.classList.toggle('text-red-500', !isInWishlist);
@@ -100,10 +193,14 @@ async function toggleWishlist(button) {
       }
       btn.setAttribute('aria-pressed', !isInWishlist);
     });
-    showNotification(isInWishlist ? 'Removed from wishlist' : 'Added to wishlist');
+    
+    const action = isInWishlist ? 'Removed from wishlist' : 'Added to wishlist';
+    showNotification(action, 'success');
+    console.log('✅ Wishlist updated:', action);
+    
   } catch (error) {
-    console.error('Wishlist error:', error);
-    showNotification('Error updating wishlist', 'error');
+    console.error('❌ Wishlist error:', error);
+    showNotification(error.message || 'Error updating wishlist', 'error');
   } finally {
     button.disabled = false;
   }
@@ -2299,3 +2396,22 @@ window.clearRecentlyViewed = function() {
   console.log('Recently viewed products cleared manually');
   location.reload();
 };
+
+// ✅ GLOBAL FUNCTION EXPORTS FOR CART AND WISHLIST
+window.addToCart = addToCart;
+window.toggleWishlist = toggleWishlist;
+window.updateCartCount = updateCartCount;
+window.getCart = getCart;
+window.fetchCart = fetchCart;
+window.showNotification = showNotification;
+window.protectedFetch = protectedFetch;
+
+console.log('✅ Global functions exported:', {
+  addToCart: typeof window.addToCart,
+  toggleWishlist: typeof window.toggleWishlist,
+  updateCartCount: typeof window.updateCartCount,
+  getCart: typeof window.getCart,
+  fetchCart: typeof window.fetchCart,
+  showNotification: typeof window.showNotification,
+  protectedFetch: typeof window.protectedFetch
+});
