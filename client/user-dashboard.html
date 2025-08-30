@@ -2995,14 +2995,24 @@
       const qty = quantity || window.currentProductQuantity || 1;
       try {
         const token = localStorage.getItem('token');
+        if (!token) {
+          showNotification('Please login to add items to cart', 'error');
+          window.location.href = 'login.html';
+          return;
+        }
+
         const response = await fetch('/api/cart/add', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ itemId, quantity: qty })
+          body: JSON.stringify({ 
+            productId: itemId, 
+            quantity: qty 
+          })
         });
+        
         if (response.ok) {
           showNotification('Product added to cart!');
           updateCartCount();
@@ -3053,7 +3063,7 @@
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ itemId })
+          body: JSON.stringify({ productId: itemId })
         });
 
         if (response.ok) {
@@ -3081,15 +3091,17 @@
           return;
         }
 
-        const response = await fetch(`/api/wishlist/remove/${itemId}`, {
-          method: 'DELETE',
+        const response = await fetch('/api/wishlist/remove', {
+          method: 'POST',
           headers: {
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
-          }
+          },
+          body: JSON.stringify({ productId: itemId })
         });
 
         if (response.ok) {
-          showNotification('Product removed from wishlist');
+          showNotification('Product removed from wishlist!');
           updateWishlistIcon(itemId, false);
           // Refresh wishlist if on wishlist page
           if (window.location.pathname.includes('wishlist')) {
@@ -3102,6 +3114,44 @@
       } catch (error) {
         console.error('Error removing from wishlist:', error);
         showNotification('Error removing from wishlist', 'error');
+      }
+    }
+
+    // ✅ ADDED: Clear Cart Function
+    async function clearCart() {
+      try {
+        if (!confirm('Are you sure you want to clear your cart?')) {
+          return;
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showNotification('Please login to manage cart', 'error');
+          return;
+        }
+
+        const response = await fetch('/api/cart/clear', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          showNotification('Cart cleared successfully!');
+          updateCartCount();
+          fetchCart();
+          // Refresh cart display
+          if (typeof loadCart === 'function') {
+            loadCart();
+          }
+        } else {
+          const error = await response.json();
+          showNotification(error.message || 'Failed to clear cart', 'error');
+        }
+      } catch (error) {
+        console.error('Error clearing cart:', error);
+        showNotification('Error clearing cart', 'error');
       }
     }
 
@@ -3207,7 +3257,7 @@
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ itemId })
+          body: JSON.stringify({ productId: itemId })
         });
         if (response.ok) {
           showNotification('Item removed from cart');
@@ -3234,7 +3284,10 @@
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ itemId, quantity: newQuantity })
+          body: JSON.stringify({ 
+            productId: itemId, 
+            quantity: newQuantity 
+          })
         });
         if (response.ok) {
           fetchCart();
@@ -3284,13 +3337,15 @@
         const isInWishlist = wishlist.some(item => item._id === itemId);
         
         const endpoint = isInWishlist ? '/api/wishlist/remove' : '/api/wishlist/add';
+        const body = JSON.stringify({ productId: itemId });
+        
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ itemId })
+          body: body
         });
         
         if (response.ok) {
@@ -4196,6 +4251,7 @@
     window.handleAddToWishlist = handleAddToWishlist;
     window.handleAddToCart = handleAddToCart;
     window.handleBuyNow = handleBuyNow;
+    window.clearCart = clearCart;
     
     // ✅ FIXED: Enhanced address form event listeners
     document.addEventListener('DOMContentLoaded', function() {
