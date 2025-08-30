@@ -91,6 +91,10 @@ app.get('/orders', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/orders.html'));
 });
 
+app.get('/cart', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/cart.html'));
+});
+
 // SPA fallback
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/') || req.path.includes('.')) {

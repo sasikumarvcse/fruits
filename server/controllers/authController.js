@@ -23,8 +23,7 @@ exports.adminLogin = async (req, res) => {
         // Find admin user
         const admin = await User.findOne({ 
             email: email.toLowerCase(),
-            role: 'admin',
-            status: 'active'
+            role: 'admin'
         });
 
         console.log('👤 Admin found:', admin ? 'YES' : 'NO');
@@ -49,7 +48,8 @@ exports.adminLogin = async (req, res) => {
             });
         }
 
-        // Generate JWT token
+        // Generate JWT token with consistent secret
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
         const payload = {
             user: {
                 id: admin.id,
@@ -59,7 +59,7 @@ exports.adminLogin = async (req, res) => {
 
         const token = jwt.sign(
             payload,
-            process.env.JWT_SECRET,
+            JWT_SECRET,
             { expiresIn: '7d' }
         );
 

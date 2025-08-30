@@ -3,17 +3,362 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍎 Shared Wishlist - FreshFruits</title>
+  <title>🍎 My Wishlist - FreshFruits</title>
   <link href="https://cdn.tailwindcss.com" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    .wishlist-card {
+      transition: all 0.3s ease;
+      border: 1px solid #e5e7eb;
+    }
+    .wishlist-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border-color: #10b981;
+    }
+    .product-image {
+      transition: transform 0.3s ease;
+    }
+    .wishlist-card:hover .product-image {
+      transform: scale(1.05);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+    .empty-state {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-  <div class="max-w-3xl mx-auto py-10">
-    <h1 class="text-3xl font-bold text-center text-blue-700 mb-8 flex items-center justify-center"><i class="fas fa-heart mr-2"></i>Shared Wishlist</h1>
-    <div id="wishlistContent" class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-lg shadow"></div>
+<body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-4">
+          <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-xl flex items-center justify-center">
+            <i class="fas fa-apple-alt text-white text-xl"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900">FreshFruits</h1>
+        </div>
+        <nav class="flex items-center space-x-6">
+          <a href="index.html" class="text-gray-600 hover:text-green-600 transition-colors">
+            <i class="fas fa-home mr-2"></i>Home
+          </a>
+          <a href="products.html" class="text-gray-600 hover:text-green-600 transition-colors">
+            <i class="fas fa-shopping-bag mr-2"></i>Products
+          </a>
+          <a href="user-dashboard.html" class="text-gray-600 hover:text-green-600 transition-colors">
+            <i class="fas fa-user mr-2"></i>Dashboard
+          </a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-pink-500 to-red-500 rounded-full mb-6">
+        <i class="fas fa-heart text-white text-3xl"></i>
+      </div>
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">My Wishlist</h1>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+        Save your favorite products and add them to cart when you're ready to buy
+      </p>
+    </div>
+
+    <!-- Wishlist Content -->
+    <div id="wishlistContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <!-- Loading State -->
+      <div id="loadingState" class="col-span-full flex items-center justify-center py-20">
+        <div class="text-center">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mb-4">
+            <i class="fas fa-spinner fa-spin text-white text-2xl"></i>
+          </div>
+          <p class="text-gray-600 text-lg">Loading your wishlist...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden col-span-full">
+      <div class="empty-state rounded-2xl p-12 text-center">
+        <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-r from-gray-300 to-gray-400 rounded-full mb-6">
+          <i class="fas fa-heart-broken text-white text-4xl"></i>
+        </div>
+        <h3 class="text-2xl font-semibold text-gray-700 mb-4">Your wishlist is empty</h3>
+        <p class="text-gray-600 mb-8 max-w-md mx-auto">
+          Start building your wishlist by browsing our products and adding items you love
+        </p>
+        <a href="products.html" class="btn-primary text-white px-8 py-3 rounded-lg font-semibold inline-flex items-center">
+          <i class="fas fa-shopping-bag mr-2"></i>
+          Browse Products
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="notificationToast" class="fixed top-4 right-4 z-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg border-l-4 border-green-500 p-4 max-w-sm">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <i class="fas fa-check-circle text-green-500 text-xl"></i>
+        </div>
+        <div class="ml-3">
+          <p id="notificationMessage" class="text-sm font-medium text-gray-900"></p>
+        </div>
+        <div class="ml-auto pl-3">
+          <button onclick="hideNotification()" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
   
   <script>
+    // Global variables
+    let wishlistItems = [];
+    let isLoggedIn = false;
+
+    // Check authentication status
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      isLoggedIn = !!token;
+      console.log('Authentication status:', isLoggedIn ? 'Logged in' : 'Not logged in');
+    }
+
+    // Show notification
+    function showNotification(message, type = 'success') {
+      const toast = document.getElementById('notificationToast');
+      const messageEl = document.getElementById('notificationMessage');
+      
+      messageEl.textContent = message;
+      
+      // Update border color based on type
+      const borderClass = type === 'success' ? 'border-green-500' : 
+                         type === 'error' ? 'border-red-500' : 
+                         'border-yellow-500';
+      
+      toast.className = `fixed top-4 right-4 z-50 bg-white rounded-lg shadow-lg border-l-4 ${borderClass} p-4 max-w-sm`;
+      toast.classList.remove('hidden');
+      
+      // Auto-hide after 3 seconds
+      setTimeout(() => {
+        hideNotification();
+      }, 3000);
+    }
+
+    // Hide notification
+    function hideNotification() {
+      document.getElementById('notificationToast').classList.add('hidden');
+    }
+
+    // Add to cart functionality
+    async function addToCart(productId) {
+      if (!isLoggedIn) {
+        showNotification('Please login to add items to cart', 'error');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/cart', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            productId: productId,
+            quantity: 1
+          })
+        });
+
+        if (response.ok) {
+          showNotification('Product added to cart successfully!');
+          // Remove from wishlist after adding to cart
+          removeFromWishlist(productId);
+        } else {
+          const data = await response.json();
+          showNotification(data.message || 'Failed to add to cart', 'error');
+        }
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+        showNotification('Error adding to cart. Please try again.', 'error');
+      }
+    }
+
+    // Remove from wishlist
+    async function removeFromWishlist(productId) {
+      if (!isLoggedIn) {
+        showNotification('Please login to manage wishlist', 'error');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/wishlist/${productId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          showNotification('Product removed from wishlist');
+          // Refresh wishlist
+          loadWishlist();
+        } else {
+          const data = await response.json();
+          showNotification(data.message || 'Failed to remove from wishlist', 'error');
+        }
+      } catch (error) {
+        console.error('Error removing from wishlist:', error);
+        showNotification('Error removing from wishlist. Please try again.', 'error');
+      }
+    }
+
+    // Buy now functionality
+    function buyNow(productId, productName, price) {
+      if (!isLoggedIn) {
+        showNotification('Please login to purchase products', 'error');
+        return;
+      }
+
+      // Store single product for checkout
+      const checkoutItem = [{
+        id: productId,
+        name: productName,
+        price: price,
+        quantity: 1
+      }];
+      
+      localStorage.setItem('checkoutCart', JSON.stringify(checkoutItem));
+      localStorage.setItem('checkoutTotal', price);
+      
+      // Redirect to checkout
+      window.location.href = 'enhanced-checkout.html';
+    }
+
+    // Load wishlist from database
+    async function loadWishlist() {
+      const loadingState = document.getElementById('loadingState');
+      const emptyState = document.getElementById('emptyState');
+      const wishlistContent = document.getElementById('wishlistContent');
+
+      try {
+        loadingState.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          // Show empty state for non-logged in users
+          loadingState.classList.add('hidden');
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        const response = await fetch('/api/wishlist', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const wishlist = await response.json();
+        wishlistItems = wishlist;
+        
+        console.log('Wishlist data:', wishlist);
+
+        if (!wishlist || !wishlist.length) {
+          loadingState.classList.add('hidden');
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        // Render wishlist items
+        const wishlistHTML = wishlist.map(product => `
+          <div class="wishlist-card bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl">
+            <div class="relative overflow-hidden">
+              <img src="${getProductImageUrl(product)}" 
+                   alt="${product.name}" 
+                   class="product-image w-full h-48 object-cover">
+              <div class="absolute top-3 right-3">
+                <button onclick="removeFromWishlist('${product._id}')" 
+                        class="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors">
+                  <i class="fas fa-heart-broken text-sm"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="p-6">
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">${product.name}</h3>
+              <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description || 'No description available'}</p>
+              
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-2xl font-bold text-green-600">₹${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                <span class="text-sm text-gray-500">
+                  <i class="fas fa-box mr-1"></i>
+                  ${product.stock || 0} in stock
+                </span>
+              </div>
+              
+              <div class="space-y-3">
+                <button onclick="addToCart('${product._id}')" 
+                        class="btn-secondary text-white w-full py-3 rounded-lg font-semibold flex items-center justify-center">
+                  <i class="fas fa-cart-plus mr-2"></i>
+                  Add to Cart
+                </button>
+                <button onclick="buyNow('${product._id}', '${product.name}', ${product.price || 0})" 
+                        class="btn-primary text-white w-full py-3 rounded-lg font-semibold flex items-center justify-center">
+                  <i class="fas fa-bolt mr-2"></i>
+                  Buy Now
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        wishlistContent.innerHTML = wishlistHTML;
+        loadingState.classList.add('hidden');
+
+      } catch (error) {
+        console.error('Error loading wishlist:', error);
+        loadingState.classList.add('hidden');
+        wishlistContent.innerHTML = `
+          <div class="col-span-full text-center py-20">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+              <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Error Loading Wishlist</h3>
+            <p class="text-gray-600 mb-4">${error.message}</p>
+            <button onclick="loadWishlist()" class="btn-primary text-white px-6 py-2 rounded-lg">
+              <i class="fas fa-redo mr-2"></i>Try Again
+            </button>
+          </div>
+        `;
+      }
+    }
+
     // Function to get product image URL with fallback
     function getProductImageUrl(product, index = 0) {
       if (!product) return 'uploads/default-item.jpg';
@@ -35,67 +380,11 @@
       return 'uploads/default-item.jpg';
     }
 
-    async function fetchSharedWishlist() {
-      const params = new URLSearchParams(window.location.search);
-      const userId = params.get('user');
-      const wishlistContent = document.getElementById('wishlistContent');
-      
-      if (!userId) {
-        wishlistContent.innerHTML = `
-          <div class="text-red-500 text-center col-span-2 py-8">
-            <div class="mb-4">
-              <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
-              <h3 class="text-xl font-semibold mb-2">Invalid Wishlist Link</h3>
-              <p class="text-gray-600 mb-4">The wishlist link is missing the user parameter.</p>
-            </div>
-            <div class="bg-gray-100 p-4 rounded-lg">
-              <h4 class="font-semibold mb-2">Example URLs:</h4>
-              <div class="text-sm text-gray-700 space-y-1">
-                <div>• <code class="bg-gray-200 px-2 py-1 rounded">/wishlist-view.html?user=6857bd14a6b4a78c188396d7</code></div>
-                <div>• <code class="bg-gray-200 px-2 py-1 rounded">/wishlist-view.html?user=68705b98b366e3586817d6fe</code></div>
-              </div>
-            </div>
-          </div>`;
-        return;
-      }
-      
-      try {
-        console.log('Fetching wishlist for user:', userId);
-        const res = await fetch(`/api/user/${userId}/wishlist`);
-        
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        
-        const wishlist = await res.json();
-        console.log('Wishlist data:', wishlist);
-        
-        if (!wishlist || !wishlist.length) {
-          wishlistContent.innerHTML = '<div class="text-gray-400 col-span-2 text-center py-8">This wishlist is empty.</div>';
-          return;
-        }
-        
-        wishlistContent.innerHTML = wishlist.map(product => `
-          <div class="border rounded-lg p-4 bg-gray-50 flex flex-col items-center hover:shadow-md transition-shadow">
-            <img src="${getProductImageUrl(product)}" alt="${product.name}" class="w-32 h-32 object-cover rounded mb-3">
-            <div class="font-semibold text-gray-900 text-lg mb-1 text-center">${product.name}</div>
-            <div class="text-blue-600 font-bold mb-2">₹${product.price ? product.price.toFixed(2) : '0.00'}</div>
-            <div class="text-sm text-gray-600 mb-2 text-center">${product.description || 'No description available'}</div>
-            <a href="/product.html?id=${product._id}" class="text-blue-600 hover:underline text-sm font-medium">View Product</a>
-          </div>
-        `).join('');
-      } catch (err) {
-        console.error('Error fetching wishlist:', err);
-        wishlistContent.innerHTML = `<div class="text-red-500 text-center col-span-2 py-8">Failed to load wishlist: ${err.message}</div>`;
-      }
-    }
-    
-    // Load wishlist when page loads - using immediate execution instead of event listener
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', fetchSharedWishlist);
-    } else {
-      fetchSharedWishlist();
-    }
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAuth();
+      loadWishlist();
+    });
   </script>
 </body>
 </html> 
