@@ -57,13 +57,13 @@ const userSchema = new mongoose.Schema({
         default: []
     }],
     addresses: [{
-        name: { type: String, required: true },
-        recipientName: { type: String, required: true },
-        mobile: { type: String, required: true },
-        address: { type: String, required: true },
-        pincode: { type: String, required: true },
-        city: { type: String, required: true },
-        state: { type: String, required: true },
+        name: { type: String, required: false },
+        recipientName: { type: String, required: false },
+        mobile: { type: String, required: false },
+        address: { type: String, required: false },
+        pincode: { type: String, required: false },
+        city: { type: String, required: false },
+        state: { type: String, required: false },
         addressType: { type: String, enum: ['home', 'work', 'other'], default: 'home' },
         isDefault: { type: Boolean, default: false }
     }],
@@ -83,7 +83,7 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-// ✅ FIXED: Pre-save hook with isModified check
+// ✅ FIXED: Pre-save hook with isModified check and address cleanup
 userSchema.pre('save', async function(next) {
     try {
         // Only hash password if it's been modified (or is new)
@@ -91,6 +91,14 @@ userSchema.pre('save', async function(next) {
             console.log('🔒 Hashing password for user:', this.email);
             this.password = await bcrypt.hash(this.password, 10);
             console.log('✅ Password hashed successfully');
+        }
+        
+        // Clean up incomplete addresses - remove addresses that don't have all required fields
+        if (this.addresses && this.addresses.length > 0) {
+            this.addresses = this.addresses.filter(addr => 
+                addr.name && addr.recipientName && addr.mobile && 
+                addr.address && addr.pincode && addr.city && addr.state
+            );
         }
         
         this.updatedAt = Date.now();
