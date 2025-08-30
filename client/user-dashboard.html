@@ -1843,7 +1843,7 @@
       }
     }
     
-    // ✅ FIXED: Enhanced Buy Now Function with loading states
+    // ✅ FIXED: Enhanced Buy Now Function with direct checkout navigation
     function handleBuyNow(productId, productName, productPrice, productImage, buttonElement) {
       console.log('⚡ Buy Now clicked:', {productId, productName, productPrice, productImage});
       const token = localStorage.getItem('token');
@@ -1869,12 +1869,9 @@
         }, 2000);
       }
       
-      if (window.startCheckoutFlow) {
-        window.startCheckoutFlow(productId, productName, productPrice, productImage);
-      } else {
-        console.error('❌ startCheckoutFlow function not found');
-        showNotification('Checkout system not available', 'error');
-      }
+      // Navigate to enhanced checkout page with product details
+      const checkoutUrl = `enhanced-checkout.html?productId=${productId}&productName=${encodeURIComponent(productName)}&productPrice=${productPrice}&productImage=${encodeURIComponent(productImage)}`;
+      window.location.href = checkoutUrl;
     }
     
     // ✅ FIXED: Enhanced Wishlist Function
@@ -1892,6 +1889,43 @@
         console.error('❌ toggleWishlist function not found');
         showNotification('Wishlist system not available', 'error');
       }
+    }
+
+    // ✅ NEW: Enhanced Add to Wishlist Function
+    function handleAddToWishlist(productId, buttonElement) {
+      if (!productId) {
+        showNotification('Product ID not found', 'error');
+        return;
+      }
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showNotification('Please login to add items to wishlist', 'error');
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // Disable button to prevent double clicks
+      if (buttonElement) {
+        buttonElement.disabled = true;
+        buttonElement.textContent = 'Adding...';
+      }
+      
+      // Add to wishlist
+      if (window.addToWishlist) {
+        window.addToWishlist(productId);
+      } else {
+        console.error('❌ addToWishlist function not found');
+        showNotification('Wishlist functionality not available', 'error');
+      }
+      
+      // Re-enable button after a delay
+      setTimeout(() => {
+        if (buttonElement) {
+          buttonElement.disabled = false;
+          buttonElement.textContent = 'Add to Wishlist';
+        }
+      }, 2000);
     }
     
     // ✅ FIXED: Cart Checkout Handler
@@ -2033,16 +2067,20 @@
                 
                 <!-- Action Buttons -->
                 <div class="flex flex-col gap-3">
-                  <button onclick="event.stopPropagation(); handleAddToCart('${product._id}')" 
-                          class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 px-6 rounded-lg border border-yellow-400 transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
-                    🛒 Add to Cart
-                  </button>
-                  <div class="flex gap-2">
-                    <button onclick="event.stopPropagation(); handleBuyNow('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${getProductImageUrl(product)}')" 
-                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
-                      ⚡ Buy Now
+                  <div class="flex gap-2 mb-2">
+                    <button onclick="event.stopPropagation(); handleAddToCart('${product._id}', this)" 
+                            class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 px-4 rounded-lg border border-yellow-400 transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
+                      🛒 Add to Cart
+                    </button>
+                    <button onclick="event.stopPropagation(); handleAddToWishlist('${product._id}', this)" 
+                            class="bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
+                      <i class="fas fa-heart"></i>
                     </button>
                   </div>
+                  <button onclick="event.stopPropagation(); handleBuyNow('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${getProductImageUrl(product)}', this)" 
+                          class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
+                    ⚡ Buy Now
+                  </button>
                 </div>
               </div>
             </div>
@@ -2909,17 +2947,17 @@
       }
     }
     
-    // Cart Functions - Enhanced to trigger checkout flow
+    // ✅ FIXED: Enhanced Cart Functions with proper checkout flow
     async function addToCart(itemId, quantity = null) {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          showNotification('Please login to place an order', 'error');
+          showNotification('Please login to add items to cart', 'error');
           window.location.href = 'login.html';
           return;
         }
 
-        // Get product details for checkout
+        // Get product details
         const productResponse = await fetch(`/api/items/${itemId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -2934,19 +2972,21 @@
 
         const product = await productResponse.json();
         
-        // Check if razorpay checkout is available
-        if (window.startCheckoutFlow) {
-          // Start the enhanced checkout flow: address → quantity → payment
-          console.log('🛒 Starting checkout flow for product:', product.name);
+        // Check if user wants direct checkout or add to cart
+        const isDirectCheckout = window.isDirectCheckout || false;
+        
+        if (isDirectCheckout && window.startCheckoutFlow) {
+          // Direct checkout flow: address → quantity → payment
+          console.log('🛒 Starting direct checkout flow for product:', product.name);
           window.startCheckoutFlow(product);
         } else {
-          // Fallback to simple cart add
-          console.log('⚠️ Checkout flow not available, adding to cart');
+          // Add to cart flow
+          console.log('🛒 Adding product to cart:', product.name);
           await simpleAddToCart(itemId, quantity);
         }
       } catch (error) {
-        console.error('Error processing order:', error);
-        showNotification('Error starting checkout process', 'error');
+        console.error('Error processing cart action:', error);
+        showNotification('Error processing request', 'error');
       }
     }
 
@@ -2992,6 +3032,92 @@
             button.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i>ADD TO CART';
             button.classList.remove('bg-green-600', 'hover:bg-green-700');
             button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+          }, 3000);
+        }
+      });
+    }
+
+    // ✅ FIXED: Enhanced Wishlist Functions
+    async function addToWishlist(itemId) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showNotification('Please login to add items to wishlist', 'error');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        const response = await fetch('/api/wishlist/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ itemId })
+        });
+
+        if (response.ok) {
+          showNotification('Product added to wishlist!');
+          updateWishlistIcon(itemId, true);
+          // Refresh wishlist if on wishlist page
+          if (window.location.pathname.includes('wishlist')) {
+            loadWishlist();
+          }
+        } else {
+          const error = await response.json();
+          showNotification(error.message || 'Failed to add to wishlist', 'error');
+        }
+      } catch (error) {
+        console.error('Error adding to wishlist:', error);
+        showNotification('Error adding to wishlist', 'error');
+      }
+    }
+
+    async function removeFromWishlist(itemId) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showNotification('Please login to manage wishlist', 'error');
+          return;
+        }
+
+        const response = await fetch(`/api/wishlist/remove/${itemId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          showNotification('Product removed from wishlist');
+          updateWishlistIcon(itemId, false);
+          // Refresh wishlist if on wishlist page
+          if (window.location.pathname.includes('wishlist')) {
+            loadWishlist();
+          }
+        } else {
+          const error = await response.json();
+          showNotification(error.message || 'Failed to remove from wishlist', 'error');
+        }
+      } catch (error) {
+        console.error('Error removing from wishlist:', error);
+        showNotification('Error removing from wishlist', 'error');
+      }
+    }
+
+    // Update wishlist icon function
+    function updateWishlistIcon(itemId, added) {
+      const wishlistButtons = document.querySelectorAll(`[onclick*="addToWishlist('${itemId}')"]`);
+      wishlistButtons.forEach(button => {
+        if (added) {
+          button.innerHTML = '<i class="fas fa-heart text-red-600 mr-2"></i>Added to Wishlist';
+          button.classList.add('bg-red-600', 'hover:bg-red-700');
+          button.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+          // Reset after 3 seconds
+          setTimeout(() => {
+            button.innerHTML = '<i class="fas fa-heart mr-2"></i>Add to Wishlist';
+            button.classList.remove('bg-red-600', 'hover:bg-red-700');
+            button.classList.add('bg-gray-600', 'hover:bg-gray-700');
           }, 3000);
         }
       });
@@ -3950,7 +4076,7 @@
       }
     }
     
-    // ✅ FIXED: Save address function
+    // ✅ FIXED: Save address function with enhanced persistence
     async function saveAddress() {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -4002,53 +4128,46 @@
         const savedAddress = await res.json();
         showNotification(addressId ? 'Address updated successfully' : 'Address added successfully', 'success');
         
-        // Check if we're in checkout flow
+        // ✅ FIXED: Enhanced checkout flow handling
         const isInCheckout = window.razorpayConfig && window.razorpayConfig.checkoutData && window.razorpayConfig.checkoutData.product;
         
         console.log('💳 Checkout status:', {
           isInCheckout,
           hasRazorpayConfig: !!window.razorpayConfig,
           hasCheckoutData: !!(window.razorpayConfig && window.razorpayConfig.checkoutData),
-          hasProduct: !!(window.razorpayConfig && window.razorpayConfig.checkoutData && window.razorpayConfig.checkoutData.product),
-          hasShowQuantityModal: !!window.showQuantityModal
+          hasProduct: !!(window.razorpayConfig && window.razorpayConfig.checkoutData && window.razorpayConfig.checkoutData.product)
         });
         
         if (isInCheckout) {
-          // If in checkout flow, close form and continue with checkout
+          // ✅ FIXED: Proper checkout flow continuation
           closeAddressFormModal();
           
-          // Update the checkout addresses
-          if (window.razorpayConfig && window.razorpayConfig.userAddresses) {
-            await loadUserAddresses();
+          // Reload addresses for checkout
+          if (window.loadUserAddresses) {
+            await window.loadUserAddresses();
           }
           
-          // If this was adding a new address during checkout, select it automatically
+          // Auto-select the newly added address
           if (!addressId && savedAddress._id) {
-            // Trigger address selection in checkout
             if (window.selectAddress) {
               window.selectAddress(savedAddress._id);
             }
+            // Store selected address in session
+            sessionStorage.setItem('selectedCheckoutAddress', JSON.stringify(savedAddress));
           }
           
-          // Continue with checkout flow - show quantity modal
+          // Continue with quantity selection
           if (window.showQuantityModal) {
-            console.log('✅ Calling showQuantityModal to continue checkout');
-            window.showQuantityModal();
+            console.log('✅ Continuing checkout flow to quantity selection');
+            setTimeout(() => window.showQuantityModal(), 500);
           } else {
-            console.error('❌ showQuantityModal function not available! Checkout flow broken.');
-            // Try to load razorpay-checkout.js and retry
-            setTimeout(() => {
-              if (window.showQuantityModal) {
-                console.log('⏰ Retrying showQuantityModal after delay');
-                window.showQuantityModal();
-              } else {
-                console.error('❌ showQuantityModal still not available after retry');
-                showNotification('Checkout flow error. Please try again.', 'error');
-              }
-            }, 500);
+            console.log('⚠️ Quantity modal not available, proceeding to payment');
+            if (window.proceedToPayment) {
+              setTimeout(() => window.proceedToPayment(), 500);
+            }
           }
         } else {
-          // Normal address management - close form and refresh address cards
+          // Normal address management
           closeAddressFormModal();
           renderAddressCards();
         }
@@ -4072,6 +4191,11 @@
     window.renderAddressCards = renderAddressCards;
     window.loadUserAddresses = loadUserAddresses;
     window.initializeCheckoutFlow = initializeCheckoutFlow;
+    window.addToWishlist = addToWishlist;
+    window.removeFromWishlist = removeFromWishlist;
+    window.handleAddToWishlist = handleAddToWishlist;
+    window.handleAddToCart = handleAddToCart;
+    window.handleBuyNow = handleBuyNow;
     
     // ✅ FIXED: Enhanced address form event listeners
     document.addEventListener('DOMContentLoaded', function() {
