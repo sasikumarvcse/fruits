@@ -135,10 +135,11 @@ exports.addToCart = async (req, res) => {
     return res.status(401).json({ message: 'Unauthorized: No user found in request.' });
   }
   try {
-    const { itemId, quantity = 1 } = req.body;
-    console.log('Backend: addToCart received itemId:', itemId);
-    if (!itemId) {
-      return res.status(400).json({ message: 'No itemId provided' });
+    const { productId, itemId, quantity = 1 } = req.body;
+    const id = productId || itemId; // Accept both for backward compatibility
+    console.log('Backend: addToCart received productId:', productId, 'itemId:', itemId, 'using:', id);
+    if (!id) {
+      return res.status(400).json({ message: 'No productId or itemId provided' });
     }
     const user = await User.findById(req.user.id);
     if (!user) {
@@ -146,18 +147,18 @@ exports.addToCart = async (req, res) => {
     }
     fixCartFormat(user); // Ensure cart is always in correct format
     // Check if product exists
-    const product = await require('../models/Item').findById(itemId);
+    const product = await require('../models/Item').findById(id);
     console.log('Backend: addToCart product lookup result:', product);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
     // DEBUG: Log cart before
     console.log('addToCart: cart before =', JSON.stringify(user.cart, null, 2));
-    const existing = user.cart.find(c => c.product && c.product.toString() === itemId.toString());
+    const existing = user.cart.find(c => c.product && c.product.toString() === id.toString());
     if (existing) {
       existing.quantity += quantity;
     } else {
-      user.cart.push({ product: itemId, quantity });
+      user.cart.push({ product: id, quantity });
     }
     await user.save();
     await user.populate('cart.product');
@@ -176,9 +177,13 @@ exports.addToCart = async (req, res) => {
 
 exports.updateCart = async (req, res) => {
   try {
-    const { itemId, quantity } = req.body;
+    const { productId, itemId, quantity } = req.body;
+    const id = productId || itemId; // Accept both for backward compatibility
+    if (!id) {
+      return res.status(400).json({ message: 'No productId or itemId provided' });
+    }
     const user = await User.findById(req.user.id);
-    const cartItem = user.cart.find(c => c.product && c.product.toString() === itemId);
+    const cartItem = user.cart.find(c => c.product && c.product.toString() === id);
     if (cartItem) cartItem.quantity = quantity;
     await user.save();
     await user.populate('cart.product');
@@ -194,9 +199,13 @@ exports.updateCart = async (req, res) => {
 
 exports.removeFromCart = async (req, res) => {
   try {
-    const { itemId } = req.body;
+    const { productId, itemId } = req.body;
+    const id = productId || itemId; // Accept both for backward compatibility
+    if (!id) {
+      return res.status(400).json({ message: 'No productId or itemId provided' });
+    }
     const user = await User.findById(req.user.id);
-    user.cart = user.cart.filter(c => c.product && c.product.toString() !== itemId);
+    user.cart = user.cart.filter(c => c.product && c.product.toString() !== id);
     await user.save();
     await user.populate('cart.product');
     const cartWithProduct = user.cart.map(c => ({
@@ -246,13 +255,17 @@ exports.addToWishlist = async (req, res) => {
   console.log('addToWishlist: req.user =', req.user);
   console.log('addToWishlist: req.body =', req.body);
   try {
-    const { itemId } = req.body;
+    const { productId, itemId } = req.body;
+    const id = productId || itemId; // Accept both for backward compatibility
+    if (!id) {
+      return res.status(400).json({ message: 'No productId or itemId provided' });
+    }
     const user = await User.findById(req.user.id);
     if (!user) {
       console.log('addToWishlist: User not found for id', req.user.id);
       return res.status(404).json({ message: 'User not found' });
     }
-    if (!user.wishlist.includes(itemId)) user.wishlist.push(itemId);
+    if (!user.wishlist.includes(id)) user.wishlist.push(id);
     await user.save();
     await user.populate('wishlist');
     res.json(user.wishlist);
@@ -267,7 +280,11 @@ exports.removeFromWishlist = async (req, res) => {
     return res.status(401).json({ message: 'Unauthorized: No user found in request.' });
   }
   try {
-    const { itemId } = req.body;
+    const { productId, itemId } = req.body;
+    const id = productId || itemId; // Accept both for backward compatibility
+    if (!id) {
+      return res.status(400).json({ message: 'No productId or itemId provided' });
+    }
     console.log('removeFromWishlist: req.user =', req.user);
     console.log('removeFromWishlist: req.body =', req.body);
     
@@ -277,7 +294,7 @@ exports.removeFromWishlist = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    user.wishlist = user.wishlist.filter(id => id.toString() !== itemId);
+    user.wishlist = user.wishlist.filter(wishlistId => wishlistId.toString() !== id);
     await user.save();
     await user.populate('wishlist');
     res.json(user.wishlist);

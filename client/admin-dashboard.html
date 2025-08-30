@@ -35,7 +35,57 @@
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50" onload="checkAuth()">
+    <!-- Authentication Check Script -->
+    <script>
+        // Check authentication before loading dashboard
+        function checkAuth() {
+            const adminToken = localStorage.getItem('adminToken');
+            const adminData = localStorage.getItem('adminData');
+            
+            if (!adminToken || !adminData) {
+                console.log('❌ No admin authentication found, redirecting to login');
+                window.location.href = 'admin-login.html';
+                return;
+            }
+            
+            try {
+                const admin = JSON.parse(adminData);
+                if (admin.role !== 'admin') {
+                    console.log('❌ User is not an admin, redirecting to login');
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminData');
+                    window.location.href = 'admin-login.html';
+                    return;
+                }
+                
+                console.log('✅ Admin authenticated:', admin.email);
+                // Update admin name in UI
+                const adminNameElement = document.getElementById('adminName');
+                if (adminNameElement) {
+                    adminNameElement.textContent = admin.firstName || admin.email;
+                }
+                
+                // Initialize dashboard
+                initializeDashboard();
+                
+            } catch (error) {
+                console.error('❌ Error parsing admin data:', error);
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminData');
+                window.location.href = 'admin-login.html';
+            }
+        }
+        
+        // Initialize dashboard after authentication
+        function initializeDashboard() {
+            // Show dashboard content
+            document.body.style.display = 'block';
+            // Load initial data
+            showTab('dashboard');
+        }
+    </script>
+
     <!-- Navigation -->
     <nav class="bg-white shadow-sm border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -826,9 +876,11 @@
         }
 
         // Logout
-        function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+            function logout() {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminData');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
             window.location.href = '/admin-login.html';
         }
 

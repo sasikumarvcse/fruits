@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cart & Wishlist - FreshFruits</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+        .notification.success { background-color: #10b981; }
+        .notification.error { background-color: #ef4444; }
+        .notification.warning { background-color: #f59e0b; }
+        .notification.info { background-color: #3b82f6; }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">🧪 Cart & Wishlist Test Page</h1>
+            <p class="text-gray-600 mb-6">This page tests the cart and wishlist functionality after the fixes.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-blue-800 mb-2">🔧 Backend Fixes Applied:</h3>
+                    <ul class="text-sm text-blue-700 space-y-1">
+                        <li>• Cart API now accepts both productId and itemId</li>
+                        <li>• Wishlist API now accepts both productId and itemId</li>
+                        <li>• Admin authentication loop fixed</li>
+                        <li>• Proper error handling for missing parameters</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-green-800 mb-2">🎯 Frontend Fixes Applied:</h3>
+                    <ul class="text-sm text-green-700 space-y-1">
+                        <li>• Detailed product view buttons now functional</li>
+                        <li>• Cart manager properly integrated</li>
+                        <li>• Notification system working</li>
+                        <li>• Proper authentication checks</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Product Card -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">🍎 Test Product</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <img src="https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400" 
+                         alt="Test Product" class="w-full rounded-lg">
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Organic Test Banana</h3>
+                    <p class="text-gray-600 mb-4">A delicious organic banana for testing cart and wishlist functionality.</p>
+                    <div class="text-2xl font-bold text-green-600 mb-4">₹89.99</div>
+                    
+                    <div class="space-y-3">
+                        <button onclick="testAddToCart()" class="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                            🛒 Test Add to Cart
+                        </button>
+                        <button onclick="testAddToWishlist()" class="w-full bg-pink-600 text-white py-3 px-6 rounded-lg hover:bg-pink-700 transition-colors font-semibold">
+                            ❤️ Test Add to Wishlist
+                        </button>
+                        <button onclick="testBuyNow()" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                            💳 Test Buy Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📊 Test Results</h2>
+            <div id="testResults" class="space-y-3">
+                <p class="text-gray-600">Click the test buttons above to see results here...</p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="mt-8 text-center">
+            <a href="products.html" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold mr-4">
+                🛍️ Go to Products
+            </a>
+            <a href="admin-login.html" class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                🔐 Admin Login
+            </a>
+        </div>
+    </div>
+
+    <!-- Include Cart and Wishlist Manager -->
+    <script src="js/cart-wishlist.js"></script>
+    
+    <script>
+        // Test functions
+        function testAddToCart() {
+            const testResults = document.getElementById('testResults');
+            testResults.innerHTML = '<p class="text-blue-600">🔄 Testing Add to Cart...</p>';
+            
+            // Simulate adding to cart
+            if (window.cartManager) {
+                const result = window.cartManager.addToCart('test-product-id', 1);
+                if (result === false) {
+                    testResults.innerHTML = '<p class="text-yellow-600">⚠️ Add to Cart: User not logged in (expected behavior)</p>';
+                } else {
+                    testResults.innerHTML = '<p class="text-green-600">✅ Add to Cart: Function called successfully</p>';
+                }
+            } else {
+                testResults.innerHTML = '<p class="text-red-600">❌ Add to Cart: Cart manager not available</p>';
+            }
+        }
+
+        function testAddToWishlist() {
+            const testResults = document.getElementById('testResults');
+            testResults.innerHTML = '<p class="text-blue-600">🔄 Testing Add to Wishlist...</p>';
+            
+            // Simulate adding to wishlist
+            if (window.cartManager) {
+                const result = window.cartManager.addToWishlist('test-product-id');
+                if (result === false) {
+                    testResults.innerHTML = '<p class="text-yellow-600">⚠️ Add to Wishlist: User not logged in (expected behavior)</p>';
+                } else {
+                    testResults.innerHTML = '<p class="text-green-600">✅ Add to Wishlist: Function called successfully</p>';
+                }
+            } else {
+                testResults.innerHTML = '<p class="text-red-600">❌ Add to Wishlist: Cart manager not available</p>';
+            }
+        }
+
+        function testBuyNow() {
+            const testResults = document.getElementById('testResults');
+            testResults.innerHTML = '<p class="text-blue-600">🔄 Testing Buy Now...</p>';
+            
+            // Check if user is logged in
+            const token = localStorage.getItem('token');
+            if (!token) {
+                testResults.innerHTML = '<p class="text-yellow-600">⚠️ Buy Now: User not logged in (expected behavior)</p>';
+            } else {
+                testResults.innerHTML = '<p class="text-green-600">✅ Buy Now: User logged in, function ready</p>';
+            }
+        }
+
+        // Check if cart manager is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const testResults = document.getElementById('testResults');
+            
+            if (window.cartManager && window.cartManager.isInitialized) {
+                testResults.innerHTML = '<p class="text-green-600">✅ Cart Manager: Loaded and initialized successfully</p>';
+            } else {
+                testResults.innerHTML = '<p class="text-red-600">❌ Cart Manager: Not loaded or not initialized</p>';
+            }
+        });
+
+        // Check authentication status
+        function checkAuthStatus() {
+            const token = localStorage.getItem('token');
+            const adminToken = localStorage.getItem('adminToken');
+            
+            console.log('User Token:', token ? 'Present' : 'Not present');
+            console.log('Admin Token:', adminToken ? 'Present' : 'Not present');
+            
+            if (token) {
+                console.log('✅ User is logged in');
+            } else if (adminToken) {
+                console.log('✅ Admin is logged in');
+            } else {
+                console.log('❌ No user or admin logged in');
+            }
+        }
+
+        // Check auth status on load
+        window.addEventListener('load', checkAuthStatus);
+    </script>
+</body>
+</html>
