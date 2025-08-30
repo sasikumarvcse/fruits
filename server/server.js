@@ -53,6 +53,7 @@ const configRoutes = require('./routes/config');
 const paymentRoutes = require('./routes/payment');
 const deliveryRoutes = require('./routes/delivery');
 const productRoutes = require('./routes/products');
+const invoiceRoutes = require('./routes/invoices');
 
 // Register all API routes (ONLY ONCE)
 app.use('/api/auth', authRoutes);
@@ -68,6 +69,7 @@ app.use('/api/config', configRoutes);
 app.use('/api/payment', paymentRoutes); // ✅ Only one payment route
 app.use('/api/delivery', deliveryRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/invoices', invoiceRoutes);
 
 // Serve static files from /client
 app.use(express.static(path.join(__dirname, '../client')));

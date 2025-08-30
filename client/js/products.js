@@ -1,13 +1,12 @@
-// Enhanced Products Page JavaScript - COMPLETE CLEAN VERSION
+// Enhanced Products Page JavaScript - COMPLETE FIXED VERSION
 console.log('🔄 Loading enhanced products page...');
 
 (function() {
     'use strict';
     
-    // Local scope variables to avoid conflicts
+    // Local scope variables
     let productsData = [];
     let filteredProductsData = [];
-    let cartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
     let currentProduct = null;
 
     // Initialize page
@@ -17,7 +16,6 @@ console.log('🔄 Loading enhanced products page...');
 
     async function initializePage() {
         await loadProducts();
-        updateCartDisplay();
         setupEventListeners();
         console.log('✅ Products page initialized');
     }
@@ -61,7 +59,7 @@ console.log('🔄 Loading enhanced products page...');
         }
     }
 
-    // Enhanced product display with buy now functionality
+    // Enhanced product display with all functionality
     function displayProducts() {
         const grid = document.getElementById('productsGrid');
         const loadingState = document.getElementById('loadingState');
@@ -98,26 +96,17 @@ console.log('🔄 Loading enhanced products page...');
                             <div class="product-pricing">
                                 <span class="current-price">₹${productPrice.toFixed(2)}</span>
                                 ${product.mrp && product.mrp > productPrice ? 
-                                    `<span class="original-price">₹${product.mrp.toFixed(2)}</span>` : ''}
-                            </div>
-                            <div class="product-meta">
-                                <span class="category">${product.category || 'basic'}</span>
-                                <span class="stock ${product.stock > 0 ? 'in-stock' : 'out-stock'}">
-                                    ${product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
-                                </span>
+                                    `<span class="mrp-price">₹${product.mrp.toFixed(2)}</span>` : ''}
                             </div>
                             <div class="product-actions">
-                                <button 
-                                    class="btn-primary buy-now-btn" 
-                                    ${product.stock <= 0 ? 'disabled' : ''}
-                                    onclick="startEnhancedCheckout('${productId}', '${productName.replace(/'/g, "\\'")}', ${productPrice}, '${productImage}')">
-                                    ${product.stock > 0 ? 'Buy Now' : 'Out of Stock'}
+                                <button onclick="cartManager.addToCart('${productId}')" class="btn-cart">
+                                    🛒 Add to Cart
                                 </button>
-                                <button 
-                                    class="btn-secondary add-to-cart-btn" 
-                                    ${product.stock <= 0 ? 'disabled' : ''}
-                                    onclick="addToCart('${productId}')">
-                                    Add to Cart
+                                <button onclick="cartManager.addToWishlist('${productId}')" class="btn-wishlist">
+                                    ❤️ Wishlist
+                                </button>
+                                <button onclick="buyNow('${productId}')" class="btn-buy">
+                                    💳 Buy Now
                                 </button>
                             </div>
                         </div>
@@ -127,73 +116,37 @@ console.log('🔄 Loading enhanced products page...');
         }
     }
 
-    // ✅ CRITICAL: Buy button should ONLY start checkout flow, NOT open Razorpay
-    function startEnhancedCheckout(productId, productName, productPrice, productImage) {
-        console.log('🛒 Starting ENHANCED checkout for:', productName);
-        
-        // Store product data
-        currentProduct = {
-            _id: productId,
-            name: productName,
-            price: parseFloat(productPrice),
-            image: productImage
-        };
-        
-        // ✅ Check if enhanced checkout is available
-        if (typeof window.startCheckoutFlow === 'function') {
-            console.log('✅ Calling enhanced checkout flow...');
-            window.startCheckoutFlow(productId, productName, productPrice, productImage);
-        } else {
-            console.error('❌ Enhanced checkout system not loaded!');
-            showNotification('Checkout system not available. Please refresh the page.', 'error');
-        }
-    }
-
-    // Event listeners setup
+    // Setup event listeners
     function setupEventListeners() {
         // Search functionality
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             searchInput.addEventListener('input', debounce(handleSearch, 300));
         }
-        
-        // Price range filter
-        const priceRange = document.getElementById('priceRange');
-        if (priceRange) {
-            priceRange.addEventListener('input', handlePriceFilter);
-        }
-        
+
         // Category filter
         const categoryFilter = document.getElementById('categoryFilter');
         if (categoryFilter) {
             categoryFilter.addEventListener('change', handleCategoryFilter);
         }
-        
-        console.log('✅ Event listeners setup complete');
+
+        // Price range filter
+        const priceRange = document.getElementById('priceRange');
+        if (priceRange) {
+            priceRange.addEventListener('input', handlePriceRangeChange);
+        }
     }
 
     // Search functionality
     function handleSearch(event) {
         const searchTerm = event.target.value.toLowerCase();
+        
         filteredProductsData = productsData.filter(product => 
             product.name.toLowerCase().includes(searchTerm) ||
             product.description.toLowerCase().includes(searchTerm) ||
             product.category.toLowerCase().includes(searchTerm)
         );
-        displayProducts();
-    }
-
-    // Price filter
-    function handlePriceFilter(event) {
-        const maxPrice = parseFloat(event.target.value);
-        const priceValueElement = document.getElementById('priceValue');
-        if (priceValueElement) {
-            priceValueElement.textContent = `₹${maxPrice}`;
-        }
         
-        filteredProductsData = productsData.filter(product => 
-            parseFloat(product.price) <= maxPrice
-        );
         displayProducts();
     }
 
@@ -211,46 +164,72 @@ console.log('🔄 Loading enhanced products page...');
         displayProducts();
     }
 
-    // Add to cart functionality
-    async function addToCart(productId) {
+    // Price range filter
+    function handlePriceRangeChange(event) {
+        const maxPrice = parseFloat(event.target.value);
+        const priceValue = document.getElementById('priceValue');
+        if (priceValue) {
+            priceValue.textContent = `₹${maxPrice}`;
+        }
+        
+        filteredProductsData = productsData.filter(product => 
+            parseFloat(product.price) <= maxPrice
+        );
+        
+        displayProducts();
+    }
+
+    // Buy now functionality
+    async function buyNow(productId) {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                showNotification('Please login to add items to cart', 'warning');
+                showNotification('Please login to buy products', 'warning');
                 return;
             }
 
-            const response = await fetch('/api/cart', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    productId: productId,
-                    quantity: 1
-                })
-            });
-            
-            if (response.ok) {
-                showNotification('Product added to cart!', 'success');
-                updateCartDisplay();
-            } else {
-                const errorData = await response.json();
-                showNotification(errorData.message || 'Failed to add to cart', 'error');
+            // Find the product
+            const product = productsData.find(p => p._id === productId);
+            if (!product) {
+                showNotification('Product not found', 'error');
+                return;
             }
+
+            // Store the product for checkout
+            localStorage.setItem('buyNowProduct', JSON.stringify(product));
+            
+            // Redirect to checkout
+            window.location.href = 'enhanced-checkout.html?buyNow=true';
+            
         } catch (error) {
-            console.error('Error adding to cart:', error);
-            showNotification('Error adding to cart', 'error');
+            console.error('Error with buy now:', error);
+            showNotification('Error processing buy now request', 'error');
         }
     }
 
-    // Cart functionality
-    function updateCartDisplay() {
-        const cartCount = document.getElementById('cartCount');
-        if (cartCount) {
-            cartCount.textContent = cartItems.length;
-        }
+    // Show product modal
+    function showProductModal(productId) {
+        const product = productsData.find(p => p._id === productId);
+        if (!product) return;
+
+        currentProduct = product;
+        window.currentProduct = product; // Make it globally accessible
+        
+        // Update modal content
+        const modal = document.getElementById('productModal');
+        const modalProductName = document.getElementById('modalProductName');
+        const modalProductImage = document.getElementById('modalProductImage');
+        const modalProductTitle = document.getElementById('modalProductTitle');
+        const modalProductDescription = document.getElementById('modalProductDescription');
+        const modalProductPrice = document.getElementById('modalProductPrice');
+
+        if (modalProductName) modalProductName.textContent = product.name;
+        if (modalProductImage) modalProductImage.src = product.image;
+        if (modalProductTitle) modalProductTitle.textContent = product.name;
+        if (modalProductDescription) modalProductDescription.textContent = product.description;
+        if (modalProductPrice) modalProductPrice.textContent = `₹${product.price}`;
+
+        modal.style.display = 'block';
     }
 
     // Utility functions
@@ -264,6 +243,13 @@ console.log('🔄 Loading enhanced products page...');
     function showNotification(message, type = 'info') {
         console.log(`[${type.toUpperCase()}] ${message}`);
         
+        // Use cart manager notification if available
+        if (window.cartManager && window.cartManager.showNotification) {
+            window.cartManager.showNotification(message, type);
+            return;
+        }
+        
+        // Fallback notification
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.innerHTML = `
@@ -293,8 +279,8 @@ console.log('🔄 Loading enhanced products page...');
     }
 
     // Export functions to global scope
-    window.startEnhancedCheckout = startEnhancedCheckout;
-    window.addToCart = addToCart;
+    window.buyNow = buyNow;
+    window.showProductModal = showProductModal;
     
     // Filter functions
     window.applyFilters = function() {
@@ -336,28 +322,6 @@ console.log('🔄 Loading enhanced products page...');
         filteredProductsData = [...productsData];
         displayProducts();
         showNotification('Filters cleared', 'info');
-    };
-
-    // Cart and utility functions
-    window.clearCart = function() {
-        cartItems = [];
-        localStorage.setItem('cartItems', JSON.stringify(cartItems));
-        updateCartDisplay();
-        showNotification('Cart cleared', 'info');
-    };
-
-    window.toggleCart = function() {
-        const cartSidebar = document.getElementById('cartSidebar');
-        if (cartSidebar) {
-            cartSidebar.classList.toggle('active');
-        }
-    };
-
-    window.logout = function() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('cartItems');
-        window.location.href = '/login.html';
     };
 
 })();
