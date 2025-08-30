@@ -1115,7 +1115,10 @@ window.addEventListener('error', function(event) {
   // Ignore Chrome extension related errors
   if (event.error && event.error.message && 
       (event.error.message.includes('message channel closed') || 
-       event.error.message.includes('contentScript'))) {
+       event.error.message.includes('contentScript') ||
+       event.error.message.includes('chrome-extension') ||
+       event.error.message.includes('i18next') ||
+       event.filename && event.filename.includes('contentScript'))) {
     event.preventDefault();
     console.log('Chrome extension error ignored:', event.error.message);
     return false;
@@ -1124,14 +1127,32 @@ window.addEventListener('error', function(event) {
 
 // Handle unhandled promise rejections (Chrome extension related)
 window.addEventListener('unhandledrejection', function(event) {
-  if (event.reason && event.reason.message && 
-      (event.reason.message.includes('message channel closed') || 
-       event.reason.message.includes('contentScript'))) {
+  if (event.reason && 
+      ((event.reason.message && 
+        (event.reason.message.includes('message channel closed') || 
+         event.reason.message.includes('contentScript') ||
+         event.reason.message.includes('chrome-extension') ||
+         event.reason.message.includes('i18next'))) ||
+       (typeof event.reason === 'string' && 
+        (event.reason.includes('chrome-extension') ||
+         event.reason.includes('contentScript') ||
+         event.reason.includes('i18next'))))) {
     event.preventDefault();
-    console.log('Chrome extension promise rejection ignored:', event.reason.message);
+    console.log('Chrome extension promise rejection ignored:', event.reason);
     return false;
   }
 });
+
+// Additional fetch error suppression for chrome-extension URLs
+const originalFetch = window.fetch;
+window.fetch = function(...args) {
+  const url = args[0];
+  if (typeof url === 'string' && url.includes('chrome-extension://')) {
+    console.log('Blocked chrome-extension fetch attempt:', url);
+    return Promise.reject(new Error('chrome-extension fetch blocked'));
+  }
+  return originalFetch.apply(this, args);
+};
 
 // ========== FETCH RAZORPAY KEY FOR FRONTEND ==========
 (async function fetchRazorpayKey() {

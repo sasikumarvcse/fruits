@@ -263,14 +263,26 @@ exports.addToWishlist = async (req, res) => {
 };
 
 exports.removeFromWishlist = async (req, res) => {
+  if (!req.user || !req.user.id) {
+    return res.status(401).json({ message: 'Unauthorized: No user found in request.' });
+  }
   try {
     const { itemId } = req.body;
+    console.log('removeFromWishlist: req.user =', req.user);
+    console.log('removeFromWishlist: req.body =', req.body);
+    
     const user = await User.findById(req.user.id);
+    if (!user) {
+      console.log('removeFromWishlist: User not found for id', req.user.id);
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
     user.wishlist = user.wishlist.filter(id => id.toString() !== itemId);
     await user.save();
     await user.populate('wishlist');
     res.json(user.wishlist);
   } catch (error) {
+    console.error('removeFromWishlist: Error:', error);
     res.status(500).json({ message: error.message });
   }
 };

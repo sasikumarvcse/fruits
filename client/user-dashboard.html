@@ -814,6 +814,9 @@
     .modal-content {
       z-index: 2147483647 !important;
     }
+    
+    /* Additional error suppression */
+    .i18next-error { display: none !important; }
   </style>
 </head>
 <body class="bg-gray-50 overflow-x-hidden">
@@ -2659,16 +2662,52 @@
       }
     }
     
-    // Cart Functions
+    // Cart Functions - Enhanced to trigger checkout flow
     async function addToCart(itemId, quantity = null) {
-      // Use quantity from modal if available, otherwise use default
-      const qty = quantity || window.currentProductQuantity || 1;
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          showNotification('Please login to add items to cart', 'error');
+          showNotification('Please login to place an order', 'error');
+          window.location.href = 'login.html';
           return;
         }
+
+        // Get product details for checkout
+        const productResponse = await fetch(`/api/items/${itemId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!productResponse.ok) {
+          showNotification('Product not found', 'error');
+          return;
+        }
+
+        const product = await productResponse.json();
+        
+        // Check if razorpay checkout is available
+        if (window.startCheckoutFlow) {
+          // Start the enhanced checkout flow: address → quantity → payment
+          console.log('🛒 Starting checkout flow for product:', product.name);
+          window.startCheckoutFlow(product);
+        } else {
+          // Fallback to simple cart add
+          console.log('⚠️ Checkout flow not available, adding to cart');
+          await simpleAddToCart(itemId, quantity);
+        }
+      } catch (error) {
+        console.error('Error processing order:', error);
+        showNotification('Error starting checkout process', 'error');
+      }
+    }
+
+    // Fallback function for simple cart addition
+    async function simpleAddToCart(itemId, quantity = null) {
+      const qty = quantity || window.currentProductQuantity || 1;
+      try {
+        const token = localStorage.getItem('token');
         const response = await fetch('/api/cart/add', {
           method: 'POST',
           headers: {
@@ -2681,7 +2720,6 @@
           showNotification('Product added to cart!');
           updateCartCount();
           fetchCart();
-          // Update cart icon state
           updateCartIcon(itemId, true);
         } else {
           const error = await response.json();
@@ -5256,6 +5294,46 @@
         }
       }
     }
+  </script>
+
+  <!-- Chrome Extension Error Suppression -->
+  <script>
+    // Global error handling for chrome extensions
+    window.addEventListener('error', function(event) {
+      if (event.error && event.error.message && 
+          (event.error.message.includes('chrome-extension') ||
+           event.error.message.includes('contentScript') ||
+           event.error.message.includes('i18next') ||
+           event.filename && event.filename.includes('contentScript'))) {
+        event.preventDefault();
+        return false;
+      }
+    });
+    
+    window.addEventListener('unhandledrejection', function(event) {
+      if (event.reason && 
+          ((event.reason.message && 
+            (event.reason.message.includes('chrome-extension') ||
+             event.reason.message.includes('contentScript') ||
+             event.reason.message.includes('i18next'))) ||
+           (typeof event.reason === 'string' && 
+            (event.reason.includes('chrome-extension') ||
+             event.reason.includes('contentScript') ||
+             event.reason.includes('i18next'))))) {
+        event.preventDefault();
+        return false;
+      }
+    });
+    
+    // Suppress chrome-extension fetch attempts
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+      const url = args[0];
+      if (typeof url === 'string' && url.includes('chrome-extension://')) {
+        return Promise.reject(new Error('chrome-extension fetch blocked'));
+      }
+      return originalFetch.apply(this, args);
+    };
   </script>
 
   <!-- Your scripts -->
