@@ -258,7 +258,7 @@ router.post('/razorpay/verify-payment', auth, async (req, res) => {
 
 // Return request routes
 router.post('/:orderId/return', auth, returnRequestController.createReturnRequest);
-router.get('/:orderId/return', auth, returnRequestController.getReturnRequest);
+router.get('/:orderId/return', auth, returnRequestController.getReturnRequestsForOrder);
 router.put('/:orderId/return/:requestId', adminAuth, returnRequestController.updateReturnRequest);
 
 module.exports = router; 
