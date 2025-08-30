@@ -320,8 +320,9 @@
         if (razorpayConfig.userAddresses.length === 0) {
             addressList.innerHTML = `
                 <div class="no-addresses">
+                    <i class="fas fa-map-marker-alt" style="font-size: 2rem; color: #9ca3af; margin-bottom: 12px;"></i>
                     <p>No saved addresses found</p>
-                    <p>Please add a delivery address to continue</p>
+                    <p>Please add a delivery address to continue with your order</p>
                 </div>
             `;
             const addressNextBtn = document.getElementById('addressNextBtn');
@@ -334,21 +335,34 @@
                  data-address-id="${address._id}" 
                  onclick="selectAddress('${address._id}')">
                 <div class="address-header">
-                    <h4>${address.name || 'Address'}</h4>
-                    ${address.isDefault ? '<span class="default-badge">Default</span>' : ''}
+                    <h4>
+                        <i class="fas fa-user"></i> 
+                        ${address.recipientName || address.name || 'Recipient'}
+                    </h4>
+                    ${address.isDefault ? '<span class="default-badge"><i class="fas fa-star"></i> Default</span>' : ''}
                 </div>
                 <div class="address-details">
-                    <p><strong>${address.recipientName || address.name || 'N/A'}</strong></p>
-                    <p>${address.mobile || 'N/A'}</p>
-                    <p>${address.address || 'N/A'}</p>
-                    <p>PIN: ${address.pincode || 'N/A'}</p>
+                    <p><i class="fas fa-phone"></i> ${address.mobile || 'N/A'}</p>
+                    <p><i class="fas fa-map-marker-alt"></i> ${address.address || 'N/A'}</p>
+                    <p><i class="fas fa-map-pin"></i> ${address.pincode || 'N/A'}, ${address.city || 'N/A'}, ${address.state || 'N/A'}</p>
+                    <p><i class="fas fa-home"></i> ${address.addressType || 'home'} address</p>
                 </div>
                 <div class="address-actions" onclick="event.stopPropagation()">
-                    <button class="edit-btn" onclick="editAddress('${address._id}')">Edit</button>
-                    <button class="delete-btn" onclick="deleteAddress('${address._id}')">Delete</button>
+                    <button class="edit-btn" onclick="editAddress('${address._id}')">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="delete-btn" onclick="deleteAddress('${address._id}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
                 </div>
             </div>
         `).join('');
+        
+        // Enable continue button if addresses exist
+        const addressNextBtn = document.getElementById('addressNextBtn');
+        if (addressNextBtn) {
+            addressNextBtn.disabled = false;
+        }
     }
 
     // Address selection
@@ -364,6 +378,12 @@
         const selectedItem = document.querySelector(`[data-address-id="${addressId}"]`);
         if (selectedItem) {
             selectedItem.classList.add('selected');
+            
+            // Add a subtle animation
+            selectedItem.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                selectedItem.style.transform = 'scale(1)';
+            }, 200);
         }
         
         // Store selected address
@@ -373,9 +393,13 @@
         const addressNextBtn = document.getElementById('addressNextBtn');
         if (addressNextBtn) {
             addressNextBtn.disabled = false;
+            addressNextBtn.innerHTML = '<i class="fas fa-arrow-right"></i> Continue to Quantity';
         }
         
-        showNotification('Address selected successfully!', 'success');
+        // Show success notification
+        const selectedAddress = razorpayConfig.checkoutData.selectedAddress;
+        const recipientName = selectedAddress.recipientName || selectedAddress.name || 'Address';
+        showNotification(`✅ ${recipientName} selected for delivery`, 'success');
     }
 
     // Address management functions
@@ -427,6 +451,14 @@
             showNotification('Address form not available', 'error');
             return;
         }
+        
+        // Show loading state
+        const saveBtn = document.querySelector('button[onclick="saveAddress()"]');
+        if (saveBtn) {
+            saveBtn.classList.add('loading');
+            saveBtn.disabled = true;
+        }
+        
         const formData = new FormData(addressForm);
         const addressData = {
             recipientName: formData.get('recipientName'),
@@ -439,11 +471,56 @@
             isDefault: formData.get('isDefault') === 'on'
         };
 
+        // Basic validation
+        if (!addressData.recipientName || !addressData.mobile || !addressData.address || 
+            !addressData.pincode || !addressData.city || !addressData.state) {
+            showNotification('Please fill in all required fields', 'error');
+            
+            // Reset button state
+            if (saveBtn) {
+                saveBtn.classList.remove('loading');
+                saveBtn.disabled = false;
+            }
+            return;
+        }
+
+        // Mobile number validation
+        if (!/^[0-9]{10}$/.test(addressData.mobile)) {
+            showNotification('Please enter a valid 10-digit mobile number', 'error');
+            
+            // Reset button state
+            if (saveBtn) {
+                saveBtn.classList.remove('loading');
+                saveBtn.disabled = false;
+            }
+            return;
+        }
+
+        // Pincode validation
+        if (!/^[0-9]{6}$/.test(addressData.pincode)) {
+            showNotification('Please enter a valid 6-digit PIN code', 'error');
+            
+            // Reset button state
+            if (saveBtn) {
+                saveBtn.classList.remove('loading');
+                saveBtn.disabled = false;
+            }
+            return;
+        }
+
         const addressId = formData.get('addressId');
         const isEdit = addressId && addressId.trim() !== '';
 
         try {
             const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('Please login to save addresses', 'error');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+                return;
+            }
+            
             const url = isEdit ? `/api/user/addresses/${addressId}` : '/api/user/addresses';
             const method = isEdit ? 'PUT' : 'POST';
 
@@ -457,7 +534,8 @@
             });
 
             if (response.ok) {
-                showNotification(isEdit ? 'Address updated successfully!' : 'Address added successfully!', 'success');
+                const successMessage = isEdit ? 'Address updated successfully!' : 'Address added successfully!';
+                showNotification(successMessage, 'success');
                 closeAddressFormModal();
                 
                 // Reload addresses
@@ -469,7 +547,13 @@
             }
         } catch (error) {
             console.error('❌ Error saving address:', error);
-            showNotification('Failed to save address', 'error');
+            showNotification('Failed to save address. Please try again.', 'error');
+        } finally {
+            // Reset button state
+            if (saveBtn) {
+                saveBtn.classList.remove('loading');
+                saveBtn.disabled = false;
+            }
         }
     }
 
@@ -599,6 +683,13 @@
             return;
         }
 
+        // Show loading state
+        const proceedBtn = document.getElementById('proceedToPayment');
+        if (proceedBtn) {
+            proceedBtn.classList.add('loading');
+            proceedBtn.disabled = true;
+        }
+
         // Hide quantity modal
         const quantityModal = document.getElementById('quantityModal');
         if (quantityModal) quantityModal.style.display = 'none';
@@ -612,12 +703,22 @@
             showNotification('Creating payment order...', 'info');
             
             const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('Please login to continue', 'error');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+                return;
+            }
+
             const orderData = {
                 productId: razorpayConfig.checkoutData.product._id,
                 quantity: razorpayConfig.checkoutData.quantity,
-                amount: razorpayConfig.checkoutData.total, // This already includes delivery charge
+                amount: razorpayConfig.checkoutData.total,
                 deliveryAddress: razorpayConfig.checkoutData.selectedAddress
             };
+
+            console.log('📦 Creating order with data:', orderData);
 
             const response = await fetch('/api/orders/razorpay/create-order', {
                 method: 'POST',
@@ -636,19 +737,37 @@
                 openRazorpayPayment(order);
             } else {
                 const error = await response.json();
+                console.error('❌ Order creation failed:', error);
                 showNotification(error.message || 'Failed to create payment order', 'error');
+                
+                // Reset button state
+                const proceedBtn = document.getElementById('proceedToPayment');
+                if (proceedBtn) {
+                    proceedBtn.classList.remove('loading');
+                    proceedBtn.disabled = false;
+                }
             }
         } catch (error) {
             console.error('❌ Error creating Razorpay order:', error);
-            showNotification('Failed to create payment order', 'error');
+            showNotification('Failed to create payment order. Please try again.', 'error');
+            
+            // Reset button state
+            const proceedBtn = document.getElementById('proceedToPayment');
+            if (proceedBtn) {
+                proceedBtn.classList.remove('loading');
+                proceedBtn.disabled = false;
+            }
         }
     }
 
     function openRazorpayPayment(order) {
         if (!razorpayConfig.keyId) {
-            showNotification('Payment gateway not configured', 'error');
+            showNotification('Payment gateway not configured. Please contact support.', 'error');
             return;
         }
+
+        console.log('🔑 Opening Razorpay with key:', razorpayConfig.keyId);
+        console.log('💰 Amount:', order.amount);
 
         const options = {
             key: razorpayConfig.keyId,
@@ -664,19 +783,47 @@
             prefill: {
                 name: razorpayConfig.checkoutData.selectedAddress.recipientName || razorpayConfig.checkoutData.selectedAddress.name,
                 contact: razorpayConfig.checkoutData.selectedAddress.mobile,
-                address: razorpayConfig.checkoutData.selectedAddress.address
+                email: localStorage.getItem('userEmail') || ''
             },
             notes: {
                 address: razorpayConfig.checkoutData.selectedAddress.address,
-                delivery_charge: '₹0'
+                delivery_charge: '₹0',
+                product_id: razorpayConfig.checkoutData.product._id,
+                quantity: razorpayConfig.checkoutData.quantity.toString()
             },
             theme: {
-                color: '#4CAF50'
+                color: '#22c55e'
+            },
+            modal: {
+                ondismiss: function() {
+                    console.log('❌ Payment modal dismissed');
+                    showNotification('Payment cancelled. You can try again.', 'warning');
+                    
+                    // Reset button state
+                    const proceedBtn = document.getElementById('proceedToPayment');
+                    if (proceedBtn) {
+                        proceedBtn.classList.remove('loading');
+                        proceedBtn.disabled = false;
+                    }
+                }
             }
         };
 
-        const rzp = new Razorpay(options);
-        rzp.open();
+        try {
+            console.log('🚀 Initializing Razorpay with options:', options);
+            const rzp = new Razorpay(options);
+            rzp.open();
+        } catch (error) {
+            console.error('❌ Error opening Razorpay:', error);
+            showNotification('Failed to open payment gateway. Please try again.', 'error');
+            
+            // Reset button state
+            const proceedBtn = document.getElementById('proceedToPayment');
+            if (proceedBtn) {
+                proceedBtn.classList.remove('loading');
+                proceedBtn.disabled = false;
+            }
+        }
     }
 
     async function verifyPayment(paymentResponse, order) {
