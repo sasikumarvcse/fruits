@@ -146,7 +146,7 @@ router.patch('/users/:id/status', adminAuth, async (req, res) => {
 });
 
 // Platform Settings Management
-router.get('/stats', requireAdmin, async (req, res) => {
+router.get('/stats', adminAuth, async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({ role: 'user' });
     const totalProducts = await Item.countDocuments();
@@ -228,7 +228,7 @@ router.get('/products/:productId/summary', adminAuth, async (req, res) => {
 });
 
 // Check payment gateway status
-router.get('/payment-status', requireAdmin, async (req, res) => {
+router.get('/payment-status', adminAuth, async (req, res) => {
   try {
     const response = await fetch('/api/payment/get-key');
     const data = await response.json();
