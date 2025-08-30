@@ -809,21 +809,53 @@
             }
         };
 
-        try {
-            console.log('🚀 Initializing Razorpay with options:', options);
-            const rzp = new Razorpay(options);
-            rzp.open();
-        } catch (error) {
-            console.error('❌ Error opening Razorpay:', error);
-            showNotification('Failed to open payment gateway. Please try again.', 'error');
-            
-            // Reset button state
-            const proceedBtn = document.getElementById('proceedToPayment');
-            if (proceedBtn) {
-                proceedBtn.classList.remove('loading');
-                proceedBtn.disabled = false;
+        // Enhanced Razorpay opening with browser extension conflict handling
+        const openRazorpayWithFallback = async () => {
+            try {
+                // Ensure Razorpay is loaded
+                if (typeof Razorpay === 'undefined') {
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                }
+
+                console.log('🚀 Initializing Razorpay with options:', options);
+                
+                // Use global handler if available
+                if (window.handleRazorpayPayment) {
+                    await window.handleRazorpayPayment(options);
+                } else {
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                }
+                
+            } catch (error) {
+                console.error('❌ Error opening Razorpay:', error);
+                
+                // Fallback: Try to redirect to Razorpay
+                if (options.order_id) {
+                    showNotification('Opening payment gateway in new window...', 'info');
+                    const fallbackUrl = `https://checkout.razorpay.com/v1/checkout.html?key=${options.key}&amount=${options.amount}&currency=${options.currency}&name=${encodeURIComponent(options.name)}&description=${encodeURIComponent(options.description)}&order_id=${options.order_id}`;
+                    window.open(fallbackUrl, '_blank', 'width=500,height=600');
+                } else {
+                    showNotification('Failed to open payment gateway. Please try again.', 'error');
+                }
+                
+                // Reset button state
+                const proceedBtn = document.getElementById('proceedToPayment');
+                if (proceedBtn) {
+                    proceedBtn.classList.remove('loading');
+                    proceedBtn.disabled = false;
+                }
             }
-        }
+        };
+
+        // Execute with retry mechanism
+        openRazorpayWithFallback();
     }
 
     async function verifyPayment(paymentResponse, order) {

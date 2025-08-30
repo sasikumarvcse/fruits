@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Address Form & Razorpay Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    <!-- Content Security Policy to prevent browser extension conflicts -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://checkout.razorpay.com;">
+    
+    <style>
+        /* Enhanced Address Form and Checkout Modal Styles */
+        .enhanced-modal .modal-content {
+            max-width: 600px;
+            margin: 2% auto;
+            padding: 2rem;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .enhanced-modal h2 {
+            color: #1e293b;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #374151;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #ffffff;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            border-color: #d1d5db;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2147483646 !important;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            z-index: 2147483647 !important;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #10b981;
+            padding: 1rem 1.5rem;
+            max-width: 400px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            border-left-color: #ef4444;
+        }
+
+        .notification.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .notification.info {
+            border-left-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">
+            🧪 Test Address Form & Razorpay Integration
+        </h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Test Address Form -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 text-blue-600">
+                    <i class="fas fa-map-marker-alt mr-2"></i>Address Form Test
+                </h2>
+                <p class="text-gray-600 mb-4">
+                    Test the redesigned address form with enhanced styling and validation.
+                </p>
+                <button onclick="testAddressForm()" class="btn btn-primary w-full">
+                    <i class="fas fa-edit mr-2"></i>Open Address Form
+                </button>
+            </div>
+            
+            <!-- Test Razorpay -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4 text-green-600">
+                    <i class="fas fa-credit-card mr-2"></i>Razorpay Test
+                </h2>
+                <p class="text-gray-600 mb-4">
+                    Test Razorpay integration with browser extension conflict handling.
+                </p>
+                <button onclick="testRazorpay()" class="btn btn-success w-full">
+                    <i class="fas fa-bolt mr-2"></i>Test Payment
+                </button>
+            </div>
+        </div>
+        
+        <!-- Status Display -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">
+                <i class="fas fa-info-circle mr-2"></i>Test Status
+            </h3>
+            <div id="testStatus" class="space-y-2">
+                <div class="flex items-center">
+                    <i class="fas fa-circle text-gray-400 mr-2"></i>
+                    <span>Ready to test...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Form Modal -->
+    <div id="addressFormModal" class="modal enhanced-modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddressFormModal()">&times;</span>
+            <h2 id="addressFormTitle"><i class="fas fa-edit mr-2"></i>Add New Address</h2>
+            <form id="addressForm">
+                <input type="hidden" id="addressId" name="addressId">
+                <div class="form-group">
+                    <label for="recipientName"><i class="fas fa-user mr-1"></i>Recipient Name *</label>
+                    <input type="text" id="recipientName" name="recipientName" placeholder="Enter full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="mobile"><i class="fas fa-phone mr-1"></i>Mobile Number *</label>
+                    <input type="tel" id="mobile" name="mobile" pattern="[0-9]{10}" placeholder="10-digit mobile number" required>
+                </div>
+                <div class="form-group">
+                    <label for="address"><i class="fas fa-map-marker-alt mr-1"></i>Address *</label>
+                    <textarea id="address" name="address" rows="3" placeholder="Enter complete address" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="pincode"><i class="fas fa-map-pin mr-1"></i>PIN Code *</label>
+                    <input type="text" id="pincode" name="pincode" pattern="[0-9]{6}" placeholder="6-digit PIN code" required>
+                </div>
+                <div class="form-group">
+                    <label for="city"><i class="fas fa-city mr-1"></i>City *</label>
+                    <input type="text" id="city" name="city" placeholder="Enter city name" required>
+                </div>
+                <div class="form-group">
+                    <label for="state"><i class="fas fa-map mr-1"></i>State *</label>
+                    <input type="text" id="state" name="state" placeholder="Enter state name" required>
+                </div>
+                <div class="form-group">
+                    <label for="addressType"><i class="fas fa-home mr-1"></i>Address Type</label>
+                    <select id="addressType" name="addressType">
+                        <option value="home">🏠 Home</option>
+                        <option value="work">🏢 Work</option>
+                        <option value="other">📍 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="isDefault" name="isDefault">
+                        <i class="fas fa-star mr-1"></i>Set as default address
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i>Save Address
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddressFormModal()">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Test functions
+        function testAddressForm() {
+            updateStatus('Opening address form...', 'info');
+            document.getElementById('addressFormModal').style.display = 'block';
+            updateStatus('Address form opened successfully', 'success');
+        }
+
+        function closeAddressFormModal() {
+            document.getElementById('addressFormModal').style.display = 'none';
+            updateStatus('Address form closed', 'info');
+        }
+
+        function testRazorpay() {
+            updateStatus('Testing Razorpay integration...', 'info');
+            
+            // Simulate Razorpay test
+            setTimeout(() => {
+                if (typeof Razorpay !== 'undefined') {
+                    updateStatus('Razorpay loaded successfully', 'success');
+                } else {
+                    updateStatus('Razorpay not loaded - loading now...', 'warning');
+                    loadRazorpay();
+                }
+            }, 1000);
+        }
+
+        function loadRazorpay() {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = function() {
+                updateStatus('Razorpay loaded successfully', 'success');
+            };
+            script.onerror = function() {
+                updateStatus('Failed to load Razorpay', 'error');
+            };
+            document.head.appendChild(script);
+        }
+
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('testStatus');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? 'fas fa-check-circle text-green-500' : 
+                        type === 'error' ? 'fas fa-times-circle text-red-500' :
+                        type === 'warning' ? 'fas fa-exclamation-triangle text-yellow-500' :
+                        'fas fa-info-circle text-blue-500';
+            
+            statusDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="${icon} mr-2"></i>
+                    <span>${message}</span>
+                    <span class="ml-auto text-xs text-gray-500">${timestamp}</span>
+                </div>
+            ` + statusDiv.innerHTML;
+        }
+
+        // Form submission
+        document.getElementById('addressForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateStatus('Address form submitted successfully', 'success');
+            closeAddressFormModal();
+        });
+
+        // Initialize
+        updateStatus('Test page loaded successfully', 'success');
+    </script>
+</body>
+</html>
