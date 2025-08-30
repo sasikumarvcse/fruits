@@ -11,13 +11,13 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.error('MongoDB connection error:', err));
 
 const fruits = [
-  // Tropical Fruits
+  // Premium Fruits
   {
     name: "Fresh Mango",
     description: "Sweet and juicy Alphonso mangoes, handpicked from the finest orchards. Perfect for smoothies, desserts, or enjoying fresh.",
     price: 120,
     originalPrice: 150,
-    category: "Tropical",
+    category: "premium",
     images: ["uploads/mango-1.jpg", "uploads/mango-2.jpg"],
     image: "uploads/mango-1.jpg",
     stock: 50,
@@ -33,7 +33,7 @@ const fruits = [
     description: "Sweet and tangy pineapples with golden flesh. Great for tropical salads, juices, or as a healthy snack.",
     price: 80,
     originalPrice: 100,
-    category: "Tropical",
+    category: "premium",
     images: ["uploads/pineapple-1.jpg", "uploads/pineapple-2.jpg"],
     image: "uploads/pineapple-1.jpg",
     stock: 30,
@@ -49,7 +49,7 @@ const fruits = [
     description: "Ripe and sweet papaya, certified organic. Excellent source of Vitamin A and digestive enzymes.",
     price: 60,
     originalPrice: 75,
-    category: "Tropical",
+    category: "premium",
     images: ["uploads/papaya-1.jpg", "uploads/papaya-2.jpg"],
     image: "uploads/papaya-1.jpg",
     stock: 25,
@@ -61,13 +61,13 @@ const fruits = [
     details: "Rich in papain enzyme, Vitamin C, and fiber. Great for digestive health."
   },
 
-  // Citrus Fruits
+  // Standard Fruits
   {
     name: "Sweet Oranges",
     description: "Juicy and sweet oranges, perfect for fresh juice or eating. High in Vitamin C and natural sweetness.",
     price: 100,
     originalPrice: 120,
-    category: "Citrus",
+    category: "standard",
     images: ["uploads/orange-1.jpg", "uploads/orange-2.jpg"],
     image: "uploads/orange-1.jpg",
     stock: 80,
@@ -83,7 +83,7 @@ const fruits = [
     description: "Tangy and aromatic lemons, perfect for cooking, beverages, or natural cleaning. Rich in Vitamin C.",
     price: 40,
     originalPrice: 50,
-    category: "Citrus",
+    category: "standard",
     images: ["uploads/lemon-1.jpg", "uploads/lemon-2.jpg"],
     image: "uploads/lemon-1.jpg",
     stock: 100,
@@ -99,7 +99,7 @@ const fruits = [
     description: "Fresh and zesty limes, perfect for cocktails, cooking, or garnishing. Adds perfect acidity to dishes.",
     price: 50,
     originalPrice: 60,
-    category: "Citrus",
+    category: "standard",
     images: ["uploads/lime-1.jpg", "uploads/lime-2.jpg"],
     image: "uploads/lime-1.jpg",
     stock: 60,
@@ -111,13 +111,13 @@ const fruits = [
     details: "Rich in Vitamin C and antioxidants. Perfect for detox drinks."
   },
 
-  // Berries
+  // Premium Berries
   {
     name: "Fresh Strawberries",
     description: "Sweet and juicy strawberries, handpicked at peak ripeness. Perfect for desserts, smoothies, or fresh eating.",
     price: 200,
     originalPrice: 250,
-    category: "Berries",
+    category: "premium",
     images: ["uploads/strawberry-1.jpg", "uploads/strawberry-2.jpg"],
     image: "uploads/strawberry-1.jpg",
     stock: 40,
@@ -133,7 +133,7 @@ const fruits = [
     description: "Sweet and nutritious blueberries, certified organic. Perfect for smoothies, baking, or healthy snacking.",
     price: 300,
     originalPrice: 350,
-    category: "Berries",
+    category: "premium",
     images: ["uploads/blueberry-1.jpg", "uploads/blueberry-2.jpg"],
     image: "uploads/blueberry-1.jpg",
     stock: 30,
@@ -145,13 +145,13 @@ const fruits = [
     details: "Superfood rich in antioxidants, Vitamin K, and fiber."
   },
 
-  // Stone Fruits
+  // Standard Stone Fruits
   {
     name: "Red Apples",
     description: "Crisp and sweet red apples, perfect for snacking or baking. High in fiber and antioxidants.",
     price: 150,
     originalPrice: 180,
-    category: "Stone Fruits",
+    category: "standard",
     images: ["uploads/apple-1.jpg", "uploads/apple-2.jpg"],
     image: "uploads/apple-1.jpg",
     stock: 70,
@@ -167,7 +167,7 @@ const fruits = [
     description: "Sweet and fragrant peaches, perfect for desserts, smoothies, or fresh eating. Soft and juicy texture.",
     price: 180,
     originalPrice: 220,
-    category: "Stone Fruits",
+    category: "standard",
     images: ["uploads/peach-1.jpg", "uploads/peach-2.jpg"],
     image: "uploads/peach-1.jpg",
     stock: 35,
@@ -183,7 +183,7 @@ const fruits = [
     description: "Sweet and tart plums, perfect for jams, desserts, or fresh eating. Rich in antioxidants and fiber.",
     price: 120,
     originalPrice: 150,
-    category: "Stone Fruits",
+    category: "standard",
     images: ["uploads/plum-1.jpg", "uploads/plum-2.jpg"],
     image: "uploads/plum-1.jpg",
     stock: 45,
@@ -195,13 +195,13 @@ const fruits = [
     details: "Rich in Vitamin C, fiber, and antioxidants. Great for digestion."
   },
 
-  // Melons
+  // Basic Melons
   {
     name: "Sweet Watermelon",
     description: "Juicy and refreshing watermelon, perfect for hot days. High water content and natural sweetness.",
     price: 40,
     originalPrice: 50,
-    category: "Melons",
+    category: "basic",
     images: ["uploads/watermelon-1.jpg", "uploads/watermelon-2.jpg"],
     image: "uploads/watermelon-1.jpg",
     stock: 20,
@@ -217,7 +217,7 @@ const fruits = [
     description: "Sweet and aromatic cantaloupe, perfect for fruit salads or fresh eating. Rich in Vitamin A and C.",
     price: 80,
     originalPrice: 100,
-    category: "Melons",
+    category: "basic",
     images: ["uploads/cantaloupe-1.jpg", "uploads/cantaloupe-2.jpg"],
     image: "uploads/cantaloupe-1.jpg",
     stock: 25,
@@ -229,13 +229,13 @@ const fruits = [
     details: "Rich in Vitamin A, C, and potassium. Great for eye health."
   },
 
-  // Exotic Fruits
+  // Premium Exotic Fruits
   {
     name: "Dragon Fruit",
     description: "Exotic and beautiful dragon fruit with sweet, mild flavor. Perfect for smoothie bowls or fresh eating.",
     price: 400,
     originalPrice: 500,
-    category: "Exotic",
+    category: "premium",
     images: ["uploads/dragonfruit-1.jpg", "uploads/dragonfruit-2.jpg"],
     image: "uploads/dragonfruit-1.jpg",
     stock: 15,
@@ -251,7 +251,7 @@ const fruits = [
     description: "Tangy and aromatic passion fruit, perfect for juices, desserts, or garnishing. Unique tropical flavor.",
     price: 250,
     originalPrice: 300,
-    category: "Exotic",
+    category: "premium",
     images: ["uploads/passionfruit-1.jpg", "uploads/passionfruit-2.jpg"],
     image: "uploads/passionfruit-1.jpg",
     stock: 20,

@@ -12,7 +12,7 @@ const sampleProduct = {
   description: "Hand-picked organic bananas from the finest farms in Maharashtra. These premium quality bananas are rich in potassium, fiber, and essential vitamins. Perfect for smoothies, baking, or as a healthy snack.",
   price: 89.99,
   mrp: 120.00,
-  category: "Bananas",
+  category: "premium",
   isOrganic: true,
   isBestSeller: true,
   stock: 150,
