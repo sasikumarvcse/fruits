@@ -730,7 +730,7 @@
         <label class="block text-sm font-medium mb-1">Shipping Address</label>
         <div id="addressBookList" class="mb-2"></div>
         <button id="addNewAddressBtn" class="bg-gray-100 text-blue-600 px-3 py-1 rounded mb-2">+ Add New Address</button>
-        <div id="addressForm" style="display:none;">
+        <div id="addressFormDiv" style="display:none;">
           <input id="addressName" class="w-full border rounded p-2 mb-2" placeholder="Full Name" />
           <input id="addressMobile" class="w-full border rounded p-2 mb-2" placeholder="Mobile Number" maxlength="10" />
           <textarea id="addressLine" class="w-full border rounded p-2 mb-2" rows="2" placeholder="Address"></textarea>
@@ -3054,7 +3054,10 @@
       if (modal) {
         modal.style.display = 'none';
         // Reset form
-        document.getElementById('addressForm').reset();
+        const addressForm = document.getElementById('addressForm');
+        if (addressForm && typeof addressForm.reset === 'function') {
+          addressForm.reset();
+        }
         document.getElementById('addressId').value = '';
         document.getElementById('addressFormTitle').textContent = 'Add New Address';
       }
@@ -3084,6 +3087,10 @@
       }
       
       const form = document.getElementById('addressForm');
+      if (!form) {
+        showNotification('Address form not found', 'error');
+        return;
+      }
       const formData = new FormData(form);
       const addressData = {
         recipientName: formData.get('recipientName'),
@@ -3153,7 +3160,10 @@
         addAddressBtn.addEventListener('click', function() {
           document.getElementById('addressFormTitle').textContent = 'Add New Address';
           document.getElementById('addressId').value = '';
-          document.getElementById('addressForm').reset();
+          const addressForm = document.getElementById('addressForm');
+          if (addressForm && typeof addressForm.reset === 'function') {
+            addressForm.reset();
+          }
           showAddressFormModal();
         });
       }
