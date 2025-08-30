@@ -503,8 +503,24 @@ if (clearCartBtn) {
 }
 const checkoutBtn = document.getElementById('checkoutBtn');
 if (checkoutBtn) {
-  checkoutBtn.onclick = function() {
-    alert('Proceeding to checkout!');
+  checkoutBtn.onclick = async function() {
+    try {
+      // Get cart items
+      const cart = await getCart();
+      if (!cart || cart.length === 0) {
+        showNotification('Your cart is empty', 'error');
+        return;
+      }
+      
+      // Start checkout flow with cart
+      if (window.startCheckoutFlow) {
+        window.startCheckoutFlow();
+      } else {
+        showNotification('Checkout functionality is being updated', 'error');
+      }
+    } catch (error) {
+      showNotification('Error processing checkout', 'error');
+    }
   };
 }
 
@@ -515,25 +531,46 @@ async function clearCart() {
   fetchCart();
 }
 
+// Start Checkout Flow - main entry point for checkout
+window.startCheckoutFlow = function(productId, productName, productPrice, productImage) {
+  if (!getToken()) {
+    showNotification('Please login to continue', 'error');
+    return;
+  }
+  
+  if (productId) {
+    // Single product checkout (Buy Now)
+    openAddressSelectionModal(productId);
+  } else {
+    // Cart checkout - show cart checkout modal
+    showCartCheckoutModal();
+  }
+};
+
+// Cart Checkout Modal
+async function showCartCheckoutModal() {
+  try {
+    const cart = await getCart();
+    if (!cart || cart.length === 0) {
+      showNotification('Your cart is empty', 'error');
+      return;
+    }
+    
+    // Calculate total
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Show address selection for cart
+    openCartAddressSelectionModal(cart, total);
+  } catch (error) {
+    showNotification('Error loading cart', 'error');
+  }
+}
+
 // Buy Now (Checkout Modal) Logic
 async function buyNow(productId) {
   try {
-    // Fetch product details
-    const response = await fetch(`/api/items/${productId}`);
-    if (!response.ok) throw new Error('Product not found');
-    const product = await response.json();
-
-    // Populate checkout modal fields (assume modal exists in HTML)
-    document.getElementById('checkoutProductName').textContent = product.name;
-    document.getElementById('checkoutProductPrice').textContent = `₹${product.price}`;
-    document.getElementById('checkoutProductImage').src = product.image && product.image.startsWith('http') ? product.image : `/uploads/${product.image || 'logoindex.png'}`;
-    document.getElementById('checkoutQuantity').value = 1;
-    document.getElementById('checkoutTotal').textContent = `₹${product.price}`;
-    document.getElementById('checkoutProductId').value = product._id;
-
-    // Show the modal
-    document.getElementById('checkoutModal').style.display = 'block';
-    document.body.style.overflow = 'hidden'; // Lock scroll
+    // Use the new checkout flow
+    window.startCheckoutFlow(productId);
   } catch (err) {
     showNotification('Could not open checkout. Please try again.', 'error');
     console.error(err);
@@ -646,7 +683,14 @@ function setupAddressFormEvents() {
           body: JSON.stringify({ name, mobile, address, pincode, state, country })
         });
         if (res.ok) {
-          showNotification('Address saved!', 'success');
+          showNotification('Address saved successfully!', 'success');
+        // Clear form fields
+        document.getElementById('addressName').value = '';
+        document.getElementById('addressMobile').value = '';
+        document.getElementById('addressLine').value = '';
+        document.getElementById('addressPincode').value = '';
+        document.getElementById('addressState').value = '';
+        document.getElementById('addressCountry').value = '';
           // Optionally refresh address book UI here
         } else {
           const err = await res.json();
@@ -1252,7 +1296,14 @@ async function openAddressSelectionModal(productId) {
         body: JSON.stringify({ name, mobile, address, pincode, state, country })
       });
       if (res.ok) {
-        showNotification('Address saved!', 'success');
+        showNotification('Address saved successfully!', 'success');
+        // Clear form fields
+        document.getElementById('addressName').value = '';
+        document.getElementById('addressMobile').value = '';
+        document.getElementById('addressLine').value = '';
+        document.getElementById('addressPincode').value = '';
+        document.getElementById('addressState').value = '';
+        document.getElementById('addressCountry').value = '';
         addressForm.style.display = 'none';
         addNewAddressBtn.style.display = 'block';
         await fetchAddresses();
@@ -1281,6 +1332,334 @@ async function openAddressSelectionModal(productId) {
   modal.style.display = 'block';
   document.body.style.overflow = 'hidden';
   await fetchAddresses();
+}
+
+// Cart Address Selection Modal
+async function openCartAddressSelectionModal(cartItems, total) {
+  const modal = document.getElementById('addressSelectionModal');
+  const addressListDiv = document.getElementById('addressList');
+  const addNewAddressBtn = document.getElementById('addNewAddressBtn');
+  const addressForm = document.getElementById('addressForm');
+  const continueBtn = document.getElementById('continueToSummaryBtn');
+  const closeBtn = document.getElementById('closeAddressModal');
+  const cancelAddressBtn = document.getElementById('cancelAddressBtn');
+  const saveAddressBtn = document.getElementById('saveAddressBtn');
+
+  // Always reset form/button visibility when opening modal
+  if (addressForm) addressForm.style.display = 'none';
+  if (addNewAddressBtn) addNewAddressBtn.style.display = 'block';
+
+  let addresses = [];
+  let selectedAddressId = null;
+
+  async function fetchAddresses() {
+    try {
+      const res = await protectedFetch('/api/user/addresses');
+      addresses = await res.json();
+      renderAddresses();
+    } catch {
+      addresses = [];
+      renderAddresses();
+    }
+  }
+
+  function renderAddresses() {
+    addressListDiv.innerHTML = '';
+    if (!addresses.length) {
+      addressListDiv.innerHTML = '<div class="text-gray-500">No addresses found. Please add one.</div>';
+      return;
+    }
+    addresses.forEach((addr, index) => {
+      const div = document.createElement('div');
+      div.className = 'address-card border p-3 rounded mb-2 flex items-center';
+      div.innerHTML = `
+        <input type="radio" name="selectedCartAddress" value="${index}" ${addr.isDefault ? 'checked' : ''} class="mr-2" />
+        <div class="flex-1">
+          <div class="font-semibold">${addr.name}</div>
+          <div class="text-xs">${addr.pincode}, ${addr.mobile}</div>
+          <div class="text-gray-700">${addr.address}</div>
+        </div>
+      `;
+      addressListDiv.appendChild(div);
+    });
+    // Set selectedAddressId
+    const checked = addressListDiv.querySelector('input[name="selectedCartAddress"]:checked');
+    selectedAddressId = checked ? checked.value : (addresses[0] ? '0' : null);
+    addressListDiv.querySelectorAll('input[name="selectedCartAddress"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        selectedAddressId = this.value;
+      });
+    });
+  }
+
+  addNewAddressBtn.onclick = function() {
+    addressForm.style.display = 'block';
+    addNewAddressBtn.style.display = 'none';
+  };
+  cancelAddressBtn.onclick = function(e) {
+    e.preventDefault();
+    addressForm.style.display = 'none';
+    addNewAddressBtn.style.display = 'block';
+  };
+  saveAddressBtn.onclick = async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('addressName').value.trim();
+    const mobile = document.getElementById('addressMobile').value.trim();
+    const address = document.getElementById('addressLine').value.trim();
+    const pincode = document.getElementById('addressPincode').value.trim();
+    const state = document.getElementById('addressState').value.trim();
+    const country = document.getElementById('addressCountry').value.trim();
+    if (!name || !mobile || !address || !pincode) {
+      showNotification('Please fill all required fields', 'error');
+      return;
+    }
+    try {
+      const res = await protectedFetch('/api/user/addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, mobile, address, pincode, state, country })
+      });
+      if (res.ok) {
+        showNotification('Address saved successfully!', 'success');
+        // Clear form fields
+        document.getElementById('addressName').value = '';
+        document.getElementById('addressMobile').value = '';
+        document.getElementById('addressLine').value = '';
+        document.getElementById('addressPincode').value = '';
+        document.getElementById('addressState').value = '';
+        document.getElementById('addressCountry').value = '';
+        addressForm.style.display = 'none';
+        addNewAddressBtn.style.display = 'block';
+        await fetchAddresses();
+      } else {
+        const err = await res.json();
+        showNotification(err.message || 'Failed to save address', 'error');
+      }
+    } catch (err) {
+      showNotification('Error saving address', 'error');
+    }
+  };
+  closeBtn.onclick = function() {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  };
+  continueBtn.onclick = function() {
+    if (!selectedAddressId) {
+      showNotification('Please select an address', 'error');
+      return;
+    }
+    const selected = addresses[parseInt(selectedAddressId)];
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    openCartOrderSummaryModal(cartItems, selected, total);
+  };
+
+  modal.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  await fetchAddresses();
+}
+
+// Cart Order Summary Modal
+async function openCartOrderSummaryModal(cartItems, addressObj, total) {
+  const modal = document.getElementById('orderSummaryModal');
+  const closeBtn = document.getElementById('closeSummaryModal');
+  const payBtn = document.getElementById('payWithRazorpayBtn');
+  
+  // Create cart summary HTML
+  let cartHTML = '';
+  cartItems.forEach(item => {
+    cartHTML += `
+      <div class="flex items-center gap-4 mb-4 p-3 border rounded">
+        <img src="${item.image && item.image.startsWith('http') ? item.image : `/uploads/${item.image || 'logoindex.png'}`}" 
+             alt="${item.name}" class="w-16 h-16 object-cover rounded" />
+        <div class="flex-1">
+          <div class="font-semibold">${item.name}</div>
+          <div class="text-blue-600 font-bold">₹${item.price}</div>
+          <div class="text-gray-600">Qty: ${item.quantity}</div>
+          <div class="text-gray-800 font-semibold">Subtotal: ₹${(item.price * item.quantity).toFixed(2)}</div>
+        </div>
+      </div>
+    `;
+  });
+  
+  // Update modal content
+  const productInfoDiv = document.getElementById('summaryProductInfo');
+  if (productInfoDiv) {
+    productInfoDiv.innerHTML = `
+      <div class="w-full">
+        <h3 class="font-semibold text-lg mb-3">Cart Items</h3>
+        ${cartHTML}
+      </div>
+    `;
+  }
+  
+  const addressDiv = document.getElementById('summaryAddress');
+  if (addressDiv) {
+    addressDiv.innerHTML = `
+      <strong>${addressObj.name}</strong><br>
+      ${addressObj.address}<br>
+      ${addressObj.pincode}, ${addressObj.state}<br>
+      Mobile: ${addressObj.mobile}
+    `;
+  }
+  
+  const totalDiv = document.getElementById('summaryTotal');
+  if (totalDiv) {
+    totalDiv.textContent = `₹${total.toFixed(2)}`;
+  }
+  
+  // Close modal
+  closeBtn.onclick = function() {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  };
+  
+  // Payment handler for cart
+  payBtn.onclick = async function() {
+    const token = getToken();
+    if (!token) {
+      showNotification('Please login to place order', 'error');
+      return;
+    }
+    
+    payBtn.disabled = true;
+    payBtn.textContent = 'Processing...';
+    
+    try {
+      // Create order for cart items
+      const orderItems = cartItems.map(item => ({
+        product: item._id,
+        quantity: item.quantity,
+        price: item.price
+      }));
+      
+      // Create Razorpay order for cart
+      const razorpayOrderRes = await fetch('/api/orders/razorpay/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          items: orderItems,
+          total: total
+        })
+      });
+      
+      if (!razorpayOrderRes.ok) {
+        const error = await razorpayOrderRes.json();
+        throw new Error(error.message || 'Failed to create payment order');
+      }
+      
+      const razorpayOrder = await razorpayOrderRes.json();
+      console.log('Razorpay order created for cart:', razorpayOrder);
+      
+      // Initialize Razorpay payment
+      const options = {
+        key: window.RAZORPAY_KEY_ID || 'rzp_live_gBP9geXusrKWUg',
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        name: 'FreshFruits',
+        description: 'Fresh Fruits & Vegetables - Cart Order',
+        order_id: razorpayOrder.id,
+        handler: async function (response) {
+          console.log('Cart payment successful:', response);
+          
+          try {
+            // Create order data for cart
+            const orderData = {
+              items: orderItems,
+              name: addressObj.name,
+              mobile: addressObj.mobile,
+              address: addressObj.address,
+              pincode: addressObj.pincode,
+              total: total,
+              paymentMethod: 'Razorpay',
+              paymentStatus: 'Completed',
+              paymentId: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature
+            };
+            
+            const orderRes = await fetch('/api/orders/razorpay/verify-payment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                realOrderDetails: orderData
+              })
+            });
+            
+            if (orderRes.ok) {
+              const result = await orderRes.json();
+              showNotification('Order placed successfully!', 'success');
+              modal.style.display = 'none';
+              document.body.style.overflow = '';
+              
+              // Clear cart after successful order
+              await clearCart();
+              
+              // Redirect to orders page or show success
+              setTimeout(() => {
+                if (window.location.pathname.includes('orders.html')) {
+                  window.location.reload();
+                } else {
+                  window.location.href = '/orders.html';
+                }
+              }, 2000);
+            } else {
+              const error = await orderRes.json();
+              throw new Error(error.message || 'Failed to verify payment');
+            }
+          } catch (error) {
+            console.error('Order creation error:', error);
+            showNotification('Payment successful but order creation failed. Please contact support.', 'error');
+          }
+        },
+        prefill: {
+          name: addressObj.name,
+          contact: addressObj.mobile
+        },
+        theme: {
+          color: '#22c55e'
+        }
+      };
+      
+      // Check if this is a mock order
+      if (razorpayOrder.id && razorpayOrder.id.startsWith('order_mock_')) {
+        console.log('Mock cart payment detected, simulating successful payment');
+        const mockPaymentResponse = {
+          razorpay_payment_id: 'pay_mock_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+          razorpay_order_id: razorpayOrder.id,
+          razorpay_signature: 'mock_signature_' + Date.now()
+        };
+        setTimeout(() => options.handler(mockPaymentResponse), 1000);
+      } else {
+        // Real Razorpay payment
+        const rzp = new Razorpay(options);
+        rzp.open();
+      }
+      
+    } catch (error) {
+      console.error('Cart payment error:', error);
+      showNotification(error.message || 'Payment failed. Please try again.', 'error');
+    } finally {
+      payBtn.disabled = false;
+      payBtn.textContent = 'Pay with Razorpay';
+    }
+  };
+  
+  // Store selected address for other functions
+  window.selectedAddress = addressObj;
+  
+  // Show the modal
+  modal.style.display = 'block';
+  document.body.style.overflow = 'hidden';
 }
 
 // Hook into buyNow to use the new modal
