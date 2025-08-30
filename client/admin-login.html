@@ -211,22 +211,32 @@
         if (response.ok && data.success && data.token) {
           // Login successful
           console.log('✅ Login successful!');
+          console.log('📋 Token:', data.token);
+          console.log('👤 User data:', data.user);
           
           // Store authentication data
           localStorage.setItem('adminToken', data.token);
           localStorage.setItem('adminData', JSON.stringify(data.user));
+          
+          // Verify data was stored
+          const storedToken = localStorage.getItem('adminToken');
+          const storedData = localStorage.getItem('adminData');
+          console.log('💾 Stored token:', storedToken ? 'YES' : 'NO');
+          console.log('💾 Stored data:', storedData ? 'YES' : 'NO');
           
           // Show success message
           showSuccess('Login successful! Redirecting to dashboard...');
           
           // Redirect to admin dashboard after a brief delay
           setTimeout(() => {
+            console.log('🔄 Redirecting to dashboard...');
             window.location.href = 'admin-dashboard.html';
           }, 1500);
           
         } else {
           // Login failed
           console.log('❌ Login failed:', data.message);
+          console.log('📊 Response data:', data);
           showError(data.message || 'Login failed. Please check your credentials.');
         }
         
@@ -248,9 +258,21 @@
     // Check if already logged in
     window.addEventListener('load', function() {
       const adminToken = localStorage.getItem('adminToken');
-      if (adminToken) {
-        console.log('👤 Admin already logged in, redirecting...');
-        window.location.href = 'admin-dashboard.html';
+      const adminData = localStorage.getItem('adminData');
+      
+      if (adminToken && adminData) {
+        try {
+          const admin = JSON.parse(adminData);
+          if (admin.role === 'admin') {
+            console.log('👤 Admin already logged in, redirecting...');
+            window.location.href = 'admin-dashboard.html';
+            return;
+          }
+        } catch (error) {
+          console.log('❌ Invalid admin data, clearing and staying on login page');
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminData');
+        }
       }
     });
 

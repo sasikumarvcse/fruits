@@ -35,31 +35,49 @@
         }
     </style>
 </head>
-<body class="bg-gray-50" onload="checkAuth()">
+<body class="bg-gray-50">
     <!-- Authentication Check Script -->
     <script>
         // Check authentication before loading dashboard
         function checkAuth() {
+            // Prevent infinite loop
+            if (window.isCheckingAuth) {
+                console.log('🔄 Authentication check already in progress, skipping...');
+                return;
+            }
+            
+            window.isCheckingAuth = true;
+            console.log('🔐 Starting admin authentication check...');
+            
             const adminToken = localStorage.getItem('adminToken');
             const adminData = localStorage.getItem('adminData');
             
+            console.log('💾 Admin token found:', adminToken ? 'YES' : 'NO');
+            console.log('💾 Admin data found:', adminData ? 'YES' : 'NO');
+            
             if (!adminToken || !adminData) {
                 console.log('❌ No admin authentication found, redirecting to login');
+                window.isCheckingAuth = false;
                 window.location.href = 'admin-login.html';
                 return;
             }
             
             try {
                 const admin = JSON.parse(adminData);
+                console.log('👤 Parsed admin data:', admin);
+                console.log('🔑 Admin role:', admin.role);
+                
                 if (admin.role !== 'admin') {
                     console.log('❌ User is not an admin, redirecting to login');
                     localStorage.removeItem('adminToken');
                     localStorage.removeItem('adminData');
+                    window.isCheckingAuth = false;
                     window.location.href = 'admin-login.html';
                     return;
                 }
                 
-                console.log('✅ Admin authenticated:', admin.email);
+                console.log('✅ Admin authenticated successfully:', admin.email);
+                
                 // Update admin name in UI
                 const adminNameElement = document.getElementById('adminName');
                 if (adminNameElement) {
@@ -67,12 +85,17 @@
                 }
                 
                 // Initialize dashboard
+                console.log('🚀 Initializing dashboard...');
                 initializeDashboard();
+                
+                // Clear the flag after successful authentication
+                window.isCheckingAuth = false;
                 
             } catch (error) {
                 console.error('❌ Error parsing admin data:', error);
                 localStorage.removeItem('adminToken');
                 localStorage.removeItem('adminData');
+                window.isCheckingAuth = false;
                 window.location.href = 'admin-login.html';
             }
         }
@@ -85,33 +108,7 @@
             showTab('dashboard');
         }
 
-        // Check admin authentication on page load
-        function checkAdminAuth() {
-            const adminToken = localStorage.getItem('adminToken');
-            if (!adminToken) {
-                window.location.href = 'admin-login.html';
-                return;
-            }
-            
-            // Verify token is still valid
-            try {
-                // Simple token validation - in production, you might want to verify with the server
-                const adminData = localStorage.getItem('adminData');
-                if (adminData) {
-                    const admin = JSON.parse(adminData);
-                    if (admin.role === 'admin') {
-                        // Token appears valid, continue
-                        return;
-                    }
-                }
-                throw new Error('Invalid admin data');
-            } catch (error) {
-                console.error('Token validation failed:', error);
-                localStorage.removeItem('adminToken');
-                localStorage.removeItem('adminData');
-                window.location.href = 'admin-login.html';
-            }
-        }
+
     </script>
 
     <!-- Navigation -->
@@ -969,15 +966,158 @@
             }
         });
 
-        // Initialize
-        checkAdminAuth();
-        loadDashboardData();
+        // Initialize dashboard
+        checkAuth();
         
-        // Set up periodic refresh
+        // Set up periodic refresh for dashboard data
         setInterval(() => {
-            loadDashboardData();
-            loadNotifications();
+            if (typeof loadDashboardData === 'function') {
+                loadDashboardData();
+            }
+            if (typeof loadNotifications === 'function') {
+                loadNotifications();
+            }
         }, 30000); // Refresh every 30 seconds
+
+        // ✅ ADDED: Missing functions for dashboard functionality
+        async function loadDashboardData() {
+            try {
+                console.log('🔄 Loading dashboard data...');
+                // Load basic dashboard statistics
+                await loadDashboardStats();
+                // Load recent orders
+                await loadRecentOrders();
+                console.log('✅ Dashboard data loaded successfully');
+            } catch (error) {
+                console.error('❌ Error loading dashboard data:', error);
+            }
+        }
+
+        async function loadDashboardStats() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch('/api/admin/dashboard', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    updateDashboardStats(stats);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
+
+        function updateDashboardStats(stats) {
+            // Update dashboard statistics in the UI
+            const totalOrdersElement = document.getElementById('totalOrders');
+            const totalRevenueElement = document.getElementById('totalRevenue');
+            const totalProductsElement = document.getElementById('totalProducts');
+            const totalUsersElement = document.getElementById('totalUsers');
+            
+            if (totalOrdersElement) totalOrdersElement.textContent = stats.totalOrders || 0;
+            if (totalRevenueElement) totalRevenueElement.textContent = `₹${stats.totalRevenue || 0}`;
+            if (totalProductsElement) totalProductsElement.textContent = stats.totalProducts || 0;
+            if (totalUsersElement) totalUsersElement.textContent = stats.totalUsers || 0;
+        }
+
+        async function loadRecentOrders() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch('/api/admin/orders?limit=5', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const orders = await response.json();
+                    updateRecentOrders(orders);
+                }
+            } catch (error) {
+                console.error('Error loading recent orders:', error);
+            }
+        }
+
+        function updateRecentOrders(orders) {
+            const recentOrdersContainer = document.getElementById('recentOrders');
+            if (!recentOrdersContainer) return;
+            
+            if (!orders || orders.length === 0) {
+                recentOrdersContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No recent orders</p>';
+                return;
+            }
+            
+            const ordersHTML = orders.map(order => `
+                <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold text-gray-900">Order #${order._id.toString().slice(-6)}</h4>
+                            <p class="text-sm text-gray-600">${order.user?.firstName || 'Unknown'} ${order.user?.lastName || 'User'}</p>
+                            <p class="text-sm text-gray-500">₹${order.total}</p>
+                        </div>
+                        <span class="status-badge status-${order.status}">${order.status}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            recentOrdersContainer.innerHTML = ordersHTML;
+        }
+
+        async function loadNotifications() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch('/api/admin/notifications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const notifications = await response.json();
+                    updateNotifications(notifications);
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+            }
+        }
+
+        function updateNotifications(notifications) {
+            const notificationList = document.getElementById('notificationList');
+            const notificationCount = document.getElementById('notificationCount');
+            
+            if (!notificationList) return;
+            
+            if (!notifications || notifications.length === 0) {
+                notificationList.innerHTML = '<p class="text-gray-500 text-center py-4">No new notifications</p>';
+                if (notificationCount) notificationCount.classList.add('hidden');
+                return;
+            }
+            
+            const notificationsHTML = notifications.map(notification => `
+                <div class="notification-item p-3 border-b border-gray-100 hover:bg-gray-50">
+                    <p class="text-sm text-gray-900">${notification.message}</p>
+                    <p class="text-xs text-gray-500 mt-1">${new Date(notification.createdAt).toLocaleString()}</p>
+                </div>
+            `).join('');
+            
+            notificationList.innerHTML = notificationsHTML;
+            
+            if (notificationCount) {
+                notificationCount.textContent = notifications.length;
+                notificationCount.classList.remove('hidden');
+            }
+        }
+
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationDropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+        }
     </script>
 </body>
 </html>
