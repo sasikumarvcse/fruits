@@ -817,6 +817,130 @@
     
     /* Additional error suppression */
     .i18next-error { display: none !important; }
+    
+    /* ✅ ENHANCED UI IMPROVEMENTS */
+    .product-card {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .product-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .product-card:hover::before {
+      left: 100%;
+    }
+    
+    /* Improved button animations */
+    .hover\:scale-105:hover {
+      transform: scale(1.05);
+    }
+    
+    .hover\:scale-110:hover {
+      transform: scale(1.1);
+    }
+    
+    /* Loading state for buttons */
+    .loading {
+      position: relative;
+      color: transparent !important;
+    }
+    
+    .loading::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      top: 50%;
+      left: 50%;
+      margin-left: -8px;
+      margin-top: -8px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    /* Enhanced notifications */
+    .notification {
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    /* Gradient backgrounds for categories */
+    .category-card {
+      background: linear-gradient(135deg, var(--bg-color-1), var(--bg-color-2));
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .category-card::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s, height 0.3s;
+    }
+    
+    .category-card:hover::after {
+      width: 200px;
+      height: 200px;
+    }
+    
+    /* Enhanced modal animations */
+    .modal {
+      animation: modalFadeIn 0.3s ease-out;
+    }
+    
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    /* Better focus states */
+    button:focus,
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+    
+    /* Smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* Better loading states */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
   </style>
 </head>
 <body class="bg-gray-50 overflow-x-hidden">
@@ -1105,7 +1229,9 @@
           <span class="font-semibold">Total:</span>
           <span id="cartTotal">₹0</span>
         </div>
-        <button id="checkoutBtn" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium">Checkout</button>
+        <button id="checkoutBtn" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium hover:scale-105 transform duration-200" onclick="handleCartCheckout()">
+          <i class="fas fa-credit-card mr-2"></i>Checkout
+        </button>
         <button id="clearCartBtn" onclick="clearCart()" class="w-full mt-2 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors font-medium">Clear Cart</button>
       </div>
     </div>
@@ -1683,6 +1809,127 @@
       return '/uploads/default-item.jpg';
     }
     
+    // ✅ FIXED: Enhanced Cart Functions with loading states
+    function handleAddToCart(productId, buttonElement) {
+      console.log('🛒 Adding to cart:', productId);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showNotification('Please login to add items to cart', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        return;
+      }
+      
+      // Find the button if not provided
+      const button = buttonElement || event.target;
+      if (button) {
+        button.classList.add('loading');
+        button.disabled = true;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+        
+        // Reset button after 3 seconds
+        setTimeout(() => {
+          button.classList.remove('loading');
+          button.disabled = false;
+          button.innerHTML = originalText;
+        }, 3000);
+      }
+      
+      if (window.addToCart) {
+        window.addToCart(productId, 1);
+      } else {
+        console.error('❌ addToCart function not found');
+        showNotification('Cart system not available', 'error');
+      }
+    }
+    
+    // ✅ FIXED: Enhanced Buy Now Function with loading states
+    function handleBuyNow(productId, productName, productPrice, productImage, buttonElement) {
+      console.log('⚡ Buy Now clicked:', {productId, productName, productPrice, productImage});
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showNotification('Please login to buy products', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        return;
+      }
+      
+      // Find the button if not provided
+      const button = buttonElement || event.target;
+      if (button) {
+        button.classList.add('loading');
+        button.disabled = true;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
+        
+        // Reset button after checkout starts or fails
+        setTimeout(() => {
+          button.classList.remove('loading');
+          button.disabled = false;
+          button.innerHTML = originalText;
+        }, 2000);
+      }
+      
+      if (window.startCheckoutFlow) {
+        window.startCheckoutFlow(productId, productName, productPrice, productImage);
+      } else {
+        console.error('❌ startCheckoutFlow function not found');
+        showNotification('Checkout system not available', 'error');
+      }
+    }
+    
+    // ✅ FIXED: Enhanced Wishlist Function
+    function handleToggleWishlist(button) {
+      console.log('❤️ Wishlist toggle clicked:', button);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showNotification('Please login to manage wishlist', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        return;
+      }
+      if (window.toggleWishlist) {
+        window.toggleWishlist(button);
+      } else {
+        console.error('❌ toggleWishlist function not found');
+        showNotification('Wishlist system not available', 'error');
+      }
+    }
+    
+    // ✅ FIXED: Cart Checkout Handler
+    async function handleCartCheckout() {
+      console.log('🛒 Cart checkout initiated');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showNotification('Please login to checkout', 'error');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+        return;
+      }
+      
+      try {
+        // Get cart items
+        const cart = await window.getCart();
+        if (!cart || cart.length === 0) {
+          showNotification('Your cart is empty', 'error');
+          return;
+        }
+        
+        // Use the enhanced checkout system from script.js if available
+        if (window.openAddressSelectionModal) {
+          window.openAddressSelectionModal('cart');
+        } else if (window.startCartCheckout) {
+          window.startCartCheckout();
+        } else {
+          // Fallback: simple checkout
+          showNotification('Opening checkout...', 'info');
+          // For now, just navigate to a checkout page or show a modal
+          console.log('Cart contents:', cart);
+          showNotification('Checkout functionality will be implemented', 'info');
+        }
+      } catch (error) {
+        console.error('❌ Cart checkout error:', error);
+        showNotification('Error during checkout', 'error');
+      }
+    }
+    
     // Display products in grid - Modern layout with left image, right description
     function displayProducts() {
       const grid = document.getElementById('productsGrid');
@@ -1718,8 +1965,8 @@
                      onerror="this.onerror=null;this.src='/uploads/default-item.jpg';">
                 
                 <!-- Wishlist Button -->
-                <button onclick="event.stopPropagation(); toggleWishlist(this)" 
-                        class="absolute top-4 right-12 bg-white border border-gray-200 rounded-full p-2 shadow-lg hover:bg-pink-50 transition-colors flex items-center justify-center" 
+                <button onclick="event.stopPropagation(); handleToggleWishlist(this)" 
+                        class="absolute top-4 right-12 bg-white border border-gray-200 rounded-full p-2 shadow-lg hover:bg-pink-50 transition-colors flex items-center justify-center hover:scale-110 transform duration-200" 
                         data-product-id="${product._id}" 
                         aria-label="Add to Wishlist">
                   <i class="fas fa-heart ${product.inWishlist ? 'text-red-500' : 'text-gray-400'} text-lg"></i>
@@ -1786,13 +2033,13 @@
                 
                 <!-- Action Buttons -->
                 <div class="flex flex-col gap-3">
-                  <button onclick="event.stopPropagation(); addToCart('${product._id}')" 
-                          class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 px-6 rounded-lg border border-yellow-400 transition-colors font-semibold text-sm">
+                  <button onclick="event.stopPropagation(); handleAddToCart('${product._id}')" 
+                          class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 px-6 rounded-lg border border-yellow-400 transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
                     🛒 Add to Cart
                   </button>
                   <div class="flex gap-2">
-                    <button onclick="event.stopPropagation(); buyNow('${product._id}')" 
-                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm">
+                    <button onclick="event.stopPropagation(); handleBuyNow('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${getProductImageUrl(product)}')" 
+                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
                       ⚡ Buy Now
                     </button>
                   </div>
