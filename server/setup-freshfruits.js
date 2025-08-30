@@ -114,13 +114,13 @@ const fruits = [
     details: "Rich in Vitamin C and antioxidants."
   },
 
-  // Berries
+  // Premium Berries
   {
     name: "Fresh Strawberries",
     description: "Sweet and juicy strawberries, handpicked at peak ripeness.",
     price: 200,
     originalPrice: 250,
-    category: "Berries",
+    category: "premium",
     images: ["uploads/strawberry-1.jpg"],
     image: "uploads/strawberry-1.jpg",
     stock: 40,
@@ -136,7 +136,7 @@ const fruits = [
     description: "Sweet and nutritious blueberries, certified organic.",
     price: 300,
     originalPrice: 350,
-    category: "Berries",
+    category: "premium",
     images: ["uploads/blueberry-1.jpg"],
     image: "uploads/blueberry-1.jpg",
     stock: 30,
@@ -148,13 +148,13 @@ const fruits = [
     details: "Superfood rich in antioxidants and Vitamin K."
   },
 
-  // Stone Fruits
+  // Standard Stone Fruits
   {
     name: "Red Apples",
     description: "Crisp and sweet red apples, perfect for snacking.",
     price: 150,
     originalPrice: 180,
-    category: "Stone Fruits",
+    category: "standard",
     images: ["uploads/apple-1.jpg"],
     image: "uploads/apple-1.jpg",
     stock: 70,
@@ -170,7 +170,7 @@ const fruits = [
     description: "Sweet and fragrant peaches, perfect for desserts.",
     price: 180,
     originalPrice: 220,
-    category: "Stone Fruits",
+    category: "standard",
     images: ["uploads/peach-1.jpg"],
     image: "uploads/peach-1.jpg",
     stock: 35,
@@ -182,13 +182,13 @@ const fruits = [
     details: "High in Vitamin A, C, and fiber."
   },
 
-  // Melons
+  // Basic Melons
   {
     name: "Sweet Watermelon",
     description: "Juicy and refreshing watermelon, perfect for hot days.",
     price: 40,
     originalPrice: 50,
-    category: "Melons",
+    category: "basic",
     images: ["uploads/watermelon-1.jpg"],
     image: "uploads/watermelon-1.jpg",
     stock: 20,
@@ -204,7 +204,7 @@ const fruits = [
     description: "Sweet and aromatic cantaloupe, perfect for fruit salads.",
     price: 80,
     originalPrice: 100,
-    category: "Melons",
+    category: "basic",
     images: ["uploads/cantaloupe-1.jpg"],
     image: "uploads/cantaloupe-1.jpg",
     stock: 25,
