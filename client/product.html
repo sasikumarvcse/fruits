@@ -165,16 +165,25 @@
   <div id="addressModal" class="modal enhanced-modal" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Select Delivery Address</h3>
+        <h3><i class="fas fa-map-marker-alt"></i> Select Delivery Address</h3>
         <span class="close" onclick="closeAddressModal()">&times;</span>
       </div>
       <div class="modal-body">
+        <div class="address-selection-intro">
+          <p><i class="fas fa-info-circle"></i> Please select a delivery address or add a new one to continue with your order.</p>
+        </div>
         <div id="addressList" class="address-list"></div>
-        <button id="addAddressBtn" class="btn btn-primary w-full mt-4">+ Add New Address</button>
+        <button id="addAddressBtn" class="btn btn-primary w-full mt-4">
+          <i class="fas fa-plus"></i> Add New Address
+        </button>
       </div>
       <div class="modal-footer">
-        <button id="addressNextBtn" class="btn btn-primary" disabled>Continue</button>
-        <button onclick="closeAddressModal()" class="btn btn-secondary">Cancel</button>
+        <button id="addressNextBtn" class="btn btn-primary" disabled>
+          <i class="fas fa-arrow-right"></i> Continue to Quantity
+        </button>
+        <button onclick="closeAddressModal()" class="btn btn-secondary">
+          <i class="fas fa-times"></i> Cancel
+        </button>
       </div>
     </div>
   </div>
@@ -189,53 +198,86 @@
       <div class="modal-body">
         <form id="addressForm" class="address-form">
           <input type="hidden" id="addressId" name="addressId">
-          <div class="form-group">
-            <label for="recipientName">Recipient Name *</label>
-            <input type="text" id="recipientName" name="recipientName" required>
-          </div>
-          <div class="form-group">
-            <label for="mobile">Mobile Number *</label>
-            <input type="tel" id="mobile" name="mobile" required>
-          </div>
-          <div class="form-group">
-            <label for="address">Address *</label>
-            <textarea id="address" name="address" required></textarea>
-          </div>
-          <div class="form-row">
+          
+          <!-- Recipient Information -->
+          <div class="form-section">
+            <h4 class="section-title">📋 Recipient Information</h4>
             <div class="form-group">
-              <label for="pincode">PIN Code *</label>
-              <input type="text" id="pincode" name="pincode" required>
+              <label for="recipientName">
+                <i class="fas fa-user"></i> Full Name *
+              </label>
+              <input type="text" id="recipientName" name="recipientName" placeholder="Enter recipient's full name" required>
             </div>
             <div class="form-group">
-              <label for="city">City *</label>
-              <input type="text" id="city" name="city" required>
+              <label for="mobile">
+                <i class="fas fa-phone"></i> Mobile Number *
+              </label>
+              <input type="tel" id="mobile" name="mobile" placeholder="Enter 10-digit mobile number" pattern="[0-9]{10}" required>
             </div>
           </div>
-          <div class="form-row">
+
+          <!-- Address Details -->
+          <div class="form-section">
+            <h4 class="section-title">📍 Address Details</h4>
             <div class="form-group">
-              <label for="state">State *</label>
-              <input type="text" id="state" name="state" required>
+              <label for="address">
+                <i class="fas fa-map-marker-alt"></i> Complete Address *
+              </label>
+              <textarea id="address" name="address" placeholder="Enter your complete address including street, area, landmark" rows="3" required></textarea>
             </div>
-            <div class="form-group">
-              <label for="addressType">Address Type</label>
-              <select id="addressType" name="addressType">
-                <option value="home">Home</option>
-                <option value="work">Work</option>
-                <option value="other">Other</option>
-              </select>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pincode">
+                  <i class="fas fa-map-pin"></i> PIN Code *
+                </label>
+                <input type="text" id="pincode" name="pincode" placeholder="Enter 6-digit PIN code" pattern="[0-9]{6}" required>
+              </div>
+              <div class="form-group">
+                <label for="city">
+                  <i class="fas fa-city"></i> City *
+                </label>
+                <input type="text" id="city" name="city" placeholder="Enter city name" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="state">
+                  <i class="fas fa-map"></i> State *
+                </label>
+                <input type="text" id="state" name="state" placeholder="Enter state name" required>
+              </div>
+              <div class="form-group">
+                <label for="addressType">
+                  <i class="fas fa-home"></i> Address Type
+                </label>
+                <select id="addressType" name="addressType">
+                  <option value="home">🏠 Home</option>
+                  <option value="work">🏢 Work</option>
+                  <option value="other">📍 Other</option>
+                </select>
+              </div>
             </div>
           </div>
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input type="checkbox" id="isDefault" name="isDefault">
-              Set as default address
-            </label>
+
+          <!-- Additional Options -->
+          <div class="form-section">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="isDefault" name="isDefault">
+                <span class="checkmark"></span>
+                Set as default address for future orders
+              </label>
+            </div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" onclick="saveAddress()" class="btn btn-primary">Save Address</button>
-        <button type="button" onclick="closeAddressFormModal()" class="btn btn-secondary">Cancel</button>
+        <button type="button" onclick="saveAddress()" class="btn btn-primary">
+          <i class="fas fa-save"></i> Save Address
+        </button>
+        <button type="button" onclick="closeAddressFormModal()" class="btn btn-secondary">
+          <i class="fas fa-times"></i> Cancel
+        </button>
       </div>
     </div>
   </div>
@@ -244,7 +286,7 @@
   <div id="quantityModal" class="modal enhanced-modal" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Select Quantity</h3>
+        <h3><i class="fas fa-shopping-cart"></i> Select Quantity</h3>
         <span class="close" onclick="closeQuantityModal()">&times;</span>
       </div>
       <div class="modal-body">
@@ -256,31 +298,39 @@
           </div>
         </div>
         <div class="quantity-controls">
-          <label for="quantityInput">Quantity:</label>
+          <label for="quantityInput"><i class="fas fa-hashtag"></i> Quantity:</label>
           <div class="quantity-input-group">
-            <button id="decreaseQty" class="qty-btn">-</button>
+            <button id="decreaseQty" class="qty-btn">
+              <i class="fas fa-minus"></i>
+            </button>
             <input type="number" id="quantityInput" value="1" min="1" max="10">
-            <button id="increaseQty" class="qty-btn">+</button>
+            <button id="increaseQty" class="qty-btn">
+              <i class="fas fa-plus"></i>
+            </button>
           </div>
         </div>
         <div class="price-breakdown">
           <div class="price-row">
-            <span>Product Price:</span>
+            <span><i class="fas fa-tag"></i> Product Price:</span>
             <span id="productPriceDisplay"></span>
           </div>
           <div class="price-row">
-            <span>Quantity:</span>
+            <span><i class="fas fa-times"></i> Quantity:</span>
             <span id="quantityDisplay"></span>
           </div>
           <div class="price-row total">
-            <span>Total:</span>
+            <span><i class="fas fa-calculator"></i> Total:</span>
             <span id="totalPriceDisplay"></span>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button id="proceedToPayment" class="btn btn-primary">Proceed to Payment</button>
-        <button id="backToAddressBtn" class="btn btn-secondary">Back to Address</button>
+        <button id="proceedToPayment" class="btn btn-primary">
+          <i class="fas fa-credit-card"></i> Proceed to Payment
+        </button>
+        <button id="backToAddressBtn" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Back to Address
+        </button>
       </div>
     </div>
   </div>
