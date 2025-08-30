@@ -3,182 +3,55 @@ const router = express.Router();
 const Order = require('../models/Order');
 const Item = require('../models/Item');
 const auth = require('../middleware/auth');
+const adminAuth = require('../middleware/adminAuth');
 const Notification = require('../models/Notification');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const orderController = require('../controllers/orderController');
 const returnRequestController = require('../controllers/returnRequestController');
 
-// POST /api/orders/create - Place a direct order for a product (DEPRECATED - Use Razorpay flow)
-router.post('/create', auth, async (req, res) => {
-  try {
-    const { 
-      productId, 
-      quantity, 
-      recipientName, 
-      mobile, 
-      address, 
-      pincode, 
-      total,
-      paymentMethod,
-      paymentStatus,
-      paymentId
-    } = req.body;
-    
-    // Check if this is a Razorpay payment
-    if (paymentStatus === 'Completed' && paymentId && paymentId.startsWith('pay_')) {
-      // This is a verified Razorpay payment - proceed with order creation
-      if (!recipientName || !mobile || !address || !pincode) {
-        return res.status(400).json({ message: 'All shipping fields are required.' });
-      }
-      
-      const product = await Item.findById(productId);
-      if (!product) return res.status(404).json({ message: 'Product not found' });
-      if (product.stock < (quantity || 1)) return res.status(400).json({ message: 'Not enough stock' });
+// ✅ ENHANCED: Create order with proper validation
+router.post('/create', auth, orderController.createOrder);
 
-      // Create order timeline
-      const orderTimeline = [
-        {
-          status: 'placed',
-          timestamp: new Date(),
-          description: 'Order placed successfully',
-          updatedBy: req.user._id
-        },
-        {
-          status: 'paid',
-          timestamp: new Date(),
-          description: `Payment completed via ${paymentMethod}`,
-          updatedBy: req.user._id
-        }
-      ];
+// ✅ ENHANCED: Get user orders
+router.get('/user', auth, orderController.getUserOrders);
 
-      // Create the order
-      const order = new Order({
-        user: req.user._id,
-        items: [{ item: productId, quantity: quantity || 1 }],
-        total: total || (product.price * (quantity || 1)),
-        recipientName,
-        mobile,
-        address,
-        pincode,
-        status: 'confirmed',
-        paymentMethod: paymentMethod || 'Razorpay',
-        paymentStatus: 'Completed',
-        paymentId: paymentId,
-        orderTimeline
-      });
-      
-      await order.save();
-      console.log(`[ORDER CREATED] User: ${req.user._id}, Order ID: ${order._id}, Payment Status: ${paymentStatus}`);
+// ✅ ENHANCED: Get all orders (admin only)
+router.get('/all', adminAuth, orderController.getAllOrders);
 
-      // Add order to user's orders array
-      const User = require('../models/User');
-      const user = await User.findById(req.user._id);
-      if (user) {
-        user.orders.push(order._id);
-        await user.save();
-        console.log('Order added to user orders array');
-      }
+// ✅ ENHANCED: Get order details
+router.get('/:orderId', auth, orderController.getOrderDetails);
 
-      // Reduce product stock
-      product.stock -= (quantity || 1);
-      product.sales = (product.sales || 0) + (quantity || 1);
-      await product.save();
+// ✅ ENHANCED: Update order status (admin only)
+router.put('/:orderId/status', adminAuth, orderController.updateOrderStatus);
 
-      // Create notification for user
-      await Notification.create({
-        user: req.user._id,
-        message: `Your order #${order._id.toString().slice(-6)} has been placed successfully!`,
-        type: 'order'
-      });
-
-      res.status(201).json(order);
-    } else {
-      // This is not a verified payment - redirect to Razorpay
-      return res.status(400).json({ 
-        message: 'Payment required. Please use Razorpay payment flow.',
-        requiresPayment: true 
-      });
-    }
-  } catch (error) {
-    console.error('Error creating order:', error);
-    res.status(500).json({ message: error.message || 'Failed to create order' });
-  }
-});
-
-// GET /api/orders/user - Get user's orders
-router.get('/user', auth, async (req, res) => {
-  try {
-    const orders = await Order.find({ user: req.user._id })
-      .populate('items.item')
-      .sort({ createdAt: -1 });
-    res.json(orders);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// GET /api/orders - Get all orders (admin only)
-router.get('/', auth, async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' });
-  try {
-    let { page = 1, limit = 10, status = '', search = '' } = req.query;
-    page = parseInt(page);
-    limit = parseInt(limit);
-    
-    const query = {};
-    if (status) query.status = status;
-    if (search) {
-      query.$or = [
-        { recipientName: { $regex: search, $options: 'i' } },
-        { mobile: { $regex: search, $options: 'i' } },
-        { address: { $regex: search, $options: 'i' } }
-      ];
-    }
-    
-    const total = await Order.countDocuments(query);
-    const orders = await Order.find(query)
-      .populate('user', 'name email')
-      .populate('items.item')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
-    
-    res.json({
-      orders,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+// ✅ ENHANCED: Get order statistics (admin only)
+router.get('/stats/overview', adminAuth, orderController.getOrderStats);
 
 // POST /api/orders/razorpay/create-order - Create Razorpay order
 router.post('/razorpay/create-order', auth, async (req, res) => {
   try {
-    const { productId, quantity, amount, deliveryAddress, currency = 'INR' } = req.body;
+    const { productId, quantity, amount, currency = 'INR' } = req.body;
     
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ message: 'Valid amount is required' });
+    if (!productId || !amount) {
+      return res.status(400).json({ message: 'Product ID and amount are required' });
     }
-    
-    if (!productId || !quantity || !deliveryAddress) {
-      return res.status(400).json({ message: 'Product details and delivery address are required' });
+
+    const product = await Item.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
     }
-    
-    console.log(`💰 Creating Razorpay order for product: ${productId}, quantity: ${quantity}, amount: ₹${amount} (${amount * 100} paise)`);
-    
-    // Store order details in session for verification
+
+    if (product.stock < (quantity || 1)) {
+      return res.status(400).json({ message: 'Not enough stock' });
+    }
+
+    // Store order details in session for later use
     req.session.pendingOrder = {
       productId,
-      quantity,
+      quantity: quantity || 1,
       amount,
-      deliveryAddress,
+      deliveryAddress: req.body.deliveryAddress,
       userId: req.user.id,
       timestamp: Date.now()
     };
@@ -303,18 +176,16 @@ router.post('/razorpay/verify-payment', auth, async (req, res) => {
         }],
         total: pendingOrder.amount,
         totalAmount: pendingOrder.amount,
-        recipientName: pendingOrder.deliveryAddress.recipientName,
-        mobile: pendingOrder.deliveryAddress.mobile,
-        address: pendingOrder.deliveryAddress.address,
-        pincode: pendingOrder.deliveryAddress.pincode,
-        deliveryAddress: pendingOrder.deliveryAddress,
+        recipientName: req.body.recipientName,
+        mobile: req.body.mobile,
+        address: req.body.address,
+        pincode: req.body.pincode,
+        status: 'confirmed',
         paymentMethod: 'Razorpay',
         paymentStatus: 'Completed',
         paymentId: razorpay_payment_id,
-        razorpayPaymentId: razorpay_payment_id,
         razorpayOrderId: razorpay_order_id,
-        status: 'confirmed',
-        deliveryCharge: 0,
+        razorpayPaymentId: razorpay_payment_id,
         orderTimeline: [
           {
             status: 'placed',
@@ -333,51 +204,50 @@ router.post('/razorpay/verify-payment', auth, async (req, res) => {
       
       await order.save();
       
+      // Update product stock
+      const product = await Item.findById(pendingOrder.productId);
+      if (product) {
+        product.stock -= pendingOrder.quantity;
+        product.sales = (product.sales || 0) + pendingOrder.quantity;
+        await product.save();
+      }
+      
       // Add order to user's orders array
       const User = require('../models/User');
       const user = await User.findById(req.user.id);
       if (user) {
         user.orders.push(order._id);
         await user.save();
-        console.log('Order added to user orders array');
       }
-
-      // Reduce product stock
-      const Item = require('../models/Item');
-      const product = await Item.findById(pendingOrder.productId);
-      if (product) {
-        product.stock -= pendingOrder.quantity;
-        product.sales = (product.sales || 0) + pendingOrder.quantity;
-        await product.save();
-        console.log(`Product stock updated: ${product.name}`);
-      }
-
-      // Create notification for user
-      const Notification = require('../models/Notification');
+      
+      // Create notifications
       await Notification.create({
         user: req.user.id,
-        message: `Your order #${order._id.toString().slice(-6)} has been placed successfully!`,
-        type: 'order'
+        message: `Your order #${order._id.toString().slice(-6)} has been confirmed!`,
+        type: 'order',
+        icon: 'fa-shopping-cart'
       });
       
-      // Clear pending order from session
-      delete req.session.pendingOrder;
+      await Notification.create({
+        user: null,
+        message: `New order #${order._id.toString().slice(-6)} received from ${req.body.recipientName}`,
+        type: 'admin',
+        targetRole: 'admin',
+        icon: 'fa-bell'
+      });
       
-      console.log('✅ Order created successfully after payment verification:', order._id);
+      // Clear session
+      delete req.session.pendingOrder;
       
       res.json({
         success: true,
-        message: 'Payment verified and order created successfully',
-        order: {
-          id: order._id,
-          totalAmount: order.totalAmount,
-          status: order.status
-        }
+        order,
+        message: 'Payment verified and order created successfully'
       });
       
     } catch (orderError) {
       console.error('❌ Error creating order after payment verification:', orderError);
-      res.status(500).json({ message: 'Payment verified but failed to create order' });
+      res.status(500).json({ message: 'Payment verified but order creation failed' });
     }
     
   } catch (error) {
@@ -386,255 +256,9 @@ router.post('/razorpay/verify-payment', auth, async (req, res) => {
   }
 });
 
-// Admin views all return requests (paginated) - must come before /:orderId routes
-router.get('/return-requests', auth, async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' });
-  try {
-    let { page = 1, limit = 10, status = '', search = '' } = req.query;
-    page = parseInt(page);
-    limit = parseInt(limit);
-    const query = {};
-    if (status) query.status = status;
-    if (search) {
-      query.reason = { $regex: search, $options: 'i' };
-    }
-    const ReturnRequest = require('../models/ReturnRequest');
-    const total = await ReturnRequest.countDocuments(query);
-    const returns = await ReturnRequest.find(query)
-      .populate('orderId')
-      .populate('itemId')
-      .populate('userId')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
-    res.json({
-      returns,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch return/refund requests' });
-  }
-});
-
-// Admin updates a return request (status/response)
-router.patch('/return-requests/:id', auth, returnRequestController.updateReturnRequest);
-
-// User creates a return/refund request for an order item
-router.post('/:orderId/return-request', auth, returnRequestController.createReturnRequest);
-
-// User/admin views all return requests for an order
-router.get('/:orderId/return-requests', auth, returnRequestController.getReturnRequestsForOrder);
-
-// User cancels their order within 1 day if not shipped/delivered/cancelled
-router.patch('/:orderId/cancel', auth, async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.orderId);
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-    if (String(order.user) !== String(req.user._id)) return res.status(403).json({ message: 'Forbidden' });
-    if (['shipped', 'out_for_delivery', 'delivered', 'cancelled'].includes(order.status)) {
-      return res.status(400).json({ message: 'Order cannot be cancelled at this stage.' });
-    }
-    const now = new Date();
-    const created = new Date(order.createdAt);
-    const diffHours = (now - created) / (1000 * 60 * 60);
-    if (diffHours > 24) {
-      return res.status(400).json({ message: 'Order can only be cancelled within 1 day of placement.' });
-    }
-    order.status = 'cancelled';
-    order.orderTimeline.push({
-      status: 'cancelled',
-      timestamp: new Date(),
-      description: 'Order cancelled by user and refund initiated',
-      updatedBy: req.user._id
-    });
-    await order.save();
-    // Optionally, refund logic here (e.g., via Razorpay API)
-    // Optionally, restock product
-    for (const item of order.items) {
-      const product = await Item.findById(item.item);
-      if (product) {
-        product.stock += item.quantity;
-        product.sales = Math.max(0, (product.sales || 0) - item.quantity);
-        await product.save();
-      }
-    }
-    // Notify user
-    await Notification.create({
-      user: req.user._id,
-      message: `Your order #${order._id.toString().slice(-6)} has been cancelled and refund initiated.`,
-      type: 'order'
-    });
-    res.json({ message: 'Order cancelled and refund initiated', order });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// GET /api/orders/:id - Get specific order
-router.get('/:id', auth, async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id)
-      .populate('user', 'name email')
-      .populate('items.item');
-    
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-    
-    // Check if user is authorized to view this order
-    if (req.user.role !== 'admin' && String(order.user._id) !== String(req.user._id)) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
-    
-    res.json(order);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// PATCH /api/orders/:orderId/status - Update order status (admin only)
-router.patch('/:orderId/status', auth, async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' });
-  try {
-    const { status, description } = req.body;
-    const order = await Order.findById(req.params.orderId);
-    if (!order) return res.status(404).json({ message: 'Order not found' });
-    
-    order.status = status;
-    order.orderTimeline.push({
-      status,
-      timestamp: new Date(),
-      description: description || `Order status updated to ${status}`,
-      updatedBy: req.user._id
-    });
-    
-    await order.save();
-    
-    // Create notification for user
-    await Notification.create({
-      user: order.user,
-      message: `Your order #${order._id.toString().slice(-6)} status has been updated to ${status}`,
-      type: 'order'
-    });
-    
-    res.json(order);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// ===== RAZORPAY PAYMENT ENDPOINTS =====
-
-// POST /api/orders/razorpay/create-order - Create Razorpay order
-router.post('/razorpay/create-order', auth, async (req, res) => {
-  try {
-    const { amount, currency = 'INR', productId, quantity, deliveryAddress } = req.body;
-    
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ message: 'Valid amount is required' });
-    }
-    
-    console.log(`💰 Creating Razorpay order for amount: ₹${amount} (${amount * 100} paise)`);
-    console.log('📦 Order details:', { productId, quantity, deliveryAddress });
-    
-    // Create a mock order for testing (replace with actual Razorpay SDK in production)
-    const mockOrder = {
-      id: 'order_mock_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-      amount: Math.round(amount * 100), // Ensure exact amount in paise
-      currency: currency,
-      status: 'created',
-      receipt: 'order_' + Date.now(),
-      amount_in_rupees: amount.toFixed(2)
-    };
-    
-    console.log('✅ Mock Razorpay order created:', mockOrder);
-    res.json(mockOrder);
-    
-  } catch (error) {
-    console.error('❌ Razorpay order creation error:', error);
-    res.status(500).json({ message: error.message || 'Failed to create payment order' });
-  }
-});
-
-// POST /api/orders/razorpay/verify-payment - Verify Razorpay payment
-router.post('/razorpay/verify-payment', auth, async (req, res) => {
-  try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, realOrderDetails } = req.body;
-    
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return res.status(400).json({ message: 'Payment verification failed - missing parameters' });
-    }
-    
-    console.log('✅ Payment verification successful (mock)');
-    console.log('Order details:', realOrderDetails);
-    
-    // Create the actual order
-    const order = new Order({
-      user: req.user._id,
-      items: realOrderDetails.items || [{
-        item: realOrderDetails.productId,
-        quantity: realOrderDetails.quantity
-      }],
-      total: realOrderDetails.total,
-      recipientName: realOrderDetails.recipientName,
-      mobile: realOrderDetails.mobile,
-      address: realOrderDetails.address,
-      pincode: realOrderDetails.pincode,
-      status: 'confirmed',
-      paymentMethod: 'Razorpay',
-      paymentStatus: 'Completed',
-      paymentId: razorpay_payment_id,
-      razorpayPaymentId: razorpay_payment_id,
-      razorpayOrderId: razorpay_order_id,
-      orderTimeline: [{
-        status: 'placed',
-        timestamp: new Date(),
-        description: 'Order placed successfully',
-        updatedBy: req.user._id
-      }]
-    });
-    
-    await order.save();
-    
-    // Add order to user's orders array
-    const User = require('../models/User');
-    const user = await User.findById(req.user._id);
-    if (user) {
-      user.orders.push(order._id);
-      await user.save();
-    }
-    
-    // Reduce product stock
-    const Item = require('../models/Item');
-    for (const item of order.items) {
-      const product = await Item.findById(item.item);
-      if (product) {
-        product.stock -= item.quantity;
-        product.sales = (product.sales || 0) + item.quantity;
-        await product.save();
-      }
-    }
-    
-    // Create notification for user
-    await Notification.create({
-      user: req.user._id,
-      message: `Your order #${order._id.toString().slice(-6)} has been placed successfully!`,
-      type: 'order'
-    });
-    
-    res.status(201).json({ 
-      success: true, 
-      message: 'Order placed successfully', 
-      order
-    });
-    
-  } catch (error) {
-    console.error('❌ Payment verification error:', error);
-    res.status(500).json({ success: false, message: error.message || 'Internal Server Error' });
-  }
-});
+// Return request routes
+router.post('/:orderId/return', auth, returnRequestController.createReturnRequest);
+router.get('/:orderId/return', auth, returnRequestController.getReturnRequest);
+router.put('/:orderId/return/:requestId', adminAuth, returnRequestController.updateReturnRequest);
 
 module.exports = router; 
