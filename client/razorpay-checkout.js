@@ -36,10 +36,18 @@
             const data = await response.json();
             if (data.success) {
                 razorpayConfig.keyId = data.key;
-                console.log('✅ Razorpay key loaded');
+                console.log('✅ Razorpay key loaded:', data.key);
+            } else {
+                console.error('❌ Failed to load Razorpay key:', data.message);
+                // Fallback to test key for development
+                razorpayConfig.keyId = 'rzp_test_gBP9geXusrKWUg';
+                console.log('⚠️ Using fallback test key');
             }
         } catch (error) {
             console.error('❌ Failed to load Razorpay key:', error);
+            // Fallback to test key for development
+            razorpayConfig.keyId = 'rzp_test_gBP9geXusrKWUg';
+            console.log('⚠️ Using fallback test key due to error');
         }
     }
 
