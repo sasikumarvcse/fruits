@@ -77,6 +77,11 @@
     function setupCheckoutEventListeners() {
         console.log('🔄 Setting up checkout event listeners...');
 
+        // Validate address form elements before setting up listeners
+        if (!validateAddressFormElements()) {
+            console.warn('⚠️ Address form elements not found, some features may not work');
+        }
+
         // Address modal events
         const addAddressBtn = document.getElementById('addAddressBtn');
         if (addAddressBtn) {
@@ -147,6 +152,119 @@
         console.log('📍 STEP 1: Loading addresses...');
         await loadUserAddresses();
         showAddressModal();
+    }
+
+    // ✅ UTILITY: Safely reset form elements
+    function safeFormReset(formElement) {
+        if (formElement && typeof formElement.reset === 'function') {
+            formElement.reset();
+        } else {
+            console.warn('⚠️ Form element not found or reset method not available');
+        }
+    }
+
+    // ✅ UTILITY: Validate required address form elements
+    function validateAddressFormElements() {
+        const requiredElements = [
+            'addressFormModal',
+            'addressFormTitle', 
+            'addressForm',
+            'addressId',
+            'recipientName',
+            'mobile',
+            'address',
+            'pincode',
+            'city',
+            'state',
+            'addressType',
+            'isDefault'
+        ];
+        
+        const missingElements = [];
+        requiredElements.forEach(id => {
+            if (!document.getElementById(id)) {
+                missingElements.push(id);
+            }
+        });
+        
+        if (missingElements.length > 0) {
+            console.error('❌ Missing required address form elements:', missingElements);
+            return false;
+        }
+        
+        return true;
+    }
+
+    // ✅ UTILITY: Fallback address form handler
+    function handleAddressFormFallback() {
+        console.log('🔄 Attempting to create fallback address form...');
+        
+        // Create a simple prompt-based address input as fallback
+        const recipientName = prompt('Enter recipient name:');
+        if (!recipientName) return;
+        
+        const mobile = prompt('Enter mobile number:');
+        if (!mobile) return;
+        
+        const address = prompt('Enter address:');
+        if (!address) return;
+        
+        const pincode = prompt('Enter pincode:');
+        if (!pincode) return;
+        
+        const city = prompt('Enter city:');
+        if (!city) return;
+        
+        const state = prompt('Enter state:');
+        if (!state) return;
+        
+        // Create address data object
+        const addressData = {
+            recipientName,
+            mobile,
+            address,
+            pincode,
+            city,
+            state,
+            addressType: 'home',
+            isDefault: false
+        };
+        
+        // Save address using the existing save function
+        saveAddressData(addressData);
+    }
+
+    // ✅ UTILITY: Save address data directly
+    async function saveAddressData(addressData) {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('Please login to save addresses', 'error');
+                return;
+            }
+
+            const response = await fetch('/api/user/addresses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(addressData)
+            });
+
+            if (response.ok) {
+                showNotification('Address added successfully!', 'success');
+                // Reload addresses
+                await loadUserAddresses();
+                displayAddresses();
+            } else {
+                const error = await response.json();
+                showNotification(error.message || 'Failed to save address', 'error');
+            }
+        } catch (error) {
+            console.error('❌ Error saving address:', error);
+            showNotification('Failed to save address', 'error');
+        }
     }
 
     // ✅ FIXED: Enhanced address loading with better error handling
@@ -262,6 +380,17 @@
 
     // Address management functions
     function showAddressForm(addressId = null) {
+        // Validate all required elements exist
+        if (!validateAddressFormElements()) {
+            console.warn('⚠️ Address form elements not found, using fallback');
+            if (addressId) {
+                showNotification('Edit mode not available in fallback', 'warning');
+                return;
+            }
+            handleAddressFormFallback();
+            return;
+        }
+        
         const modal = document.getElementById('addressFormModal');
         const title = document.getElementById('addressFormTitle');
         const form = document.getElementById('addressForm');
@@ -284,7 +413,7 @@
         } else {
             // Add mode
             title.textContent = 'Add New Address';
-            form.reset();
+            safeFormReset(form);
             document.getElementById('addressId').value = '';
         }
         
@@ -292,7 +421,13 @@
     }
 
     async function saveAddress() {
-        const formData = new FormData(document.getElementById('addressForm'));
+        const addressForm = document.getElementById('addressForm');
+        if (!addressForm) {
+            console.error('❌ Address form not found');
+            showNotification('Address form not available', 'error');
+            return;
+        }
+        const formData = new FormData(addressForm);
         const addressData = {
             recipientName: formData.get('recipientName'),
             mobile: formData.get('mobile'),
@@ -622,7 +757,22 @@
 
     function closeAddressFormModal() {
         const modal = document.getElementById('addressFormModal');
-        if (modal) modal.style.display = 'none';
+        if (modal) {
+            modal.style.display = 'none';
+            // Safely reset the form
+            const form = document.getElementById('addressForm');
+            safeFormReset(form);
+            // Reset title
+            const title = document.getElementById('addressFormTitle');
+            if (title) {
+                title.textContent = 'Add New Address';
+            }
+            // Clear address ID
+            const addressIdField = document.getElementById('addressId');
+            if (addressIdField) {
+                addressIdField.value = '';
+            }
+        }
     }
 
     function closeQuantityModal() {
@@ -672,4 +822,13 @@
     window.showNotification = showNotification;
 
     console.log('✅ Enhanced Razorpay checkout system loaded successfully');
+    
+    // ✅ GLOBAL ERROR HANDLER: Catch any remaining form-related errors
+    window.addEventListener('error', function(event) {
+        if (event.error && event.error.message && event.error.message.includes('reset is not a function')) {
+            console.warn('⚠️ Form reset error caught and handled');
+            event.preventDefault();
+            showNotification('Address form issue detected, please refresh the page', 'warning');
+        }
+    });
 })();
