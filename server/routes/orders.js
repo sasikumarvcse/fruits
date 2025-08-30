@@ -216,7 +216,8 @@ router.post('/razorpay/create-order', auth, async (req, res) => {
       });
       
       res.json({ 
-        id: order.id, 
+        razorpayOrderId: order.id,
+        orderId: 'temp_' + Date.now(), // Temporary order ID until payment is verified
         amount: order.amount, 
         currency: order.currency,
         status: order.status,
@@ -237,7 +238,14 @@ router.post('/razorpay/create-order', auth, async (req, res) => {
       };
       
       console.log('✅ Mock order created:', mockOrder);
-      res.json(mockOrder);
+      res.json({
+        razorpayOrderId: mockOrder.id,
+        orderId: 'temp_' + Date.now(), // Temporary order ID until payment is verified
+        amount: mockOrder.amount,
+        currency: mockOrder.currency,
+        status: mockOrder.status,
+        amount_in_rupees: mockOrder.amount_in_rupees
+      });
     }
   } catch (error) {
     console.error('❌ Order creation error:', error);
@@ -293,18 +301,64 @@ router.post('/razorpay/verify-payment', auth, async (req, res) => {
           item: pendingOrder.productId,
           quantity: pendingOrder.quantity
         }],
+        total: pendingOrder.amount,
         totalAmount: pendingOrder.amount,
+        recipientName: pendingOrder.deliveryAddress.recipientName,
+        mobile: pendingOrder.deliveryAddress.mobile,
+        address: pendingOrder.deliveryAddress.address,
+        pincode: pendingOrder.deliveryAddress.pincode,
         deliveryAddress: pendingOrder.deliveryAddress,
         paymentMethod: 'Razorpay',
-        paymentStatus: 'paid',
+        paymentStatus: 'Completed',
         paymentId: razorpay_payment_id,
         razorpayPaymentId: razorpay_payment_id,
         razorpayOrderId: razorpay_order_id,
         status: 'confirmed',
-        deliveryCharge: 0
+        deliveryCharge: 0,
+        orderTimeline: [
+          {
+            status: 'placed',
+            timestamp: new Date(),
+            description: 'Order placed successfully',
+            updatedBy: req.user.id
+          },
+          {
+            status: 'paid',
+            timestamp: new Date(),
+            description: 'Payment completed via Razorpay',
+            updatedBy: req.user.id
+          }
+        ]
       });
       
       await order.save();
+      
+      // Add order to user's orders array
+      const User = require('../models/User');
+      const user = await User.findById(req.user.id);
+      if (user) {
+        user.orders.push(order._id);
+        await user.save();
+        console.log('Order added to user orders array');
+      }
+
+      // Reduce product stock
+      const Item = require('../models/Item');
+      const product = await Item.findById(pendingOrder.productId);
+      if (product) {
+        product.stock -= pendingOrder.quantity;
+        product.sales = (product.sales || 0) + pendingOrder.quantity;
+        await product.save();
+        console.log(`Product stock updated: ${product.name}`);
+      }
+
+      // Create notification for user
+      const Notification = require('../models/Notification');
+      await Notification.create({
+        user: req.user.id,
+        message: `Your order #${order._id.toString().slice(-6)} has been placed successfully!`,
+        type: 'order'
+      });
       
       // Clear pending order from session
       delete req.session.pendingOrder;

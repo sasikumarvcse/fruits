@@ -28,6 +28,10 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  totalAmount: {
+    type: Number,
+    required: true
+  },
   recipientName: {
     type: String,
     required: true
@@ -43,6 +47,14 @@ const orderSchema = new mongoose.Schema({
   pincode: {
     type: String,
     required: true
+  },
+  deliveryAddress: {
+    type: Object,
+    required: false
+  },
+  deliveryCharge: {
+    type: Number,
+    default: 0
   },
   status: {
     type: String,
