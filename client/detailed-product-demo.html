@@ -82,6 +82,9 @@
     </div>
   </div>
 
+  <!-- Include Cart and Wishlist Manager -->
+  <script src="js/cart-wishlist.js"></script>
+  
   <script>
     // Sample product data with complete admin-fetched details
     const sampleProduct = {
@@ -475,20 +478,20 @@
               
               <!-- Action Buttons -->
               <div class="flex flex-col sm:flex-row gap-4 flex-1">
-                <button class="bg-black text-white py-3 px-8 rounded-lg hover:bg-gray-800 transition-colors font-semibold">
-                  ADD TO CART
+                <button onclick="addToCartFromDetailed()" class="bg-black text-white py-3 px-8 rounded-lg hover:bg-gray-800 transition-colors font-semibold">
+                  🛒 ADD TO CART
                 </button>
-                <button class="bg-white text-black border-2 border-black py-3 px-8 rounded-lg hover:bg-gray-50 transition-colors font-semibold">
-                  BUY IT NOW
+                <button onclick="buyNowFromDetailed()" class="bg-white text-black border-2 border-black py-3 px-8 rounded-lg hover:bg-gray-800 transition-colors font-semibold">
+                  💳 BUY IT NOW
                 </button>
               </div>
               
               <!-- Action Icons -->
               <div class="flex items-center space-x-3">
-                <button class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-pink-50 transition-colors">
-                  <i class="fas fa-heart text-gray-400"></i>
+                <button onclick="toggleWishlistFromDetailed()" id="wishlistBtn" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-pink-50 transition-colors">
+                  <i class="fas fa-heart text-gray-400" id="wishlistIcon"></i>
                 </button>
-                <button class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-blue-50 transition-colors">
+                <button onclick="shareProduct()" class="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-blue-50 transition-colors">
                   <i class="fas fa-share-alt text-gray-600"></i>
                 </button>
               </div>
@@ -566,6 +569,122 @@
       // Update subtotal
       const subtotal = (sampleProduct.price * currentQuantity).toFixed(2);
       subtotalElement.textContent = subtotal;
+    }
+
+    // Add to Cart from Detailed View
+    async function addToCartFromDetailed() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Please login to add items to cart');
+          return;
+        }
+
+        const quantity = parseInt(document.getElementById('productQuantity').textContent);
+        
+        const response = await fetch('/api/cart/add', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            productId: sampleProduct._id,
+            quantity: quantity
+          })
+        });
+
+        if (response.ok) {
+          alert('Product added to cart successfully!');
+        } else {
+          const error = await response.json();
+          alert(error.message || 'Failed to add to cart');
+        }
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+        alert('Error adding to cart');
+      }
+    }
+
+    // Buy Now from Detailed View
+    async function buyNowFromDetailed() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Please login to buy products');
+          return;
+        }
+
+        const quantity = parseInt(document.getElementById('productQuantity').textContent);
+        
+        // Store product for checkout
+        localStorage.setItem('buyNowProduct', JSON.stringify({
+          ...sampleProduct,
+          quantity: quantity
+        }));
+        
+        // Redirect to checkout
+        window.location.href = 'enhanced-checkout.html';
+      } catch (error) {
+        console.error('Error with buy now:', error);
+        alert('Error processing buy now request');
+      }
+    }
+
+    // Toggle Wishlist from Detailed View
+    async function toggleWishlistFromDetailed() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Please login to manage wishlist');
+          return;
+        }
+
+        const wishlistBtn = document.getElementById('wishlistBtn');
+        const wishlistIcon = document.getElementById('wishlistIcon');
+        const isInWishlist = wishlistIcon.classList.contains('text-red-500');
+
+        if (isInWishlist) {
+          // Remove from wishlist
+          const response = await fetch('/api/wishlist/remove', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              productId: sampleProduct._id
+            })
+          });
+
+          if (response.ok) {
+            wishlistIcon.classList.remove('text-red-500');
+            wishlistIcon.classList.add('text-gray-400');
+            alert('Removed from wishlist');
+          }
+        } else {
+          // Add to wishlist
+          const response = await fetch('/api/wishlist/add', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              productId: sampleProduct._id
+            })
+          });
+
+          if (response.ok) {
+            wishlistIcon.classList.remove('text-gray-400');
+            wishlistIcon.classList.add('text-red-500');
+            alert('Added to wishlist');
+          }
+        }
+      } catch (error) {
+        console.error('Error managing wishlist:', error);
+        alert('Error managing wishlist');
+      }
     }
   </script>
 </body>
