@@ -617,19 +617,18 @@
             try {
                 const token = localStorage.getItem('token');
                 
-                // Create order on server
+                // Create Razorpay order on server
                 const orderData = {
-                    items: [{
-                        productId: checkoutData.product._id,
-                        quantity: checkoutData.quantity,
-                        price: checkoutData.product.price
-                    }],
+                    productId: checkoutData.product._id,
+                    quantity: checkoutData.quantity,
+                    amount: checkoutData.total,
                     deliveryAddress: checkoutData.selectedAddress,
-                    totalAmount: checkoutData.total,
-                    deliveryCharge: checkoutData.deliveryCharge
+                    currency: 'INR'
                 };
 
-                const response = await fetch('/api/orders/create', {
+                console.log('💰 Creating Razorpay order with data:', orderData);
+
+                const response = await fetch('/api/orders/razorpay/create-order', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -639,10 +638,13 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to create order');
+                    const errorData = await response.json();
+                    console.error('❌ Order creation failed:', errorData);
+                    throw new Error(errorData.message || 'Failed to create order');
                 }
 
-                const order = await response.json();
+                const orderResult = await response.json();
+                console.log('✅ Razorpay order created:', orderResult);
 
                 // Initialize Razorpay
                 const options = {
@@ -651,9 +653,9 @@
                     currency: 'INR',
                     name: 'Arobowl',
                     description: `Order for ${checkoutData.product.name}`,
-                    order_id: order.razorpayOrderId,
+                    order_id: orderResult.razorpayOrderId,
                     handler: function(response) {
-                        handlePaymentSuccess(response, order._id);
+                        handlePaymentSuccess(response, orderResult.orderId);
                     },
                     prefill: {
                         name: checkoutData.selectedAddress.recipientName,
@@ -661,15 +663,28 @@
                     },
                     theme: {
                         color: '#10b981'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            console.log('Payment modal dismissed');
+                            showNotification('Payment cancelled', 'warning');
+                        }
                     }
                 };
 
+                console.log('🚀 Opening Razorpay with options:', options);
                 const rzp = new Razorpay(options);
                 rzp.open();
 
             } catch (error) {
-                console.error('Payment initialization error:', error);
-                showNotification('Failed to initialize payment', 'error');
+                console.error('❌ Payment initialization error:', error);
+                showNotification(error.message || 'Failed to initialize payment', 'error');
+                
+                // Hide loading spinner
+                const loadingSpinner = document.querySelector('.payment-loading');
+                if (loadingSpinner) {
+                    loadingSpinner.style.display = 'none';
+                }
             }
         }
 
@@ -679,12 +694,15 @@
                 const token = localStorage.getItem('token');
                 
                 const verificationData = {
-                    orderId: orderId,
-                    paymentId: response.razorpay_payment_id,
-                    signature: response.razorpay_signature
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                    orderId: orderId
                 };
 
-                const verifyResponse = await fetch('/api/payment/verify', {
+                console.log('🔍 Verifying payment with data:', verificationData);
+
+                const verifyResponse = await fetch('/api/orders/razorpay/verify-payment', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

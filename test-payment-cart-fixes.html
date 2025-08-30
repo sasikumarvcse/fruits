@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment, Cart & Wishlist Fixes Test</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { border-color: #4CAF50; background-color: #f1f8e9; }
+        .error { border-color: #f44336; background-color: #ffebee; }
+        .warning { border-color: #ff9800; background-color: #fff3e0; }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #1976D2; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .log {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.warning { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Payment, Cart & Wishlist Fixes Test</h1>
+    
+    <div class="container">
+        <h2>🔐 Authentication Test</h2>
+        <div class="test-section">
+            <button onclick="testAuth()">Test Authentication</button>
+            <div id="authStatus" class="status"></div>
+            <div id="authLog" class="log"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🛒 Cart Functionality Test</h2>
+        <div class="test-section">
+            <button onclick="testAddToCart()">Test Add to Cart</button>
+            <button onclick="testGetCart()">Test Get Cart</button>
+            <button onclick="testRemoveFromCart()">Test Remove from Cart</button>
+            <div id="cartStatus" class="status"></div>
+            <div id="cartLog" class="log"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>❤️ Wishlist Functionality Test</h2>
+        <div class="test-section">
+            <button onclick="testAddToWishlist()">Test Add to Wishlist</button>
+            <button onclick="testGetWishlist()">Test Get Wishlist</button>
+            <button onclick="testRemoveFromWishlist()">Test Remove from Wishlist</button>
+            <div id="wishlistStatus" class="status"></div>
+            <div id="wishlistLog" class="log"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>💳 Payment Flow Test</h2>
+        <div class="test-section">
+            <button onclick="testPaymentFlow()">Test Complete Payment Flow</button>
+            <button onclick="testRazorpayOrder()">Test Razorpay Order Creation</button>
+            <div id="paymentStatus" class="status"></div>
+            <div id="paymentLog" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let testProductId = null;
+        let testOrderId = null;
+        let razorpayKey = null;
+
+        // Utility functions
+        function log(elementId, message, type = 'info') {
+            const logElement = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logElement.textContent += logEntry;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(logEntry.trim());
+        }
+
+        function updateStatus(elementId, message, type = 'info') {
+            const statusElement = document.getElementById(elementId);
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+
+        function getToken() {
+            return localStorage.getItem('token');
+        }
+
+        function isLoggedIn() {
+            return !!getToken();
+        }
+
+        // Test Authentication
+        async function testAuth() {
+            log('authLog', 'Starting authentication test...');
+            
+            if (!isLoggedIn()) {
+                updateStatus('authStatus', '❌ Not logged in. Please login first.', 'error');
+                log('authLog', 'User not logged in');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/user/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    updateStatus('authStatus', `✅ Authenticated as ${user.firstName} ${user.lastName}`, 'success');
+                    log('authLog', `User authenticated: ${user.email}`);
+                } else {
+                    updateStatus('authStatus', '❌ Authentication failed', 'error');
+                    log('authLog', `Auth failed: ${response.status}`);
+                }
+            } catch (error) {
+                updateStatus('authStatus', '❌ Authentication error', 'error');
+                log('authLog', `Auth error: ${error.message}`);
+            }
+        }
+
+        // Test Cart Functions
+        async function testAddToCart() {
+            log('cartLog', 'Testing add to cart...');
+            
+            if (!isLoggedIn()) {
+                updateStatus('cartStatus', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                // First get a product to add to cart
+                const productsResponse = await fetch('/api/items');
+                if (!productsResponse.ok) {
+                    throw new Error('Failed to fetch products');
+                }
+                
+                const products = await productsResponse.json();
+                if (products.length === 0) {
+                    updateStatus('cartStatus', '❌ No products available', 'error');
+                    return;
+                }
+
+                testProductId = products[0]._id;
+                log('cartLog', `Using product: ${products[0].name} (${testProductId})`);
+
+                const response = await fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        itemId: testProductId,
+                        quantity: 1
+                    })
+                });
+
+                if (response.ok) {
+                    const cart = await response.json();
+                    updateStatus('cartStatus', `✅ Added to cart successfully. Cart items: ${cart.length}`, 'success');
+                    log('cartLog', `Cart updated: ${cart.length} items`);
+                } else {
+                    const error = await response.json();
+                    updateStatus('cartStatus', `❌ Failed to add to cart: ${error.message}`, 'error');
+                    log('cartLog', `Add to cart failed: ${error.message}`);
+                }
+            } catch (error) {
+                updateStatus('cartStatus', `❌ Cart error: ${error.message}`, 'error');
+                log('cartLog', `Cart error: ${error.message}`);
+            }
+        }
+
+        async function testGetCart() {
+            log('cartLog', 'Testing get cart...');
+            
+            if (!isLoggedIn()) {
+                updateStatus('cartStatus', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/cart', {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+
+                if (response.ok) {
+                    const cart = await response.json();
+                    updateStatus('cartStatus', `✅ Cart retrieved. Items: ${cart.length}`, 'success');
+                    log('cartLog', `Cart items: ${cart.length}`);
+                    cart.forEach(item => {
+                        log('cartLog', `- ${item.product?.name || 'Unknown'} (Qty: ${item.quantity})`);
+                    });
+                } else {
+                    const error = await response.json();
+                    updateStatus('cartStatus', `❌ Failed to get cart: ${error.message}`, 'error');
+                    log('cartLog', `Get cart failed: ${error.message}`);
+                }
+            } catch (error) {
+                updateStatus('cartStatus', `❌ Cart error: ${error.message}`, 'error');
+                log('cartLog', `Cart error: ${error.message}`);
+            }
+        }
+
+        async function testRemoveFromCart() {
+            log('cartLog', 'Testing remove from cart...');
+            
+            if (!testProductId) {
+                updateStatus('cartStatus', '❌ No product in cart to remove', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/cart/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        itemId: testProductId
+                    })
+                });
+
+                if (response.ok) {
+                    const cart = await response.json();
+                    updateStatus('cartStatus', `✅ Removed from cart. Remaining items: ${cart.length}`, 'success');
+                    log('cartLog', `Item removed. Remaining: ${cart.length}`);
+                    testProductId = null;
+                } else {
+                    const error = await response.json();
+                    updateStatus('cartStatus', `❌ Failed to remove: ${error.message}`, 'error');
+                    log('cartLog', `Remove failed: ${error.message}`);
+                }
+            } catch (error) {
+                updateStatus('cartStatus', `❌ Remove error: ${error.message}`, 'error');
+                log('cartLog', `Remove error: ${error.message}`);
+            }
+        }
+
+        // Test Wishlist Functions
+        async function testAddToWishlist() {
+            log('wishlistLog', 'Testing add to wishlist...');
+            
+            if (!isLoggedIn()) {
+                updateStatus('wishlistStatus', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                // First get a product to add to wishlist
+                const productsResponse = await fetch('/api/items');
+                if (!productsResponse.ok) {
+                    throw new Error('Failed to fetch products');
+                }
+                
+                const products = await productsResponse.json();
+                if (products.length === 0) {
+                    updateStatus('wishlistStatus', '❌ No products available', 'error');
+                    return;
+                }
+
+                testProductId = products[0]._id;
+                log('wishlistLog', `Using product: ${products[0].name} (${testProductId})`);
+
+                const response = await fetch('/api/wishlist/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        itemId: testProductId
+                    })
+                });
+
+                if (response.ok) {
+                    const wishlist = await response.json();
+                    updateStatus('wishlistStatus', `✅ Added to wishlist successfully. Items: ${wishlist.length}`, 'success');
+                    log('wishlistLog', `Wishlist updated: ${wishlist.length} items`);
+                } else {
+                    const error = await response.json();
+                    updateStatus('wishlistStatus', `❌ Failed to add to wishlist: ${error.message}`, 'error');
+                    log('wishlistLog', `Add to wishlist failed: ${error.message}`);
+                }
+            } catch (error) {
+                updateStatus('wishlistStatus', `❌ Wishlist error: ${error.message}`, 'error');
+                log('wishlistLog', `Wishlist error: ${error.message}`);
+            }
+        }
+
+        async function testGetWishlist() {
+            log('wishlistLog', 'Testing get wishlist...');
+            
+            if (!isLoggedIn()) {
+                updateStatus('wishlistStatus', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/wishlist', {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+
+                if (response.ok) {
+                    const wishlist = await response.json();
+                    updateStatus('wishlistStatus', `✅ Wishlist retrieved. Items: ${wishlist.length}`, 'success');
+                    log('wishlistLog', `Wishlist items: ${wishlist.length}`);
+                    wishlist.forEach(item => {
+                        log('wishlistLog', `- ${item.name || 'Unknown'}`);
+                    });
+                } else {
+                    const error = await response.json();
+                    updateStatus('wishlistStatus', `❌ Failed to get wishlist: ${error.message}`, 'error');
+                    log('wishlistLog', `Get wishlist failed: ${error.message}`);
+                }
+            } catch (error) {
+                updateStatus('wishlistStatus', `❌ Wishlist error: ${error.message}`, 'error');
+                log('wishlistLog', `Wishlist error: ${error.message}`);
+            }
+        }
+
+        async function testRemoveFromWishlist() {
+            log('wishlistLog', 'Testing remove from wishlist...');
+            
+            if (!testProductId) {
+                updateStatus('wishlistStatus', '❌ No product in wishlist to remove', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/wishlist/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        itemId: testProductId
+                    })
+                });
+
+                if (response.ok) {
+                    const wishlist = await response.json();
+                    updateStatus('wishlistStatus', `✅ Removed from wishlist. Remaining items: ${wishlist.length}`, 'success');
+                    log('wishlistLog', `Item removed. Remaining: ${wishlist.length}`);
+                    testProductId = null;
+                } else {
+                    const error = await response.json();
+                    updateStatus('wishlistStatus', `❌ Failed to remove: ${error.message}`, 'error');
+                    log('wishlistLog', `Remove failed: ${error.message}`);
+                }
+            } catch (error) {
+                updateStatus('wishlistStatus', `❌ Remove error: ${error.message}`, 'error');
+                log('wishlistLog', `Remove error: ${error.message}`);
+            }
+        }
+
+        // Test Payment Functions
+        async function testRazorpayOrder() {
+            log('paymentLog', 'Testing Razorpay order creation...');
+            
+            if (!isLoggedIn()) {
+                updateStatus('paymentStatus', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                // Get Razorpay key
+                const keyResponse = await fetch('/api/payment/get-key');
+                if (keyResponse.ok) {
+                    const keyData = await keyResponse.json();
+                    razorpayKey = keyData.key;
+                    log('paymentLog', `Razorpay key obtained: ${razorpayKey ? 'Yes' : 'No'}`);
+                }
+
+                // Get a product for testing
+                const productsResponse = await fetch('/api/items');
+                if (!productsResponse.ok) {
+                    throw new Error('Failed to fetch products');
+                }
+                
+                const products = await productsResponse.json();
+                if (products.length === 0) {
+                    updateStatus('paymentStatus', '❌ No products available', 'error');
+                    return;
+                }
+
+                const product = products[0];
+                const orderData = {
+                    productId: product._id,
+                    quantity: 1,
+                    amount: product.price,
+                    deliveryAddress: {
+                        recipientName: 'Test User',
+                        mobile: '1234567890',
+                        address: 'Test Address',
+                        pincode: '123456',
+                        city: 'Test City',
+                        state: 'Test State'
+                    },
+                    currency: 'INR'
+                };
+
+                log('paymentLog', `Creating order for: ${product.name} (₹${product.price})`);
+
+                const response = await fetch('/api/orders/razorpay/create-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (response.ok) {
+                    const orderResult = await response.json();
+                    testOrderId = orderResult.orderId;
+                    updateStatus('paymentStatus', `✅ Razorpay order created successfully!`, 'success');
+                    log('paymentLog', `Order created: ${orderResult.razorpayOrderId}`);
+                    log('paymentLog', `Amount: ₹${orderResult.amount_in_rupees}`);
+                } else {
+                    const error = await response.json();
+                    updateStatus('paymentStatus', `❌ Failed to create order: ${error.message}`, 'error');
+                    log('paymentLog', `Order creation failed: ${error.message}`);
+                }
+            } catch (error) {
+                updateStatus('paymentStatus', `❌ Payment error: ${error.message}`, 'error');
+                log('paymentLog', `Payment error: ${error.message}`);
+            }
+        }
+
+        async function testPaymentFlow() {
+            log('paymentLog', 'Testing complete payment flow...');
+            
+            if (!isLoggedIn()) {
+                updateStatus('paymentStatus', '❌ Please login first', 'error');
+                return;
+            }
+
+            try {
+                // First create a Razorpay order
+                await testRazorpayOrder();
+                
+                if (!testOrderId) {
+                    updateStatus('paymentStatus', '❌ Order creation failed', 'error');
+                    return;
+                }
+
+                // Simulate payment success (for testing)
+                const mockPaymentResponse = {
+                    razorpay_order_id: 'order_mock_' + Date.now(),
+                    razorpay_payment_id: 'pay_mock_' + Date.now(),
+                    razorpay_signature: 'mock_signature_' + Date.now()
+                };
+
+                log('paymentLog', 'Simulating payment success...');
+
+                const verifyResponse = await fetch('/api/orders/razorpay/verify-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        ...mockPaymentResponse,
+                        orderId: testOrderId
+                    })
+                });
+
+                if (verifyResponse.ok) {
+                    const result = await verifyResponse.json();
+                    updateStatus('paymentStatus', `✅ Payment flow completed successfully!`, 'success');
+                    log('paymentLog', `Payment verified: ${result.message}`);
+                    testOrderId = null;
+                } else {
+                    const error = await verifyResponse.json();
+                    updateStatus('paymentStatus', `❌ Payment verification failed: ${error.message}`, 'error');
+                    log('paymentLog', `Payment verification failed: ${error.message}`);
+                }
+            } catch (error) {
+                updateStatus('paymentStatus', `❌ Payment flow error: ${error.message}`, 'error');
+                log('paymentLog', `Payment flow error: ${error.message}`);
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            log('authLog', 'Page loaded. Ready for testing.');
+            if (!isLoggedIn()) {
+                updateStatus('authStatus', '⚠️ Please login first to test functionality', 'warning');
+            } else {
+                updateStatus('authStatus', '✅ Logged in. Ready to test.', 'success');
+            }
+        });
+    </script>
+</body>
+</html>
