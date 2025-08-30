@@ -171,7 +171,7 @@ const updateOrderStatus = async (req, res) => {
       status,
       timestamp: new Date(),
       description: description || `Order status updated to ${status}`,
-      updatedBy: req.user._id
+      updatedBy: req.user.id || req.user._id
     });
 
     order.status = status;
@@ -224,7 +224,7 @@ const getOrderDetails = async (req, res) => {
     }
 
     // Check if user is authorized to view this order
-    if (req.user.role !== 'admin' && order.user._id.toString() !== req.user._id.toString()) {
+    if (req.user.role !== 'admin' && order.user._id.toString() !== (req.user.id || req.user._id).toString()) {
       return res.status(403).json({ message: 'Not authorized to view this order' });
     }
 

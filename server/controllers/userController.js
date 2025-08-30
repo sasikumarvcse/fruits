@@ -141,33 +141,40 @@ exports.addToCart = async (req, res) => {
     if (!id) {
       return res.status(400).json({ message: 'No productId or itemId provided' });
     }
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    fixCartFormat(user); // Ensure cart is always in correct format
+    
     // Check if product exists
     const product = await require('../models/Item').findById(id);
     console.log('Backend: addToCart product lookup result:', product);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    // DEBUG: Log cart before
-    console.log('addToCart: cart before =', JSON.stringify(user.cart, null, 2));
-    const existing = user.cart.find(c => c.product && c.product.toString() === id.toString());
-    if (existing) {
-      existing.quantity += quantity;
-    } else {
-      user.cart.push({ product: id, quantity });
+    
+    // Use MongoDB update operation instead of saving entire user
+    const result = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        $push: { 
+          cart: { 
+            product: id, 
+            quantity: quantity 
+          } 
+        }
+      },
+      { new: true }
+    );
+    
+    if (!result) {
+      return res.status(404).json({ message: 'User not found' });
     }
-    await user.save();
-    await user.populate('cart.product');
-    // DEBUG: Log cart after
-    console.log('addToCart: cart after =', JSON.stringify(user.cart, null, 2));
-    const cartWithProduct = user.cart.map(c => ({
+    
+    // Populate cart products
+    await result.populate('cart.product');
+    
+    const cartWithProduct = result.cart.map(c => ({
       ...c.toObject(),
       product: c.product
     }));
+    
     res.json(cartWithProduct);
   } catch (error) {
     console.error('addToCart error:', error);
@@ -182,12 +189,27 @@ exports.updateCart = async (req, res) => {
     if (!id) {
       return res.status(400).json({ message: 'No productId or itemId provided' });
     }
-    const user = await User.findById(req.user.id);
-    const cartItem = user.cart.find(c => c.product && c.product.toString() === id);
-    if (cartItem) cartItem.quantity = quantity;
-    await user.save();
-    await user.populate('cart.product');
-    const cartWithProduct = user.cart.map(c => ({
+    
+    // Use MongoDB update operation instead of saving entire user
+    const result = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        $set: { 
+          "cart.$[elem].quantity": quantity 
+        }
+      },
+      { 
+        new: true,
+        arrayFilters: [{ "elem.product": id }]
+      }
+    );
+    
+    if (!result) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    await result.populate('cart.product');
+    const cartWithProduct = result.cart.map(c => ({
       ...c.toObject(),
       product: c.product
     }));
@@ -204,11 +226,24 @@ exports.removeFromCart = async (req, res) => {
     if (!id) {
       return res.status(400).json({ message: 'No productId or itemId provided' });
     }
-    const user = await User.findById(req.user.id);
-    user.cart = user.cart.filter(c => c.product && c.product.toString() !== id);
-    await user.save();
-    await user.populate('cart.product');
-    const cartWithProduct = user.cart.map(c => ({
+    
+    // Use MongoDB update operation instead of saving entire user
+    const result = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        $pull: { 
+          cart: { product: id } 
+        }
+      },
+      { new: true }
+    );
+    
+    if (!result) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    await result.populate('cart.product');
+    const cartWithProduct = result.cart.map(c => ({
       ...c.toObject(),
       product: c.product
     }));
@@ -220,9 +255,19 @@ exports.removeFromCart = async (req, res) => {
 
 exports.clearCart = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    user.cart = [];
-    await user.save();
+    // Use MongoDB update operation instead of saving entire user
+    const result = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        $set: { cart: [] }
+      },
+      { new: true }
+    );
+    
+    if (!result) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
     res.json([]);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -236,12 +281,26 @@ exports.getWishlist = async (req, res) => {
   }
   console.log('getWishlist: req.user =', req.user);
   try {
-    const user = await User.findById(req.user.id).populate('wishlist');
-    if (!user) {
+    // Use MongoDB update operation to ensure wishlist exists
+    const result = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        $setOnInsert: { wishlist: [] }
+      },
+      { 
+        new: true,
+        upsert: false
+      }
+    );
+    
+    if (!result) {
       console.log('getWishlist: User not found for id', req.user.id);
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(user.wishlist);
+    
+    // Populate and return wishlist
+    await result.populate('wishlist');
+    res.json(result.wishlist || []);
   } catch (error) {
     console.error('getWishlist: Error:', error);
     res.status(500).json({ message: error.message });
@@ -260,15 +319,30 @@ exports.addToWishlist = async (req, res) => {
     if (!id) {
       return res.status(400).json({ message: 'No productId or itemId provided' });
     }
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      console.log('addToWishlist: User not found for id', req.user.id);
+    
+    // Validate that the product exists
+    const Item = require('../models/Item');
+    const product = await Item.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    // Use MongoDB update operation instead of saving entire user
+    const result = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        $addToSet: { wishlist: id } // $addToSet only adds if not already present
+      },
+      { new: true }
+    );
+    
+    if (!result) {
       return res.status(404).json({ message: 'User not found' });
     }
-    if (!user.wishlist.includes(id)) user.wishlist.push(id);
-    await user.save();
-    await user.populate('wishlist');
-    res.json(user.wishlist);
+    
+    // Populate and return updated wishlist
+    await result.populate('wishlist');
+    res.json(result.wishlist || []);
   } catch (error) {
     console.error('addToWishlist: Error:', error);
     res.status(500).json({ message: error.message });
@@ -288,16 +362,22 @@ exports.removeFromWishlist = async (req, res) => {
     console.log('removeFromWishlist: req.user =', req.user);
     console.log('removeFromWishlist: req.body =', req.body);
     
-    const user = await User.findById(req.user.id);
-    if (!user) {
-      console.log('removeFromWishlist: User not found for id', req.user.id);
+    // Use MongoDB update operation instead of saving entire user
+    const result = await User.findByIdAndUpdate(
+      req.user.id,
+      { 
+        $pull: { wishlist: id } // $pull removes the item from array
+      },
+      { new: true }
+    );
+    
+    if (!result) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    user.wishlist = user.wishlist.filter(wishlistId => wishlistId.toString() !== id);
-    await user.save();
-    await user.populate('wishlist');
-    res.json(user.wishlist);
+    // Populate and return updated wishlist
+    await result.populate('wishlist');
+    res.json(result.wishlist || []);
   } catch (error) {
     console.error('removeFromWishlist: Error:', error);
     res.status(500).json({ message: error.message });
