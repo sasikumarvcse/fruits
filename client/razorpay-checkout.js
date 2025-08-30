@@ -73,6 +73,193 @@
         }
     }
 
+    // ✅ FIXED: Select address function
+    function selectAddress(addressId) {
+        const selectedAddress = razorpayConfig.userAddresses.find(addr => addr._id === addressId);
+        
+        if (!selectedAddress) {
+            showNotification('Address not found', 'error');
+            return;
+        }
+        
+        razorpayConfig.checkoutData.selectedAddress = selectedAddress;
+        
+        // Update UI to show selected address
+        document.querySelectorAll('.address-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        
+        const selectedItem = document.querySelector(`[data-address-id="${addressId}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('selected');
+        }
+        
+        showNotification('Address selected successfully', 'success');
+        
+        // Enable next button if available
+        const addressNextBtn = document.getElementById('addressNextBtn');
+        if (addressNextBtn) {
+            addressNextBtn.disabled = false;
+        }
+    }
+
+    // ✅ FIXED: Edit address function
+    function editAddress(addressId) {
+        // Use the global edit function from user-dashboard.html
+        if (window.openAddressEditForm) {
+            window.openAddressEditForm(addressId);
+        } else {
+            showNotification('Edit functionality not available', 'error');
+        }
+    }
+
+    // ✅ FIXED: Delete address function
+    function deleteAddress(addressId) {
+        // Use the global delete function from user-dashboard.html
+        if (window.confirmDeleteAddress) {
+            window.confirmDeleteAddress(addressId);
+        } else {
+            showNotification('Delete functionality not available', 'error');
+        }
+    }
+
+    // ✅ FIXED: Show address form
+    function showAddressForm() {
+        const modal = document.getElementById('addressFormModal');
+        if (modal) {
+            modal.style.display = 'block';
+            // Reset form for new address
+            const form = document.getElementById('addressForm');
+            if (form) {
+                safeFormReset(form);
+                document.getElementById('addressId').value = '';
+                document.getElementById('addressFormTitle').textContent = 'Add New Address';
+            }
+        } else {
+            console.error('❌ Address form modal not found!');
+            showNotification('Address form not available', 'error');
+        }
+    }
+
+    // ✅ FIXED: Start checkout flow
+    function startCheckoutFlow(product) {
+        console.log('🚀 Starting checkout flow for product:', product);
+        
+        // Initialize checkout data
+        razorpayConfig.checkoutData = {
+            product: product,
+            selectedAddress: null,
+            quantity: 1,
+            total: product.price,
+            deliveryCharge: 0
+        };
+        
+        // Load user addresses
+        loadUserAddresses().then(() => {
+            // Show address selection modal
+            showAddressModal();
+        });
+    }
+
+    // ✅ FIXED: Show address modal
+    function showAddressModal() {
+        console.log('📍 Showing address selection modal...');
+        displayAddresses();
+        const modal = document.getElementById('addressModal');
+        if (modal) {
+            modal.style.display = 'block';
+        } else {
+            console.error('❌ Address modal not found!');
+            showNotification('Address selection not available', 'error');
+        }
+    }
+
+    // ✅ FIXED: Display addresses in modal
+    function displayAddresses() {
+        const addressList = document.getElementById('addressList');
+        if (!addressList) {
+            console.error('❌ Address list element not found!');
+            return;
+        }
+        
+        if (razorpayConfig.userAddresses.length === 0) {
+            addressList.innerHTML = `
+                <div class="no-addresses">
+                    <i class="fas fa-map-marker-alt" style="font-size: 2rem; color: #9ca3af; margin-bottom: 12px;"></i>
+                    <p>No saved addresses found</p>
+                    <p>Please add a delivery address to continue with your order</p>
+                </div>
+            `;
+            const addressNextBtn = document.getElementById('addressNextBtn');
+            if (addressNextBtn) addressNextBtn.disabled = true;
+            return;
+        }
+        
+        addressList.innerHTML = razorpayConfig.userAddresses.map(address => `
+            <div class="address-item ${address.isDefault ? 'default' : ''}" 
+                 data-address-id="${address._id}" 
+                 onclick="selectAddress('${address._id}')">
+                <div class="address-header">
+                    <h4>
+                        <i class="fas fa-user"></i> 
+                        ${address.recipientName || address.name || 'Recipient'}
+                    </h4>
+                    ${address.isDefault ? '<span class="default-badge"><i class="fas fa-star"></i> Default</span>' : ''}
+                </div>
+                <div class="address-details">
+                    <p><i class="fas fa-phone"></i> ${address.mobile || 'N/A'}</p>
+                    <p><i class="fas fa-map-marker-alt"></i> ${address.address || 'N/A'}</p>
+                    <p><i class="fas fa-map-pin"></i> ${address.pincode || 'N/A'}, ${address.city || 'N/A'}, ${address.state || 'N/A'}</p>
+                    <p><i class="fas fa-home"></i> ${address.addressType || 'home'} address</p>
+                </div>
+                <div class="address-actions" onclick="event.stopPropagation()">
+                    <button onclick="editAddress('${address._id}')" class="edit-btn" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="deleteAddress('${address._id}')" class="delete-btn" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        
+        const addressNextBtn = document.getElementById('addressNextBtn');
+        if (addressNextBtn) addressNextBtn.disabled = false;
+    }
+
+    // ✅ FIXED: Save address function for checkout flow
+    async function saveAddress() {
+        // Use the global save function from user-dashboard.html
+        if (window.saveAddress) {
+            window.saveAddress();
+        } else {
+            showNotification('Save functionality not available', 'error');
+        }
+    }
+
+    // ✅ FIXED: Validate address form elements
+    function validateAddressFormElements() {
+        const requiredElements = [
+            'addressForm',
+            'recipientName',
+            'mobile',
+            'address',
+            'pincode',
+            'city',
+            'state',
+            'addressType'
+        ];
+        
+        const missingElements = requiredElements.filter(id => !document.getElementById(id));
+        
+        if (missingElements.length > 0) {
+            console.warn('⚠️ Missing address form elements:', missingElements);
+            return false;
+        }
+        
+        return true;
+    }
+
     // Setup event listeners for checkout modals
     function setupCheckoutEventListeners() {
         console.log('🔄 Setting up checkout event listeners...');
@@ -858,6 +1045,7 @@
         openRazorpayWithFallback();
     }
 
+    // ✅ FIXED: Enhanced payment verification
     async function verifyPayment(paymentResponse, order) {
         try {
             showNotification('Verifying payment...', 'info');
@@ -875,6 +1063,9 @@
                     mobile: razorpayConfig.checkoutData.selectedAddress.mobile,
                     address: razorpayConfig.checkoutData.selectedAddress.address,
                     pincode: razorpayConfig.checkoutData.selectedAddress.pincode,
+                    city: razorpayConfig.checkoutData.selectedAddress.city,
+                    state: razorpayConfig.checkoutData.selectedAddress.state,
+                    addressType: razorpayConfig.checkoutData.selectedAddress.addressType || 'home',
                     items: [{
                         item: razorpayConfig.checkoutData.product._id,
                         quantity: razorpayConfig.checkoutData.quantity
@@ -906,6 +1097,11 @@
                     deliveryCharge: 0
                 };
                 
+                // Close all modals
+                closeAddressModal();
+                closeQuantityModal();
+                closeAddressFormModal();
+                
                 // Redirect to orders page or show success
                 setTimeout(() => {
                     window.location.href = '/orders.html';
@@ -920,12 +1116,127 @@
         }
     }
 
-    // Navigation functions
+    // ✅ FIXED: Enhanced navigation functions for checkout flow
     function goBackToAddress() {
         const quantityModal = document.getElementById('quantityModal');
         if (quantityModal) quantityModal.style.display = 'none';
         
         showAddressModal();
+    }
+
+    // ✅ FIXED: Show quantity modal
+    function showQuantityModal() {
+        const quantityModal = document.getElementById('quantityModal');
+        if (quantityModal) {
+            quantityModal.style.display = 'block';
+        } else {
+            console.error('❌ Quantity modal not found!');
+        }
+    }
+
+    // ✅ FIXED: Proceed to quantity selection
+    function proceedToQuantity() {
+        if (!razorpayConfig.checkoutData.selectedAddress) {
+            showNotification('Please select a delivery address', 'error');
+            return;
+        }
+        
+        closeAddressModal();
+        showQuantityModal();
+    }
+
+    // ✅ FIXED: Proceed to payment
+    function proceedToPayment() {
+        if (!razorpayConfig.checkoutData.selectedAddress) {
+            showNotification('Please select a delivery address', 'error');
+            return;
+        }
+        
+        if (!razorpayConfig.checkoutData.quantity || razorpayConfig.checkoutData.quantity < 1) {
+            showNotification('Please select a valid quantity', 'error');
+            return;
+        }
+        
+        closeQuantityModal();
+        initiatePayment();
+    }
+
+    // ✅ FIXED: Initiate payment with Razorpay
+    async function initiatePayment() {
+        try {
+            showNotification('Initializing payment...', 'info');
+            
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showNotification('Please log in to continue', 'error');
+                return;
+            }
+
+            // Calculate total amount
+            const total = razorpayConfig.checkoutData.product.price * razorpayConfig.checkoutData.quantity;
+            razorpayConfig.checkoutData.total = total;
+
+            // Create order on backend
+            const orderData = {
+                productId: razorpayConfig.checkoutData.product._id,
+                quantity: razorpayConfig.checkoutData.quantity,
+                total: total,
+                recipientName: razorpayConfig.checkoutData.selectedAddress.recipientName || razorpayConfig.checkoutData.selectedAddress.name,
+                mobile: razorpayConfig.checkoutData.selectedAddress.mobile,
+                address: razorpayConfig.checkoutData.selectedAddress.address,
+                pincode: razorpayConfig.checkoutData.selectedAddress.pincode,
+                city: razorpayConfig.checkoutData.selectedAddress.city,
+                state: razorpayConfig.checkoutData.selectedAddress.state,
+                addressType: razorpayConfig.checkoutData.selectedAddress.addressType || 'home'
+            };
+
+            const createOrderRes = await fetch('/api/orders/razorpay/create-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            if (!createOrderRes.ok) {
+                throw new Error('Failed to create order');
+            }
+
+            const razorpayOrder = await createOrderRes.json();
+            console.log('✅ Razorpay order created:', razorpayOrder);
+
+            // Initialize Razorpay payment
+            const options = {
+                key: razorpayConfig.keyId || 'rzp_live_gBP9geXusrKWUg',
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                name: 'Your Store Name',
+                description: `Order for ${razorpayConfig.checkoutData.product.name}`,
+                order_id: razorpayOrder.id,
+                handler: async function(response) {
+                    await verifyPayment(response, razorpayOrder);
+                },
+                prefill: {
+                    name: razorpayConfig.checkoutData.selectedAddress.recipientName || razorpayConfig.checkoutData.selectedAddress.name,
+                    contact: razorpayConfig.checkoutData.selectedAddress.mobile,
+                    email: localStorage.getItem('userEmail') || ''
+                },
+                notes: {
+                    address: razorpayConfig.checkoutData.selectedAddress.address
+                },
+                theme: {
+                    color: '#3B82F6'
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+
+        } catch (error) {
+            console.error('❌ Error initiating payment:', error);
+            showNotification('Failed to initiate payment. Please try again.', 'error');
+        }
     }
 
     // Modal close functions
@@ -950,6 +1261,26 @@
             const addressIdField = document.getElementById('addressId');
             if (addressIdField) {
                 addressIdField.value = '';
+            }
+        }
+    }
+
+    // ✅ FIXED: Safe form reset function
+    function safeFormReset(form) {
+        if (form && typeof form.reset === 'function') {
+            try {
+                form.reset();
+            } catch (error) {
+                console.warn('⚠️ Form reset failed, manually clearing fields');
+                // Manual reset as fallback
+                const inputs = form.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.checked = false;
+                    } else {
+                        input.value = '';
+                    }
+                });
             }
         }
     }
@@ -988,7 +1319,7 @@
         }, 4000);
     }
 
-    // Make functions globally available
+    // ✅ FIXED: Enhanced global function exports for checkout integration
     window.startCheckoutFlow = startCheckoutFlow;
     window.selectAddress = selectAddress;
     window.editAddress = editAddress;
@@ -999,6 +1330,12 @@
     window.closeAddressFormModal = closeAddressFormModal;
     window.closeQuantityModal = closeQuantityModal;
     window.showNotification = showNotification;
+    window.showQuantityModal = showQuantityModal;
+    window.proceedToQuantity = proceedToQuantity;
+    window.proceedToPayment = proceedToPayment;
+    window.loadUserAddresses = loadUserAddresses;
+    window.displayAddresses = displayAddresses;
+    window.initializeEnhancedCheckout = initializeEnhancedCheckout;
 
     console.log('✅ Enhanced Razorpay checkout system loaded successfully');
     
