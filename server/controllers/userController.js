@@ -118,9 +118,10 @@ exports.getCart = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     fixCartFormat(user); // Ensure cart is always in correct format
-    // DEBUG: Log the populated cart
-    console.log('getCart: user.cart =', JSON.stringify(user.cart, null, 2));
-    const cartWithProduct = user.cart.map(c => ({
+    // Avoid heavy logs to prevent OOM and reduce noise
+    const cartWithProduct = user.cart
+      .filter(c => c && c.product) // filter out null products
+      .map(c => ({
       ...c.toObject(),
       product: c.product
     }));
