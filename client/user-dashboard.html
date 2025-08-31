@@ -2,7 +2,7 @@
 <html lang="en" class="overflow-x-hidden">
 <head>
       <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>🥗 Arobowl - Bowl Your Way to Wellness</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -598,40 +598,83 @@
       right: 20px;
       z-index: 9999;
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      border-left: 4px solid #10b981;
-      padding: 1rem 1.5rem;
-      max-width: 400px;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border-left: 5px solid #10b981;
+      padding: 1.25rem 1.75rem;
+      max-width: 420px;
+      min-width: 300px;
       transform: translateX(100%);
-      transition: transform 0.3s ease;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .notification.show {
       transform: translateX(0);
+      animation: notificationBounce 0.6s ease-out;
+    }
+
+    @keyframes notificationBounce {
+      0% { transform: translateX(100%) scale(0.9); opacity: 0; }
+      50% { transform: translateX(-10px) scale(1.02); opacity: 0.8; }
+      100% { transform: translateX(0) scale(1); opacity: 1; }
+    }
+
+    .notification.success {
+      border-left-color: #10b981;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(255, 255, 255, 0.95));
     }
 
     .notification.error {
       border-left-color: #ef4444;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(255, 255, 255, 0.95));
     }
 
     .notification.warning {
       border-left-color: #f59e0b;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(255, 255, 255, 0.95));
     }
 
     .notification.info {
       border-left-color: #3b82f6;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(255, 255, 255, 0.95));
     }
 
     .notification-content {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 1rem;
     }
 
     .notification-message {
       color: #1f2937;
-      font-weight: 500;
+      font-weight: 600;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .notification-icon {
+      font-size: 1.25rem;
+      margin-right: 0.75rem;
+    }
+
+    .notification.success .notification-icon {
+      color: #10b981;
+    }
+
+    .notification.error .notification-icon {
+      color: #ef4444;
+    }
+
+    .notification.warning .notification-icon {
+      color: #f59e0b;
+    }
+
+    .notification.info .notification-icon {
+      color: #3b82f6;
     }
 
     .notification-close {
@@ -639,13 +682,295 @@
       border: none;
       color: #6b7280;
       cursor: pointer;
-      font-size: 1.25rem;
-      padding: 0;
-      margin-left: 1rem;
+      font-size: 1.5rem;
+      padding: 0.25rem;
+      margin-left: 0.5rem;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .notification-close:hover {
       color: #374151;
+      background: rgba(107, 114, 128, 0.1);
+      transform: scale(1.1);
+    }
+
+    /* Mobile Compatibility Enhancements */
+    @media (max-width: 768px) {
+      .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        min-width: auto;
+        padding: 1rem;
+      }
+      
+      .notification-content {
+        gap: 0.5rem;
+      }
+      
+      .notification-message {
+        font-size: 0.9rem;
+      }
+      
+      /* Cart sidebar mobile adjustments */
+      .cart-sidebar {
+        width: 100% !important;
+      }
+      
+      /* Product cards mobile optimization */
+      .product-card {
+        margin-bottom: 1rem;
+      }
+      
+      .product-card .flex {
+        flex-direction: column !important;
+      }
+      
+      .product-card img {
+        height: 200px !important;
+        width: 100% !important;
+      }
+      
+      /* Button adjustments for mobile */
+      .product-card button {
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+      }
+      
+      /* Wishlist modal mobile */
+      .wishlist-modal {
+        width: 95% !important;
+        max-width: none !important;
+        margin: 1rem !important;
+      }
+      
+      /* Category cards mobile */
+      .category-card {
+        min-width: 140px;
+      }
+      
+      /* Hero banner mobile */
+      .hero-banner h1 {
+        font-size: 2rem !important;
+      }
+      
+      .hero-banner p {
+        font-size: 1.1rem !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      /* Extra small devices */
+      .notification {
+        top: 5px;
+        right: 5px;
+        left: 5px;
+        padding: 0.75rem;
+      }
+      
+      .notification-message {
+        font-size: 0.85rem;
+      }
+      
+      /* Product grid adjustments */
+      .products-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+      }
+      
+      /* Category cards extra small */
+      .category-card {
+        min-width: 120px;
+        padding: 0.75rem;
+      }
+      
+      .category-card .w-16 {
+        width: 3rem !important;
+        height: 3rem !important;
+      }
+      
+      .category-card i {
+        font-size: 1.25rem !important;
+      }
+      
+      /* Modal adjustments for extra small screens */
+      .modal-content {
+        width: 95% !important;
+        margin: 5% auto !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+      }
+      
+      /* Header adjustments */
+      .hero-banner h1 {
+        font-size: 1.75rem !important;
+      }
+      
+      .hero-banner p {
+        font-size: 1rem !important;
+      }
+    }
+
+    /* Comprehensive Mobile Compatibility */
+    @media (max-width: 1024px) {
+      /* Tablet and mobile adjustments */
+      .modal-content {
+        max-width: 90% !important;
+        margin: 3% auto !important;
+      }
+      
+      /* Product modal adjustments */
+      .product-modal .modal-content {
+        max-width: 95% !important;
+        margin: 2% auto !important;
+      }
+      
+      /* Cart sidebar full width on tablets */
+      .cart-sidebar {
+        width: 100% !important;
+      }
+    }
+
+    /* Navigation mobile enhancements */
+    @media (max-width: 768px) {
+      /* Mobile navigation */
+      #mainNav {
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        width: 100% !important;
+        background: white !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+        border-top: 1px solid #e5e7eb !important;
+        padding: 1rem 0 !important;
+      }
+      
+      #mainNav.hidden {
+        display: none !important;
+      }
+      
+      #mainNav a {
+        display: block !important;
+        padding: 0.75rem 1rem !important;
+        border-bottom: 1px solid #f3f4f6 !important;
+      }
+      
+      /* Header user menu mobile */
+      #userDropdown {
+        right: 0 !important;
+        left: auto !important;
+        width: 200px !important;
+      }
+      
+      /* Search adjustments */
+      .search-container {
+        width: 100% !important;
+        margin: 0 !important;
+      }
+      
+      /* Touch-friendly buttons */
+      button {
+        min-height: 44px !important;
+        min-width: 44px !important;
+      }
+      
+      /* Product card mobile adjustments */
+      .product-card {
+        border-radius: 1rem !important;
+        margin-bottom: 1rem !important;
+      }
+      
+      .product-card button {
+        padding: 0.75rem 1rem !important;
+        font-size: 0.9rem !important;
+      }
+      
+      /* Modal mobile specific */
+      .modal {
+        padding: 0.5rem !important;
+      }
+      
+      .modal-content {
+        border-radius: 1rem !important;
+        max-height: 95vh !important;
+        overflow-y: auto !important;
+      }
+      
+      /* Cart sidebar mobile */
+      .cart-sidebar {
+        border-radius: 0 !important;
+      }
+      
+      /* Form inputs mobile */
+      input, textarea, select {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+      }
+      
+      /* Notification mobile adjustments */
+      .notification {
+        top: 10px !important;
+        right: 10px !important;
+        left: 10px !important;
+        max-width: none !important;
+        min-width: auto !important;
+        transform: translateY(-100%) !important;
+        transition: transform 0.3s ease !important;
+      }
+      
+      .notification.show {
+        transform: translateY(0) !important;
+      }
+      
+      /* Touch-friendly close button */
+      .notification-close {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 1.25rem !important;
+      }
+    }
+
+    /* Touch and Gesture Enhancements */
+    @media (hover: none) and (pointer: coarse) {
+      /* Touch devices */
+      .hover\:scale-105:hover {
+        transform: scale(1.02) !important;
+      }
+      
+      .hover\:shadow-xl:hover {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+      }
+      
+      /* Reduce hover effects on touch devices */
+      .group:hover .group-hover\:scale-105 {
+        transform: scale(1.01) !important;
+      }
+    }
+
+    /* Accessibility and usability */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+      .notification {
+        border: 2px solid currentColor !important;
+      }
+      
+      button {
+        border: 1px solid currentColor !important;
+      }
     }
 
     /* Loading States */
@@ -1331,19 +1656,46 @@
     </div>
   </div>
 
-  <!-- Wishlist Modal -->
-  <div id="wishlistModal" class="modal" style="display:none;">
-    <div class="modal-content max-w-2xl mx-auto p-6 rounded-lg bg-white shadow-lg relative">
-        <h3 class="text-xl font-semibold text-gray-900">My Wishlist</h3>
-      <button onclick="closeWishlistModal()" class="text-gray-400 hover:text-gray-600 absolute top-4 right-4"><i class="fas fa-times text-xl"></i></button>
-      <div class="flex justify-end mb-4">
-        <button id="shareWishlistBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center"><i class="fas fa-share-alt mr-2"></i>Share Wishlist</button>
+  <!-- Enhanced Wishlist Modal -->
+  <div id="wishlistModal" class="modal wishlist-modal" style="display:none;">
+    <div class="modal-content max-w-4xl mx-auto p-0 rounded-2xl bg-white shadow-2xl relative overflow-hidden">
+      <!-- Wishlist Header -->
+      <div class="bg-gradient-to-r from-red-500 to-pink-500 p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-heart text-2xl"></i>
+            <h3 class="text-2xl font-bold">My Wishlist</h3>
+          </div>
+          <button onclick="closeWishlistModal()" class="text-white hover:text-red-200 transition-colors">
+            <i class="fas fa-times text-2xl"></i>
+          </button>
+        </div>
+        <p class="mt-2 opacity-90">Your favorite products saved for later</p>
       </div>
-      <div id="shareWishlistLink" class="mb-4 hidden">
-        <input type="text" id="wishlistShareUrl" class="w-full border rounded p-2 mb-2" readonly />
-        <button onclick="copyWishlistLink()" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Copy Link</button>
+      
+      <!-- Wishlist Actions -->
+      <div class="p-4 bg-gray-50 border-b">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            <i class="fas fa-info-circle"></i>
+            <span>Tap the heart to remove from wishlist</span>
+          </div>
+          <button id="shareWishlistBtn" class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-full hover:from-blue-600 hover:to-purple-600 transition-all flex items-center gap-2">
+            <i class="fas fa-share-alt"></i>Share Wishlist
+          </button>
+        </div>
+        <div id="shareWishlistLink" class="mt-4 hidden">
+          <div class="flex gap-2">
+            <input type="text" id="wishlistShareUrl" class="flex-1 border border-gray-300 rounded-lg p-3 text-sm" readonly placeholder="Wishlist share link will appear here" />
+            <button onclick="copyWishlistLink()" class="bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 transition-colors">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+        </div>
       </div>
-      <div id="wishlistContent" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      <!-- Wishlist Content -->
+      <div id="wishlistContent" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-96 overflow-y-auto">
         <!-- Wishlist items will be loaded here -->
       </div>
     </div>
@@ -1565,13 +1917,42 @@
       setUserInfo();
       updateCartCount();
       fetchCart();
+      // Initialize product states after a short delay to ensure products are loaded
+      setTimeout(() => {
+        initializeProductStates();
+      }, 1000);
       // fetchWishlist(); // Commented out - function not needed in dashboard
       // updateNavbarBadges(); // Disabled: function not defined, caused JS error
       
-      // Hamburger menu toggle
+      // Enhanced Hamburger menu toggle with animation
       document.getElementById('mobileMenuBtn').addEventListener('click', function() {
         const nav = document.getElementById('mainNav');
+        const icon = this.querySelector('i');
+        
         nav.classList.toggle('hidden');
+        
+        // Animate hamburger icon
+        if (nav.classList.contains('hidden')) {
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-bars');
+        } else {
+          icon.classList.remove('fa-bars');
+          icon.classList.add('fa-times');
+        }
+      });
+      
+      // Close mobile menu when clicking outside
+      document.addEventListener('click', function(e) {
+        const nav = document.getElementById('mainNav');
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        
+        if (!nav.contains(e.target) && !mobileBtn.contains(e.target)) {
+          if (!nav.classList.contains('hidden')) {
+            nav.classList.add('hidden');
+            mobileBtn.querySelector('i').classList.remove('fa-times');
+            mobileBtn.querySelector('i').classList.add('fa-bars');
+          }
+        }
       });
       
       // Filter functionality removed - sidebar filters no longer exist
@@ -1964,24 +2345,35 @@
       
       try {
         // Get cart items
-        const cart = await window.getCart();
+        const cartResponse = await fetch('/api/cart', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!cartResponse.ok) {
+          showNotification('Error loading cart', 'error');
+          return;
+        }
+        
+        const cart = await cartResponse.json();
         if (!cart || cart.length === 0) {
           showNotification('Your cart is empty', 'error');
           return;
         }
         
-        // Use the enhanced checkout system from script.js if available
-        if (window.openAddressSelectionModal) {
-          window.openAddressSelectionModal('cart');
-        } else if (window.startCartCheckout) {
-          window.startCartCheckout();
-        } else {
-          // Fallback: simple checkout
-          showNotification('Opening checkout...', 'info');
-          // For now, just navigate to a checkout page or show a modal
-          console.log('Cart contents:', cart);
-          showNotification('Checkout functionality will be implemented', 'info');
+        // Calculate total
+        let total = 0;
+        for (const item of cart) {
+          const productResponse = await fetch(`/api/items/${item.productId}`);
+          if (productResponse.ok) {
+            const product = await productResponse.json();
+            total += product.price * item.quantity;
+          }
         }
+        
+        // Navigate to enhanced checkout page with cart details
+        const checkoutUrl = `enhanced-checkout.html?type=cart&total=${total}`;
+        window.location.href = checkoutUrl;
+        
       } catch (error) {
         console.error('❌ Cart checkout error:', error);
         showNotification('Error during checkout', 'error');
@@ -3137,10 +3529,12 @@
           body: JSON.stringify({ itemId, quantity: qty })
         });
         if (response.ok) {
-          showNotification('Product added to cart!');
+          showNotification('🛒 Product added to cart successfully!', 'success');
           updateCartCount();
           fetchCart();
           updateCartIcon(itemId, true);
+          // Refresh states after a brief delay
+          setTimeout(() => refreshProductStates(), 500);
         } else {
           const error = await response.json();
           showNotification(error.message || 'Failed to add to cart', 'error');
@@ -3157,15 +3551,19 @@
       const cartButtons = document.querySelectorAll(`[onclick*="addToCart('${itemId}')"]`);
       cartButtons.forEach(button => {
         if (added) {
-          button.innerHTML = '<i class="fas fa-check text-green-600 mr-2"></i>Added to Cart';
-          button.classList.add('bg-green-600', 'hover:bg-green-700');
-          button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-          // Reset after 3 seconds
-          setTimeout(() => {
-            button.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i>ADD TO CART';
-            button.classList.remove('bg-green-600', 'hover:bg-green-700');
-            button.classList.add('bg-blue-600', 'hover:bg-blue-700');
-          }, 3000);
+          button.innerHTML = '<i class="fas fa-shopping-cart text-white mr-2"></i>In Cart';
+          button.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'bg-green-500', 'hover:bg-green-600');
+          button.classList.add('bg-orange-500', 'hover:bg-orange-600');
+          button.style.background = 'linear-gradient(135deg, #f97316, #ea580c)';
+          button.style.boxShadow = '0 4px 15px rgba(249, 115, 22, 0.4)';
+          button.disabled = true;
+        } else {
+          button.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i>Add to Cart';
+          button.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+          button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+          button.style.background = '';
+          button.style.boxShadow = '';
+          button.disabled = false;
         }
       });
     }
@@ -3190,7 +3588,7 @@
         });
 
         if (response.ok) {
-          showNotification('Product added to wishlist!');
+          showNotification('❤️ Product added to wishlist successfully!', 'success');
           updateWishlistIcon(itemId, true);
           // Refresh wishlist if on wishlist page
           if (window.location.pathname.includes('wishlist')) {
@@ -3222,7 +3620,7 @@
         });
 
         if (response.ok) {
-          showNotification('Product removed from wishlist');
+          showNotification('💔 Product removed from wishlist', 'success');
           updateWishlistIcon(itemId, false);
           // Refresh wishlist if on wishlist page
           if (window.location.pathname.includes('wishlist')) {
@@ -3240,18 +3638,21 @@
 
     // Update wishlist icon function
     function updateWishlistIcon(itemId, added) {
-      const wishlistButtons = document.querySelectorAll(`[onclick*="addToWishlist('${itemId}')"]`);
+      const wishlistButtons = document.querySelectorAll(`[onclick*="addToWishlist('${itemId}')"], [onclick*="toggleWishlist('${itemId}')"]`);
       wishlistButtons.forEach(button => {
         if (added) {
-          button.innerHTML = '<i class="fas fa-heart text-red-600 mr-2"></i>Added to Wishlist';
-          button.classList.add('bg-red-600', 'hover:bg-red-700');
-          button.classList.remove('bg-gray-600', 'hover:bg-gray-700');
-          // Reset after 3 seconds
-          setTimeout(() => {
-            button.innerHTML = '<i class="fas fa-heart mr-2"></i>Add to Wishlist';
-            button.classList.remove('bg-red-600', 'hover:bg-red-700');
-            button.classList.add('bg-gray-600', 'hover:bg-gray-700');
-          }, 3000);
+          button.innerHTML = '<i class="fas fa-heart text-white mr-2"></i>In Wishlist';
+          button.classList.remove('bg-gray-600', 'hover:bg-gray-700', 'bg-pink-500', 'hover:bg-pink-600');
+          button.classList.add('bg-red-500', 'hover:bg-red-600');
+          button.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+          button.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)';
+          // Keep the heart filled and red permanently when in wishlist
+        } else {
+          button.innerHTML = '<i class="far fa-heart mr-2"></i>Add to Wishlist';
+          button.classList.remove('bg-red-500', 'hover:bg-red-600');
+          button.classList.add('bg-gray-600', 'hover:bg-gray-700');
+          button.style.background = '';
+          button.style.boxShadow = '';
         }
       });
     }
@@ -3306,20 +3707,38 @@
           const itemTotal = product.price * item.quantity;
           subtotal += itemTotal;
           cartItemsContainer.innerHTML += `
-            <div class="flex items-center mb-4 pb-4 border-b border-gray-200">
+            <div class="flex items-center mb-4 pb-4 border-b border-gray-200 bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors">
               <img src="${getProductImageUrl(product)}" 
                    alt="${product.name}" 
-                   class="w-16 h-16 object-cover rounded mr-3"
+                   class="w-20 h-20 object-cover rounded-lg mr-4 shadow-sm"
                    onerror="this.onerror=null;this.src='/uploads/default-item.jpg';">
+              
               <div class="flex-1">
-                <div class="font-medium text-base">${product.name}</div>
-                <div class="text-xs text-gray-500">Qty: ${item.quantity} × ₹${product.price ? product.price.toFixed(2) : ''}</div>
+                <div class="font-semibold text-base text-gray-900 mb-1">${product.name}</div>
+                <div class="text-sm text-gray-600 mb-2">₹${product.price ? product.price.toFixed(2) : '0.00'} each</div>
+                
+                <!-- Quantity Controls -->
+                <div class="flex items-center gap-2">
+                  <button onclick="updateCartItem('${product._id}', ${item.quantity - 1})" 
+                          class="w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors ${item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+                          ${item.quantity <= 1 ? 'disabled' : ''}>
+                    <i class="fas fa-minus text-xs"></i>
+                  </button>
+                  <span class="w-12 text-center font-medium bg-white border border-gray-300 rounded px-2 py-1">${item.quantity}</span>
+                  <button onclick="updateCartItem('${product._id}', ${item.quantity + 1})" 
+                          class="w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-plus text-xs"></i>
+                  </button>
+                </div>
               </div>
-              <div class="font-semibold text-base ml-2">₹${itemTotal.toFixed(2)}</div>
-              <button onclick="removeFromCart('${product._id}')" 
-                      class="ml-4 text-red-500 hover:text-red-700">
-                <i class="fas fa-trash"></i>
-              </button>
+              
+              <div class="text-right">
+                <div class="font-bold text-lg text-gray-900 mb-2">₹${itemTotal.toFixed(2)}</div>
+                <button onclick="removeFromCart('${product._id}')" 
+                        class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition-colors text-sm">
+                  <i class="fas fa-trash mr-1"></i>Remove
+                </button>
+              </div>
             </div>
           `;
         });
@@ -3343,9 +3762,10 @@
           body: JSON.stringify({ itemId })
         });
         if (response.ok) {
-          showNotification('Item removed from cart');
+          showNotification('🗑️ Item removed from cart successfully', 'success');
           updateCartCount();
           fetchCart();
+          updateCartIcon(itemId, false);
         }
       } catch (error) {
         console.error('Error removing from cart:', error);
@@ -3372,10 +3792,54 @@
         if (response.ok) {
           fetchCart();
           updateCartCount();
+          showNotification('📝 Quantity updated successfully', 'success');
         }
       } catch (error) {
         console.error('Error updating cart:', error);
         showNotification('Error updating quantity', 'error');
+      }
+    }
+
+    // ✅ FIXED: Clear Cart Function
+    async function clearCart() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showNotification('Please login to manage cart', 'error');
+          return;
+        }
+
+        // Show confirmation dialog
+        if (!confirm('Are you sure you want to clear all items from your cart?')) {
+          return;
+        }
+
+        const response = await fetch('/api/cart/clear', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          showNotification('Cart cleared successfully', 'success');
+          fetchCart();
+          updateCartCount();
+          // Update all cart icons to show items are no longer in cart
+          const cartButtons = document.querySelectorAll('[onclick*="addToCart"]');
+          cartButtons.forEach(button => {
+            button.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i>Add to Cart';
+            button.classList.remove('bg-green-600', 'hover:bg-green-700');
+            button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+          });
+        } else {
+          const error = await response.json();
+          showNotification(error.message || 'Failed to clear cart', 'error');
+        }
+      } catch (error) {
+        console.error('Error clearing cart:', error);
+        showNotification('Error clearing cart', 'error');
       }
     }
 
@@ -3427,7 +3891,7 @@
         });
         
         if (response.ok) {
-          showNotification(isInWishlist ? 'Removed from wishlist' : 'Added to wishlist');
+          showNotification(isInWishlist ? '💔 Removed from wishlist' : '❤️ Added to wishlist successfully!', 'success');
           updateWishlistIcon(itemId, !isInWishlist);
           await loadUserCartAndWishlist();
         } else {
@@ -3506,32 +3970,58 @@
         console.log('Wishlist items count:', wishlist.length);
         
         if (!wishlist || wishlist.length === 0) {
-          wishlistContent.innerHTML = '<p class="text-gray-500 col-span-2 text-center py-8">Your wishlist is empty</p>';
+          wishlistContent.innerHTML = `
+            <div class="col-span-full text-center py-12">
+              <i class="fas fa-heart text-6xl text-gray-300 mb-4"></i>
+              <p class="text-gray-500 text-lg mb-2">Your wishlist is empty</p>
+              <p class="text-gray-400 text-sm mb-6">Start adding products you love!</p>
+              <button onclick="closeWishlistModal()" class="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-full hover:from-red-600 hover:to-pink-600 transition-all">
+                <i class="fas fa-shopping-bag mr-2"></i>Browse Products
+              </button>
+            </div>
+          `;
         } else {
           console.log('Rendering wishlist items...');
           wishlistContent.innerHTML = wishlist.map(product => {
             console.log('Rendering product:', product.name, product._id);
             return `
-              <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+              <div class="product-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group border border-gray-100">
                 <div class="relative">
                   <img src="${getProductImageUrl(product)}" 
                        alt="${product.name}" 
-                       class="w-full h-48 object-cover"
+                       class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                        onerror="this.onerror=null;this.src='/uploads/default-item.jpg';">
-                  <button onclick="toggleWishlist(this)" 
-                          class="absolute top-2 right-2 p-2 rounded-full bg-white shadow-md wishlist-icon"
+                  
+                  <!-- Remove from wishlist button (heart overlay) -->
+                  <button onclick="removeFromWishlist('${product._id}')" 
+                          class="absolute top-3 right-3 w-12 h-12 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all duration-200 shadow-lg hover:scale-110 wishlist-icon"
                           data-product-id="${product._id}">
-                    <i class="fas fa-heart text-red-500"></i>
+                    <i class="fas fa-heart text-red-500 text-lg"></i>
                   </button>
+                  
+                  <!-- Price badge -->
+                  <div class="absolute bottom-3 left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-2 rounded-full shadow-lg">
+                    <span class="font-bold">₹${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                  </div>
                 </div>
-                <div class="p-4">
-                  <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">${product.name || 'Unnamed Product'}</h3>
-                  <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description || 'No description available'}</p>
-                  <div class="flex justify-between items-center">
-                    <span class="text-xl font-bold text-blue-600">₹${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                
+                <div class="p-5">
+                  <h4 class="font-bold text-gray-900 mb-2 text-lg line-clamp-1">${product.name || 'Unnamed Product'}</h4>
+                  <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description || 'No description available'}</p>
+                  
+                  <!-- Action buttons -->
+                  <div class="flex gap-3">
                     <button onclick="addToCart('${product._id}')" 
-                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-                      Add to Cart
+                            class="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-4 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-200 font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
+                      <i class="fas fa-shopping-cart"></i>
+                      <span class="hidden sm:inline">Add to Cart</span>
+                      <span class="sm:hidden">Cart</span>
+                    </button>
+                    <button onclick="handleBuyNow('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${getProductImageUrl(product)}', this)" 
+                            class="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-4 rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-200 font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
+                      <i class="fas fa-bolt"></i>
+                      <span class="hidden sm:inline">Buy Now</span>
+                      <span class="sm:hidden">Buy</span>
                     </button>
                   </div>
                 </div>
@@ -3724,12 +4214,50 @@
       }
     }
 
+    // ✅ NEW: Initialize product states (cart/wishlist indicators)
+    async function initializeProductStates() {
+      try {
+        const [cart, wishlist] = await Promise.all([getCart(), getWishlist()]);
+        
+        // Update cart icons for products already in cart
+        if (cart && cart.length > 0) {
+          cart.forEach(item => {
+            if (item.product && item.product._id) {
+              updateCartIcon(item.product._id, true);
+            }
+          });
+        }
+        
+        // Update wishlist icons for products already in wishlist
+        if (wishlist && wishlist.length > 0) {
+          wishlist.forEach(product => {
+            if (product._id) {
+              updateWishlistIcon(product._id, true);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error initializing product states:', error);
+      }
+    }
+
     // ✅ FIXED: Attach functions to window object for global access
     window.addToCart = addToCart;
     window.toggleWishlist = toggleWishlist;
     window.buyNow = buyNow;
     window.addToWishlist = addToWishlist;
     window.removeFromWishlist = removeFromWishlist;
+    window.clearCart = clearCart;
+    window.updateCartItem = updateCartItem;
+    window.handleCartCheckout = handleCartCheckout;
+    window.initializeProductStates = initializeProductStates;
+    
+    // ✅ NEW: Refresh product states after operations
+    async function refreshProductStates() {
+      await initializeProductStates();
+    }
+    
+    window.refreshProductStates = refreshProductStates;
 
     // Open checkout modal function
     function openCheckoutModal(product, qty) {
@@ -4727,11 +5255,31 @@
         const existingNotifications = document.querySelectorAll('.notification');
         existingNotifications.forEach(n => n.remove());
         
+        // Get appropriate icon for notification type
+        let icon = '';
+        switch(type) {
+            case 'success':
+                icon = '<i class="fas fa-check-circle notification-icon"></i>';
+                break;
+            case 'error':
+                icon = '<i class="fas fa-times-circle notification-icon"></i>';
+                break;
+            case 'warning':
+                icon = '<i class="fas fa-exclamation-triangle notification-icon"></i>';
+                break;
+            case 'info':
+                icon = '<i class="fas fa-info-circle notification-icon"></i>';
+                break;
+            default:
+                icon = '<i class="fas fa-bell notification-icon"></i>';
+        }
+        
         // Create new notification
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.innerHTML = `
             <div class="notification-content">
+                ${icon}
                 <span class="notification-message">${message}</span>
                 <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
             </div>
@@ -4740,10 +5288,20 @@
         // Add to page
         document.body.appendChild(notification);
         
+        // Show notification with animation
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
         // Auto-remove after 4 seconds
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 400);
             }
         }, 4000);
     }
