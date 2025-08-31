@@ -8,7 +8,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   
   <!-- Content Security Policy to prevent browser extension conflicts -->
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://checkout.razorpay.com;">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://checkout.razorpay.com;">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
@@ -1825,10 +1825,15 @@
       }
     }
     
-    // Get product image URL
+    // Get product image URL (supports http URLs and pre-prefixed /uploads)
     function getProductImageUrl(product) {
-      if (product.images && product.images.length > 0) {
-        return `/uploads/${product.images[0]}`;
+      if (product && product.images && product.images.length > 0) {
+        const img = product.images[0];
+        if (typeof img === 'string') {
+          if (img.startsWith('http')) return img;
+          if (img.startsWith('/uploads/')) return img;
+          return `/uploads/${img}`;
+        }
       }
       return '/uploads/default-item.jpg';
     }
@@ -3214,11 +3219,13 @@
           return;
         }
 
-        const response = await fetch(`/api/wishlist/remove/${itemId}`, {
-          method: 'DELETE',
+        const response = await fetch('/api/wishlist/remove', {
+          method: 'POST',
           headers: {
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
-          }
+          },
+          body: JSON.stringify({ itemId })
         });
 
         if (response.ok) {
