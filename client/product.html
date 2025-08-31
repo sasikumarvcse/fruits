@@ -338,793 +338,575 @@
   <script src="script.js"></script>
   <script src="razorpay-checkout.js"></script>
   <script>
-    // --- Utility: get product ID from URL ---
-    function getProductId() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('id');
-    }
-    // --- Render Gallery ---
-    function renderGallery(images, selected) {
-      const col = document.createElement('div');
-      col.className = 'img-col';
-      col.innerHTML = `
-        <div class="relative">
-          <img src="${selected}" class="main-img" id="mainProductImg" alt="Product Image" tabindex="0" />
-          <div id="zoomLens" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></div>
-        </div>
-        <div class="thumb-row mt-2">
-          ${images.map((img, i) => `<img src="${img}" class="thumb ${i===0?'selected':''}" data-idx="${i}" alt="Thumbnail ${i+1}" tabindex="0" />`).join('')}
-        </div>
-      `;
-      return col;
-    }
-    // --- Setup Gallery Events ---
-    function setupGalleryEvents() {
-      const mainImg = document.getElementById('mainProductImg');
-      const thumbs = document.querySelectorAll('.thumb-row .thumb');
-      thumbs.forEach(thumb => {
-        thumb.addEventListener('click', function() {
-          thumbs.forEach(t => t.classList.remove('selected'));
-          this.classList.add('selected');
-          mainImg.src = this.src;
-        });
-        thumb.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            this.click();
-          }
-        });
-      });
-      // Simple zoom on hover/click
-      mainImg.addEventListener('mousemove', function(e) {
-        const lens = document.getElementById('zoomLens');
-        lens.style.display = 'block';
-        const rect = mainImg.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        lens.style.background = `url('${mainImg.src}') no-repeat`;
-        lens.style.backgroundSize = `${rect.width*2}px ${rect.height*2}px`;
-        lens.style.backgroundPosition = `-${x}px -${y}px`;
-        lens.style.border = '2px solid #2563eb';
-        lens.style.borderRadius = '12px';
-        lens.style.pointerEvents = 'none';
-        lens.style.opacity = '0.7';
-      });
-      mainImg.addEventListener('mouseleave', function() {
-        document.getElementById('zoomLens').style.display = 'none';
-      });
-      mainImg.addEventListener('click', function() {
-        // Fullscreen modal zoom (optional)
-        const modal = document.createElement('div');
-        modal.style.position = 'fixed';
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100vw';
-        modal.style.height = '100vh';
-        modal.style.background = 'rgba(0,0,0,0.8)';
-        modal.style.display = 'flex';
-        modal.style.alignItems = 'center';
-        modal.style.justifyContent = 'center';
-        modal.style.zIndex = '9999';
-        modal.innerHTML = `<img src='${mainImg.src}' style='max-width:90vw;max-height:90vh;border-radius:16px;box-shadow:0 8px 32px #0008;' alt='Zoomed Image' />`;
-        modal.onclick = () => document.body.removeChild(modal);
-        document.body.appendChild(modal);
-      });
-    }
-    // --- Reviews & Ratings Logic ---
-    function renderStars(rating) {
-      let stars = '';
-      for (let i = 1; i <= 5; i++) {
-        stars += `<i class="fas fa-star${i <= rating ? ' review-stars' : ' text-gray-300'}"></i>`;
-      }
-      return stars;
-    }
-    function renderReviews(product) {
-      const reviews = Array.isArray(product.reviews) ? product.reviews : [];
-      const reviewList = document.getElementById('reviewList');
-      const reviewsHeader = document.getElementById('reviewsHeader');
-      const user = JSON.parse(localStorage.getItem('user') || 'null');
-      // Average rating
-      let avg = 0;
-      if (reviews.length) {
-        avg = (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1);
-        reviewsHeader.innerHTML = `<span style="font-size:1.3rem;font-weight:600;">${avg} </span>${renderStars(Math.round(avg))} <span style="color:#888;font-size:1rem;">(${reviews.length} review${reviews.length>1?'s':''})</span>`;
-      } else {
-        reviewsHeader.innerHTML = '<span style="color:#888;">No reviews yet.</span>';
-      }
-      reviewList.innerHTML = reviews.map(r => {
-        return `
-        <li class="review-item">
-            <div class="review-header">${renderStars(r.rating)} <span>${r.user?.firstName || 'User'}</span> ${r.verified ? `<span class='ml-1 px-2 py-0.5 text-xs rounded bg-green-100 text-green-700 border border-green-400'>Verified Purchase</span>` : ''} <span style="color:#aaa;font-size:0.9em;">${new Date(r.createdAt).toLocaleDateString()}</span>
-            </div>
-          <div>${r.comment || ''}</div>
-        </li>
-        `;
-      }).join('');
-    }
-    // Remove/hide the review form on product page
-    function renderReviewBox(product) {
-      const addReviewBox = document.getElementById('addReviewBox');
-      addReviewBox.innerHTML = '';
-    }
-    async function fetchRelatedProducts(category, excludeId) {
-      try {
-        const res = await fetch(`/api/items?category=${encodeURIComponent(category)}`);
-        if (!res.ok) return [];
-        const products = await res.json();
-        return products.filter(p => p._id !== excludeId).slice(0, 10); // up to 10 related
-      } catch { return []; }
-    }
-    async function renderRelatedProducts(product) {
-      const relatedRow = document.createElement('div');
-      relatedRow.className = 'related-row flex gap-4 overflow-x-auto pb-2';
-      const relatedSection = document.getElementById('relatedSection');
-      relatedSection.innerHTML = '<div class="section-title mb-2">You May Also Like</div>';
-      relatedSection.appendChild(relatedRow);
-      if (!product.category) {
-        relatedRow.innerHTML = '<span style="color:#888;">No related products.</span>';
-        return;
-      }
-      // Fetch related products
-      const related = await fetchRelatedProducts(product.category, product._id);
-      // Optionally, filter out products in wishlist
-      let wishlist = [];
-      try {
-        const res = await fetch('/api/wishlist', { headers: { 'Authorization': localStorage.getItem('token') || '' } });
-        if (res.ok) wishlist = (await res.json()).map(p => p._id);
-      } catch {}
-      const filtered = related.filter(p => !wishlist.includes(p._id));
-      if (!filtered.length) {
-        relatedRow.innerHTML = '<span style="color:#888;">No related products.</span>';
-        return;
-      }
-      relatedRow.innerHTML = filtered.map(p => `
-        <div class="related-card min-w-[180px] bg-white rounded-lg shadow p-3 flex flex-col items-center cursor-pointer transition hover:shadow-lg" onclick="window.location.href='product.html?id=${p._id}'">
-          <img src="${p.image ? (p.image.startsWith('http') ? p.image : '/uploads/' + p.image) : '/uploads/default-item.jpg'}" alt="${p.name}" class="w-full h-28 object-cover rounded mb-2">
-          <div class="font-semibold mb-1 text-center">${p.name}</div>
-          <div class="text-blue-600 font-bold mb-1">₹${p.price.toFixed(2)}</div>
-          <div class="flex items-center mb-2">${renderStars(Math.round(p.ratings || 0))} <span class="ml-1 text-xs text-gray-500">${p.ratings ? p.ratings.toFixed(1) : '0.0'}</span></div>
-          <div class="flex gap-2 w-full">
-            <button class="cart flex-1 py-1 rounded bg-blue-600 text-white hover:bg-blue-700" onclick="event.stopPropagation(); addToCart('${p._id}', 1);">Add to Cart</button>
-            <button class="wishlist-btn flex-1 py-1 rounded border border-pink-500 text-pink-500 hover:bg-pink-500 hover:text-white" data-product-id="${p._id}" onclick="event.stopPropagation(); toggleWishlist(this);"><i class="fas fa-heart"></i></button>
-          </div>
-        </div>
-      `).join('');
-    }
-    function getEstimatedDelivery() {
-      const today = new Date();
-      const delivery = new Date(today.getTime() + 4 * 24 * 60 * 60 * 1000); // 4 days from now
-      return delivery.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    }
-    function renderDeliveryOffers(product) {
-      const offers = product.offers && product.offers.length
-        ? product.offers
-        : [
-            '10% off with XYZ Bank Credit Card',
-            '5% cashback on UPI payments',
-            'No Cost EMI available',
-            'Free delivery for orders above ₹499',
-          ];
-      const delivery = product.deliveryInfo || getEstimatedDelivery();
-      const returnPolicy = product.returnPolicy || '7 days easy return';
-      const warranty = product.warranty || '1 year manufacturer warranty';
-      const deliveryOffers = document.getElementById('deliveryOffers');
-      deliveryOffers.innerHTML = `
-        <h4>Delivery & Offers</h4>
-        <ul>
-          <li><b>Estimated Delivery:</b> <span style="color:#2563eb;">${delivery}</span></li>
-          ${offers.map(o => `<li><i class='fas fa-tag' style='color:#22c55e;'></i> ${o}</li>`).join('')}
-          <li><b>Return Policy:</b> ${returnPolicy}</li>
-          <li><b>Warranty:</b> ${warranty}</li>
-        </ul>
-      `;
-    }
-    async function fetchAddresses() {
+    // Global variables
+    let currentProduct = null;
+    let currentProductId = null;
+    let userReviews = [];
+    let isLoggedIn = false;
+
+    // Check authentication status
+    function checkAuth() {
       const token = localStorage.getItem('token');
-      if (!token) return [];
-      try {
-        const res = await fetch('/api/user/addresses', { headers: { Authorization: `Bearer ${token}` } });
-        if (!res.ok) return [];
-        return await res.json();
-      } catch { return []; }
+      isLoggedIn = !!token;
+      console.log('Authentication status:', isLoggedIn ? 'Logged in' : 'Not logged in');
     }
-    function showBuyNowModal(addresses, onConfirm) {
-      const modal = document.getElementById('buyNowModal');
-      const backdrop = document.getElementById('modalBackdrop');
-      const addressList = document.getElementById('addressList');
-      addressList.innerHTML = addresses.length ? addresses.map((a, idx) => `
-        <li class="address-item">
-          <input type="radio" name="selectedAddress" class="address-radio" value="${idx}" ${a.isDefault || idx===0 ? 'checked' : ''}>
-          <div><b>${a.name}</b><br>${a.address}<br>${a.pincode}, ${a.mobile}</div>
-        </li>
-      `).join('') : '<li>No saved addresses. Please add one.</li>';
-      modal.style.display = 'block';
-      backdrop.style.display = 'block';
-      // Confirm
-      document.getElementById('confirmBuyBtn').onclick = function() {
-        const idx = Array.from(document.getElementsByName('selectedAddress')).find(r => r.checked)?.value;
-        if (addresses.length && idx !== undefined) {
-          onConfirm(addresses[idx]);
-          closeBuyNowModal();
-        } else {
-          alert('Please select an address or add a new one.');
-        }
-      };
-      document.getElementById('cancelBuyBtn').onclick = closeBuyNowModal;
-      backdrop.onclick = closeBuyNowModal;
-      // Add new address
-      document.getElementById('addNewAddressBtn').onclick = async function() {
-        const name = prompt('Recipient name:');
-        const mobile = prompt('Mobile number:');
-        const address = prompt('Address:');
-        const pincode = prompt('Pincode:');
-        if (!name || !mobile || !address || !pincode) { alert('All fields required.'); return; }
-        const token = localStorage.getItem('token');
-        if (!token) return;
-        const res = await fetch('/api/user/addresses', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ name, mobile, address, pincode })
-        });
-        if (res.ok) {
-          const newAddresses = await fetchAddresses();
-          showBuyNowModal(newAddresses, onConfirm);
-        } else {
-          alert('Failed to add address');
-        }
-      };
-    }
-    function closeBuyNowModal() {
-      document.getElementById('buyNowModal').style.display = 'none';
-      document.getElementById('modalBackdrop').style.display = 'none';
-    }
-    async function buyNow(productId) {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please login to buy');
-        window.location.href = 'login.html';
-        return;
-      }
-      const addresses = await fetchAddresses();
-      showBuyNowModal(addresses, async (addr) => {
-        try {
-          const response = await fetch('/api/orders/create', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              productId,
-              quantity: 1,
-              recipientName: addr.name,
-              mobile: addr.mobile,
-              address: addr.address,
-              pincode: addr.pincode
-            })
-          });
-          if (response.ok) {
-            const order = await response.json();
-            window.location.href = `/order-confirmation.html?orderId=${order._id}`;
-          } else {
-            const error = await response.json();
-            alert(error.message || 'Failed to place order');
-          }
-        } catch (e) { alert('Error placing order'); }
-      });
-    }
-    // --- Fetch and render product (with gallery) ---
-    async function renderProduct() {
-      const id = getProductId();
-      if (!id) return;
-      let product;
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-        
-        const res = await fetch(`/api/items/${id}`, {
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!res.ok) {
-          console.log(`Product ${id} not found (${res.status})`);
-          throw new Error(`Product not found (${res.status})`);
-        }
-        product = await res.json();
-      } catch (e) {
-        if (e.name === 'AbortError') {
-          console.error('Request timeout loading product');
-          document.getElementById('productContainer').innerHTML = `
-            <div class="text-center py-12">
-              <div class="text-red-500 text-xl mb-4">Request Timeout</div>
-              <div class="text-gray-600 mb-6">The request took too long to complete. Please try again.</div>
-              <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                Retry
-              </button>
-            </div>
-          `;
-        } else {
-          console.error('Error loading product:', e);
-          document.getElementById('productContainer').innerHTML = `
-            <div class="text-center py-12">
-              <div class="text-red-500 text-xl mb-4">Product not found</div>
-              <div class="text-gray-600 mb-6">The product you're looking for doesn't exist or has been removed.</div>
-              <a href="user-dashboard.html" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                Back to Products
-              </a>
-            </div>
-          `;
-        }
-        return;
-      }
-      // Prepare images array using utility function
-      let images = getProductImages(product);
-      // Render gallery and info
-      const container = document.getElementById('productContainer');
-      container.innerHTML = '';
-      const imgCol = renderGallery(images, images[0]);
-      const infoCol = document.createElement('div');
-      infoCol.className = 'info-col';
-      infoCol.innerHTML = `
-        <h1 class="product-title">${product.name}</h1>
-        <div class="product-price">₹${product.price.toFixed(2)}</div>
-        <div class="product-desc">${product.description || ''}</div>
-        <div class="product-meta">Sold by: ${product.seller?.firstName || 'Unknown'} ${product.seller?.lastName || ''}</div>
-        <div class="product-meta">Stock: ${product.stock || 0}</div>
-        <div class="actions">
-          <button class="buy" id="buyNowBtn">Buy Now</button>
-          <button class="cart" id="addToCartBtn"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
-          <button class="wishlist-btn" id="wishlistBtn" data-product-id="${product._id}"><i class="fas fa-heart"></i> Wishlist</button>
-        </div>
-      `;
-      container.appendChild(imgCol);
-      container.appendChild(infoCol);
-      setupGalleryEvents();
-      // Render reviews
-      renderReviews(product);
-      // Render related products
-      renderRelatedProducts(product);
-      // Render delivery info & offers
-      renderDeliveryOffers(product);
-      // Add to recently viewed and render section
-      addRecentlyViewed(product._id);
-      try {
-        fetchAndRenderRecentlyViewed('recentlyViewedSection', product._id);
-      } catch (error) {
-        console.log('Error loading recently viewed products:', error);
-        // Don't break the page if recently viewed fails
-      }
-      // Wire up Buy Now, Add to Cart, and Wishlist buttons
-      const user = JSON.parse(localStorage.getItem('user') || 'null');
-      const buyNowBtn = document.getElementById('buyNowBtn');
-      const addToCartBtn = document.getElementById('addToCartBtn');
-      const wishlistBtn = document.getElementById('wishlistBtn');
-      if (!user) {
-        if (buyNowBtn) {
-          buyNowBtn.disabled = true;
-          buyNowBtn.title = 'Login to buy';
-          buyNowBtn.classList.add('opacity-60', 'cursor-not-allowed');
-        }
-        if (addToCartBtn) {
-          addToCartBtn.disabled = true;
-          addToCartBtn.title = 'Login to add to cart';
-          addToCartBtn.classList.add('opacity-60', 'cursor-not-allowed');
-        }
-        if (wishlistBtn) {
-          wishlistBtn.disabled = true;
-          wishlistBtn.title = 'Login to add to wishlist';
-          wishlistBtn.classList.add('opacity-60', 'cursor-not-allowed');
-        }
-      } else {
-              if (buyNowBtn) buyNowBtn.onclick = function() { 
-          if (window.startCheckoutFlow) {
-            window.startCheckoutFlow(product._id, product.name, product.price, product.image);
-          } else {
-            console.error('startCheckoutFlow function not found');
-          }
-        };
-      if (addToCartBtn) addToCartBtn.onclick = function() { if (window.addToCart) window.addToCart(product._id, 1); };
-      if (wishlistBtn) {
-        wishlistBtn.dataset.productId = product._id;
-        wishlistBtn.onclick = function() { if (window.toggleWishlist) window.toggleWishlist(wishlistBtn); };
-        }
-      }
-      // (Other features will be filled in next steps)
-      // Add simple product details section
-      const detailsSection = document.createElement('div');
-      detailsSection.className = 'mt-8';
-      detailsSection.id = 'product-details-tabs';
-      container.appendChild(detailsSection);
 
-      // --- Extraction and Rendering Logic (robust for headings and bolded titles) ---
-      function extractSections(html) {
-        const container = document.createElement('div');
-        container.innerHTML = html;
-        // Prefer real headings
-        let headings = Array.from(container.querySelectorAll('h2, h3'));
-        if (headings.length === 0) {
-          // Fallback: <p><strong>Section</strong></p> or <strong>Section</strong> on its own
-          headings = Array.from(container.querySelectorAll('p > strong, strong')).map(strong => strong.closest('p') || strong);
-        }
-        const sections = {};
-        for (let i = 0; i < headings.length; i++) {
-          const title = headings[i].innerText.trim().toLowerCase();
-          const sectionName = title.replace(/[^a-z]/gi, '');
-          let next = headings[i].nextSibling;
-          let content = '';
-          while (next && !headings.includes(next)) {
-            if (next && next.outerHTML) content += next.outerHTML;
-            next = next ? next.nextSibling : null;
-          }
-          sections[sectionName] = content;
-        }
-        return sections;
-      }
-      // --- Section icons for each tab ---
-      const sectionIcons = {
-        overview: "<i class='fas fa-info-circle section-icon text-blue-500'></i>",
-        specifications: "<i class='fas fa-list-alt section-icon text-green-500'></i>",
-        features: "<i class='fas fa-star section-icon text-yellow-500'></i>",
-        usage: "<i class='fas fa-lightbulb section-icon text-purple-500'></i>",
-        faqs: "<i class='fas fa-question-circle section-icon text-pink-500'></i>"
-      };
-      // --- FAQ Accordion Renderer ---
-      function renderFaqAccordion(faqHtml) {
-        if (!faqHtml) return '<em>No FAQs provided.</em>';
-        // Try to split by Q/A pairs
-        const temp = document.createElement('div');
-        temp.innerHTML = faqHtml;
-        // Find all Q/A pairs (li or p)
-        const items = Array.from(temp.querySelectorAll('li, p')).filter(el => el.innerText.trim());
-        if (!items.length) return faqHtml;
-        return items.map((el, idx) => {
-          // Try to split Q/A
-          let html = el.innerHTML;
-          let q = html.match(/Q[:：](.*?)(<br>|$)/i);
-          let a = html.match(/A[:：](.*)/i);
-          let question = q ? q[1].trim() : el.innerText.split('A:')[0].replace(/Q[:：]/i, '').trim();
-          let answer = a ? a[1].trim() : (el.innerText.split('A:')[1] || '').trim();
-          if (!question && !answer) return '';
-          return `
-            <div class="faq-accordion">
-              <div class="faq-question" tabindex="0" aria-expanded="false" onclick="toggleFaqAnswer(this)">
-                <span><i class='fas fa-question-circle text-pink-500 mr-2'></i> ${question}</span>
-                <span class="faq-chevron">&#9654;</span>
-              </div>
-              <div class="faq-answer">${answer}</div>
-            </div>
-          `;
-        }).join('');
-      }
-      window.toggleFaqAnswer = function(el) {
-        el.classList.toggle('open');
-        const answer = el.nextElementSibling;
-        if (answer) answer.style.display = answer.style.display === 'block' ? 'none' : 'block';
-        el.setAttribute('aria-expanded', el.classList.contains('open'));
-      };
-      
-      // --- Simple Product Details Display - Shows exactly what admin adds ---
-      function renderNewProductDetails(details, product) {
-        // Create a simple, clean display of all admin-added information
-        let productDetailsHtml = `
-          <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Product Information</h2>
-            
-            <!-- Basic Product Info -->
-            <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-700 mb-3">Product Details</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><strong>Name:</strong> ${product.name}</div>
-                <div><strong>Price:</strong> ₹${product.price.toFixed(2)}</div>
-                <div><strong>Stock:</strong> ${product.stock} units</div>
-                <div><strong>Status:</strong> <span class="px-2 py-1 text-xs rounded-full ${product.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">${product.status}</span></div>
-              </div>
-              <div class="mt-3">
-                <strong>Description:</strong> ${product.description || 'No description available.'}
-              </div>
-            </div>
-            
-            <!-- Category and Organic Status -->
-            <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-700 mb-3">Category & Certification</h3>
-              <div class="flex items-center gap-3">
-        `;
-        
-        if (product.category) {
-          const categoryNames = {
-            'pome': '🍎 Pome Fruits',
-            'citrus': '🍊 Citrus Fruits', 
-            'berry': '🫐 Berries',
-            'stone': '🍑 Stone Fruits',
-            'tropical': '🥭 Tropical & Exotic',
-            'melon': '🍉 Melons',
-            'banana': '🍌 Bananas & Plantains',
-            'grape': '🍇 Grapes'
-          };
-          productDetailsHtml += `<span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">${categoryNames[product.category] || product.category}</span>`;
-        }
-        
-        if (product.isOrganic) {
-          productDetailsHtml += `<span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">🌱 Organic Certified</span>`;
-        }
-        
-        productDetailsHtml += `
-              </div>
-            </div>
-        `;
-        
-        // Nutritional Information
-        if (details.calories || details.protein || details.carbs || details.fiber || details.vitamins || details.minerals) {
-          productDetailsHtml += `
-            <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-700 mb-3">Nutritional Information</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          `;
-          
-          if (details.calories) productDetailsHtml += `<div><strong>Calories:</strong> ${details.calories}</div>`;
-          if (details.protein) productDetailsHtml += `<div><strong>Protein:</strong> ${details.protein}</div>`;
-          if (details.carbs) productDetailsHtml += `<div><strong>Carbohydrates:</strong> ${details.carbs}</div>`;
-          if (details.fiber) productDetailsHtml += `<div><strong>Fiber:</strong> ${details.fiber}</div>`;
-          if (details.vitamins) productDetailsHtml += `<div><strong>Vitamins:</strong> ${details.vitamins}</div>`;
-          if (details.minerals) productDetailsHtml += `<div><strong>Minerals:</strong> ${details.minerals}</div>`;
-          
-          productDetailsHtml += `
-              </div>
-            </div>
-          `;
-        }
-        
-        // Origin and Season
-        if (details.origin || details.season) {
-          productDetailsHtml += `
-            <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-700 mb-3">Origin & Season</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          `;
-          if (details.origin) productDetailsHtml += `<div><strong>Origin:</strong> ${details.origin}</div>`;
-          if (details.season) productDetailsHtml += `<div><strong>Season:</strong> ${details.season}</div>`;
-          productDetailsHtml += `
-              </div>
-            </div>
-          `;
-        }
-        
-        // Storage and Shelf Life
-        if (details.storage || details.shelfLife) {
-          productDetailsHtml += `
-            <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-700 mb-3">Storage & Shelf Life</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          `;
-          if (details.storage) productDetailsHtml += `<div><strong>Storage:</strong> ${details.storage}</div>`;
-          if (details.shelfLife) productDetailsHtml += `<div><strong>Shelf Life:</strong> ${details.shelfLife}</div>`;
-          productDetailsHtml += `
-              </div>
-            </div>
-          `;
-        }
-        
-        // Custom Fields
-        if (details.customFields && details.customFields.length > 0) {
-          productDetailsHtml += `
-            <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-700 mb-3">Additional Details</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          `;
-          details.customFields.forEach(field => {
-            if (field.label && field.value) {
-              productDetailsHtml += `<div><strong>${field.label}:</strong> ${field.value}</div>`;
-            }
-          });
-          productDetailsHtml += `
-              </div>
-            </div>
-          `;
-        }
-        
-        // Offers
-        if (product.offers && product.offers.length > 0) {
-          productDetailsHtml += `
-            <div class="mb-6">
-              <h3 class="text-lg font-semibold text-gray-700 mb-3">Offers & Promotions</h3>
-              <ul class="list-disc ml-6 space-y-2">
-          `;
-          product.offers.forEach(offer => {
-            productDetailsHtml += `<li class="text-gray-700">${offer}</li>`;
-          });
-          productDetailsHtml += `
-              </ul>
-            </div>
-          `;
-        }
-        
-        productDetailsHtml += `
-          </div>
-        `;
-        
-        // Replace the entire product details section with simple display
-        const detailsSection = document.querySelector('#product-details-tabs');
-        if (detailsSection) {
-          detailsSection.innerHTML = productDetailsHtml;
-        } else {
-          // If the section doesn't exist, add it to the container
-          const container = document.getElementById('productContainer');
-          const newDetailsSection = document.createElement('div');
-          newDetailsSection.innerHTML = productDetailsHtml;
-          container.appendChild(newDetailsSection);
-        }
-      }
-      
-      // --- Legacy Product Details Rendering (kept for backward compatibility) ---
-      function renderStructuredProductDetails(details) {
-        // This function is kept for backward compatibility but not used in the new simple display
-        console.log('Legacy product details structure detected:', details);
-      }
-      // Use structured details if available - Updated for new productDetails structure
-      let detailsObj = null;
-      if (product.productDetails) {
-        // Use the new productDetails structure from admin dashboard
-        detailsObj = product.productDetails;
-        console.log('Using productDetails from admin:', detailsObj);
-      } else if (product.productDetailsJson || product.details) {
-        // Fallback to old structure
-        try {
-          detailsObj = typeof product.productDetailsJson === 'string'
-            ? JSON.parse(product.productDetailsJson)
-            : product.productDetailsJson;
-          console.log('Parsed details from productDetailsJson:', detailsObj);
-        } catch (err1) {
-          try {
-            detailsObj = JSON.parse(product.details);
-            console.log('Parsed details from product.details:', detailsObj);
-          } catch (err2) {
-            detailsObj = null;
-            console.error('Failed to parse product details:', err1, err2, product.productDetailsJson, product.details);
-          }
-        }
-      }
-      
-      if (detailsObj) {
-        renderNewProductDetails(detailsObj, product);
-      } else {
-        // Show simple message when no details available
-        const detailsSection = document.querySelector('#product-details-tabs');
-        if (detailsSection) {
-          detailsSection.innerHTML = `
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-              <h2 class="text-2xl font-bold text-gray-800 mb-4">Product Information</h2>
-              <div class="text-gray-600">
-                <p><strong>Name:</strong> ${product.name}</p>
-                <p><strong>Price:</strong> ₹${product.price.toFixed(2)}</p>
-                <p><strong>Description:</strong> ${product.description || 'No description available.'}</p>
-                <p><strong>Stock:</strong> ${product.stock} units</p>
-                <p class="mt-4 text-gray-500 italic">No additional product details available.</p>
-              </div>
-            </div>
-          `;
-        }
-      }
-      // Render Seller Card
-      const sellerCard = document.getElementById('sellerCard');
-      if (product.seller && (product.seller.firstName || product.seller.lastName)) {
-        sellerCard.style.display = 'flex';
-        document.getElementById('sellerName').innerHTML = `${product.seller.firstName || ''} ${product.seller.lastName || ''} <span id='sellerBadge' class='bg-green-100 text-green-700 text-xs px-2 py-1 rounded'>Verified Seller</span>`;
-        document.getElementById('sellerAvatar').src = product.seller.avatar || '/uploads/logoindex.png';
-        document.getElementById('sellerMore').textContent = 'More from this seller';
-        document.getElementById('sellerName').onclick = async function() {
-          // Fetch and show more products from this seller
-          const res = await fetch(`/api/items?seller=${product.seller._id}`);
-          if (res.ok) {
-            const items = await res.json();
-            const relatedSection = document.getElementById('relatedSection');
-            relatedSection.innerHTML = `<div class='section-title'>More from ${product.seller.firstName || 'Seller'}</div>` +
-              `<div class='related-row'>` +
-              items.filter(i => i._id !== product._id).map(p => `
-                <div class='related-card' onclick="window.location.href='product.html?id=${p._id}'">
-                  <img src="${p.image && p.image.startsWith('http') ? p.image : '/uploads/' + (p.image || 'default-item.jpg')}" alt="${p.name}">
-                  <div style="font-weight:600;margin:8px 0 4px 0;">${p.name}</div>
-                  <div style="color:#2563eb;font-weight:700;">₹${p.price.toFixed(2)}</div>
-                </div>
-              `).join('') + `</div>`;
-          }
-        };
-      } else {
-        sellerCard.style.display = 'none';
-      }
-    }
-    // Add global error handling for async operations
-    window.addEventListener('unhandledrejection', function(event) {
-      console.log('Unhandled promise rejection:', event.reason);
-      event.preventDefault();
-    });
-    
-    renderProduct().catch(error => {
-      console.error('Error in renderProduct:', error);
-    });
-
-    // --- Simple product details display function ---
-    function showProductDetails() {
-      // This function is kept for compatibility but not used in the new simple display
-      console.log('Product details displayed in simple format');
-    }
-    window.showProductDetails = showProductDetails;
-
-    // Product details are now handled by the main renderProduct function
-    // No additional fetching needed as it's integrated into the main product loading
-
-    async function fetchAndRenderReviews() {
-      const productId = getProductId();
-      const reviewsList = document.getElementById('reviewsList');
-      const noReviews = document.getElementById('noReviews');
-      reviewsList.innerHTML = '<div class="text-center py-4">Loading reviews...</div>';
+    // Load product data from API
+    async function loadProductData() {
       try {
-        const res = await fetch(`/api/reviews/${productId}`);
-        let reviews = await res.json();
-        // Sort by most recent
-        reviews = reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        if (!reviews.length) {
-          reviewsList.innerHTML = '';
-          noReviews.classList.remove('hidden');
+        // Get product ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        
+        if (!productId) {
+          showError('Product ID not found in URL');
           return;
         }
-        noReviews.classList.add('hidden');
-        reviewsList.innerHTML = reviews.map(r => `
-          <div class="bg-white rounded shadow p-4">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="font-semibold">${r.user?.firstName ? r.user.firstName : 'Anonymous'}</span>
-              ${r.verified ? `<span class='ml-1 px-2 py-0.5 text-xs rounded bg-green-100 text-green-700 border border-green-400'>Verified Purchase</span>` : ''}
-              <span class="flex gap-0.5 text-yellow-400 text-lg">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
-              <span class="text-xs text-gray-400 ml-2">${new Date(r.createdAt).toLocaleDateString()}</span>
-            </div>
-            <div class="text-gray-700">${r.comment}</div>
-          </div>
-        `
-        ).join('');
-      } catch (err) {
-        reviewsList.innerHTML = '<div class="text-center text-red-500">Failed to load reviews.</div>';
+        
+        currentProductId = productId;
+        console.log('Loading product with ID:', productId);
+        
+        // Fetch product data from API
+        const response = await fetch(`/api/items/${productId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const product = await response.json();
+        currentProduct = product;
+        
+        console.log('Product data loaded:', product);
+        
+        // Render product details
+        renderProductDetails(product);
+        
+        // Load reviews
+        await loadProductReviews(productId);
+        
+        // Load related products
+        await loadRelatedProducts(product.category);
+        
+        // Load frequently bought together
+        await loadFrequentlyBoughtTogether(productId);
+        
+      } catch (error) {
+        console.error('Error loading product data:', error);
+        showError('Failed to load product data. Please try again.');
       }
     }
-    // Call on page load
-    fetchAndRenderReviews();
 
-    document.getElementById('getDetailsFromSellerBtn').onclick = function() {
-      document.getElementById('getDetailsModal').classList.remove('hidden');
-    };
-    document.getElementById('closeGetDetailsModal').onclick = function() {
-      document.getElementById('getDetailsModal').classList.add('hidden');
-      document.getElementById('sellerQuestion').value = '';
-      document.getElementById('sellerQuestionStatus').textContent = '';
-    };
-    document.getElementById('submitSellerQuestion').onclick = async function() {
-      const question = document.getElementById('sellerQuestion').value.trim();
-      if (!question) {
-        document.getElementById('sellerQuestionStatus').textContent = 'Please enter your question.';
+    // Render product details
+    function renderProductDetails(product) {
+      const container = document.getElementById('productContainer');
+      if (!container) return;
+      
+      // Calculate discount percentage
+      const discountPercent = product.mrp && product.mrp > product.price ? 
+        Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+      
+      // Get product images
+      const images = product.images || [product.image] || ['/uploads/default-item.jpg'];
+      const mainImage = images[0];
+      
+      container.innerHTML = `
+        <div class="img-col">
+          <img src="${mainImage}" alt="${product.name}" class="main-img" id="mainImage" onclick="openImageZoom('${mainImage}')">
+          ${images.length > 1 ? `
+            <div class="thumb-row">
+              ${images.map((img, index) => `
+                <img src="${img}" alt="${product.name}" 
+                     class="thumb-row img ${index === 0 ? 'selected' : ''}" 
+                     onclick="changeMainImage('${img}', this, ${index})">
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+        
+        <div class="info-col">
+          <h1 class="product-title">${product.name}</h1>
+          
+          <!-- Rating and Reviews -->
+          <div class="flex items-center mb-4">
+            <div class="flex items-center">
+              <span class="text-yellow-400 text-lg">★★★★☆</span>
+              <span class="text-sm text-gray-600 ml-2">${product.ratings || 4.0}</span>
+            </div>
+            <span class="text-sm text-gray-500 ml-3">(${product.reviews ? product.reviews.length : 0} reviews)</span>
+          </div>
+          
+          <!-- Price Section -->
+          <div class="mb-6">
+            <div class="flex items-center gap-3">
+              <span class="product-price">₹${product.price ? product.price.toFixed(2) : '0.00'}</span>
+              ${product.mrp && product.mrp > product.price ? 
+                `<span class="text-lg text-gray-500 line-through">₹${product.mrp.toFixed(2)}</span>` : ''}
+            </div>
+            ${discountPercent > 0 ? 
+              `<span class="text-sm text-green-600 font-medium">${discountPercent}% off</span>` : ''}
+          </div>
+          
+          <!-- Product Description -->
+          <p class="product-desc">${product.description || 'No description available'}</p>
+          
+          <!-- Product Meta -->
+          <div class="product-meta">
+            <p><strong>Category:</strong> ${product.category || 'Basic'}</p>
+            <p><strong>Stock:</strong> ${product.stock || 0} units available</p>
+            ${product.isOrganic ? '<p><strong>🌱 Organic Product</strong></p>' : ''}
+            ${product.isBestSeller ? '<p><strong>⭐ Best Seller</strong></p>' : ''}
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="actions">
+            <button onclick="addToCart('${product._id}')" class="cart">
+              <i class="fas fa-cart-plus mr-2"></i>Add to Cart
+            </button>
+            <button onclick="buyNow('${product._id}')" class="buy">
+              <i class="fas fa-bolt mr-2"></i>Buy Now
+            </button>
+            <button onclick="toggleWishlist('${product._id}')" class="wishlist-btn" id="wishlistBtn">
+              <i class="fas fa-heart mr-2"></i>Add to Wishlist
+            </button>
+          </div>
+        </div>
+      `;
+      
+      // Update wishlist button state
+      updateWishlistButton();
+    }
+
+    // Load product reviews
+    async function loadProductReviews(productId) {
+      try {
+        const response = await fetch(`/api/items/${productId}/reviews`);
+        if (response.ok) {
+          const reviews = await response.json();
+          userReviews = reviews;
+          renderReviews(reviews);
+        } else {
+          console.log('No reviews found or error loading reviews');
+          renderReviews([]);
+        }
+      } catch (error) {
+        console.error('Error loading reviews:', error);
+        renderReviews([]);
+      }
+    }
+
+    // Render reviews
+    function renderReviews(reviews) {
+      const reviewsSection = document.getElementById('reviewsSection');
+      const reviewsList = document.getElementById('reviewsList');
+      const noReviews = document.getElementById('noReviews');
+      
+      if (!reviewsSection || !reviewsList) return;
+      
+      if (reviews.length === 0) {
+        noReviews.classList.remove('hidden');
+        reviewsList.innerHTML = '';
         return;
       }
-      document.getElementById('sellerQuestionStatus').textContent = 'Sending...';
+      
+      noReviews.classList.add('hidden');
+      
+      reviewsList.innerHTML = reviews.map(review => `
+        <div class="bg-white rounded-lg shadow p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <span class="text-white font-bold text-sm">${review.user?.firstName?.charAt(0) || 'U'}</span>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-900">${review.user?.firstName || 'Anonymous'}</h4>
+                <p class="text-sm text-gray-500">${new Date(review.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div class="flex items-center">
+              ${Array.from({ length: 5 }, (_, i) => 
+                `<i class="fas fa-star ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}"></i>`
+              ).join('')}
+            </div>
+          </div>
+          <p class="text-gray-700">${review.comment}</p>
+        </div>
+      `).join('');
+      
+      // Add review form if user is logged in and has purchased the product
+      if (isLoggedIn) {
+        addReviewForm();
+      }
+    }
+
+    // Add review form
+    function addReviewForm() {
+      const reviewsSection = document.getElementById('reviewsSection');
+      if (!reviewsSection) return;
+      
+      // Check if user has already reviewed
+      const hasReviewed = userReviews.some(review => 
+        review.user?._id === JSON.parse(localStorage.getItem('user'))?._id
+      );
+      
+      if (hasReviewed) {
+        return; // User already reviewed
+      }
+      
+      const reviewForm = document.createElement('div');
+      reviewForm.className = 'bg-white rounded-lg shadow p-6 mt-6';
+      reviewForm.innerHTML = `
+        <h3 class="text-lg font-semibold mb-4">Write a Review</h3>
+        <form id="reviewForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+            <div class="flex items-center gap-2">
+              ${Array.from({ length: 5 }, (_, i) => `
+                <input type="radio" name="rating" value="${i + 1}" id="star${i + 1}" class="hidden">
+                <label for="star${i + 1}" class="text-2xl text-gray-300 cursor-pointer hover:text-yellow-400 transition-colors">
+                  ★
+                </label>
+              `).join('')}
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+            <textarea name="comment" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Share your experience with this product..." required></textarea>
+          </div>
+          <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+            Submit Review
+          </button>
+        </form>
+      `;
+      
+      reviewsSection.appendChild(reviewForm);
+      
+      // Handle form submission
+      document.getElementById('reviewForm').addEventListener('submit', handleReviewSubmission);
+      
+      // Handle star rating selection
+      const starLabels = reviewForm.querySelectorAll('label[for^="star"]');
+      starLabels.forEach((label, index) => {
+        label.addEventListener('click', () => {
+          // Update visual state
+          starLabels.forEach((l, i) => {
+            if (i <= index) {
+              l.classList.remove('text-gray-300');
+              l.classList.add('text-yellow-400');
+            } else {
+              l.classList.remove('text-yellow-400');
+              l.classList.add('text-gray-300');
+            }
+          });
+        });
+      });
+    }
+
+    // Handle review submission
+    async function handleReviewSubmission(event) {
+      event.preventDefault();
+      
+      if (!isLoggedIn) {
+        showNotification('Please login to submit a review', 'error');
+        return;
+      }
+      
+      const formData = new FormData(event.target);
+      const rating = parseInt(formData.get('rating'));
+      const comment = formData.get('comment');
+      
+      if (!rating || !comment) {
+        showNotification('Please provide both rating and comment', 'error');
+        return;
+      }
+      
       try {
-        const productId = new URLSearchParams(window.location.search).get('id');
-        const res = await fetch(`/api/items/${productId}/ask-seller`, {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/items/${currentProductId}/review`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ question })
+          body: JSON.stringify({ rating, comment })
         });
-        if (res.ok) {
-          document.getElementById('sellerQuestionStatus').textContent = 'Your request has been sent to the seller!';
-          document.getElementById('sellerQuestion').value = '';
+        
+        if (response.ok) {
+          showNotification('Review submitted successfully!', 'success');
+          // Reload reviews
+          await loadProductReviews(currentProductId);
+          // Remove form
+          const reviewForm = document.getElementById('reviewForm');
+          if (reviewForm) {
+            reviewForm.remove();
+          }
         } else {
-          const err = await res.json();
-          document.getElementById('sellerQuestionStatus').textContent = err.message || 'Failed to send request.';
+          const error = await response.json();
+          showNotification(error.message || 'Failed to submit review', 'error');
         }
-      } catch (e) {
-        document.getElementById('sellerQuestionStatus').textContent = 'Error sending request.';
+      } catch (error) {
+        console.error('Error submitting review:', error);
+        showNotification('Error submitting review. Please try again.', 'error');
       }
-    };
+    }
+
+    // Load related products
+    async function loadRelatedProducts(category) {
+      try {
+        const response = await fetch(`/api/items?category=${category}&limit=4`);
+        if (response.ok) {
+          const products = await response.json();
+          renderRelatedProducts(products.filter(p => p._id !== currentProductId));
+        }
+      } catch (error) {
+        console.error('Error loading related products:', error);
+      }
+    }
+
+    // Render related products
+    function renderRelatedProducts(products) {
+      const relatedSection = document.getElementById('relatedSection');
+      if (!relatedSection) return;
+      
+      if (products.length === 0) {
+        relatedSection.style.display = 'none';
+        return;
+      }
+      
+      const relatedRow = relatedSection.querySelector('.related-row');
+      if (relatedRow) {
+        relatedRow.innerHTML = products.map(product => `
+          <div class="related-card" onclick="viewProduct('${product._id}')">
+            <img src="${product.image || product.images?.[0] || '/uploads/default-item.jpg'}" alt="${product.name}">
+            <h4 class="font-semibold text-gray-900 mt-2">${product.name}</h4>
+            <p class="text-green-600 font-bold">₹${product.price ? product.price.toFixed(2) : '0.00'}</p>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Load frequently bought together
+    async function loadFrequentlyBoughtTogether(productId) {
+      try {
+        const response = await fetch(`/api/items/${productId}/frequently-bought-together`);
+        if (response.ok) {
+          const products = await response.json();
+          renderFrequentlyBoughtTogether(products);
+        }
+      } catch (error) {
+        console.error('Error loading frequently bought together:', error);
+      }
+    }
+
+    // Render frequently bought together
+    function renderFrequentlyBoughtTogether(products) {
+      if (products.length === 0) return;
+      
+      const section = document.createElement('div');
+      section.className = 'related-section';
+      section.innerHTML = `
+        <div class="section-title">Frequently Bought Together</div>
+        <div class="related-row">
+          ${products.map(product => `
+            <div class="related-card" onclick="viewProduct('${product._id}')">
+              <img src="${product.image || product.images?.[0] || '/uploads/default-item.jpg'}" alt="${product.name}">
+              <h4 class="font-semibold text-gray-900 mt-2">${product.name}</h4>
+              <p class="text-green-600 font-bold">₹${product.price ? product.price.toFixed(2) : '0.00'}</p>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      
+      document.querySelector('.container').appendChild(section);
+    }
+
+    // Add to cart functionality
+    async function addToCart(productId) {
+      if (!isLoggedIn) {
+        showNotification('Please login to add items to cart', 'error');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/cart', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            productId: productId,
+            quantity: 1
+          })
+        });
+
+        if (response.ok) {
+          showNotification('Product added to cart successfully!', 'success');
+        } else {
+          const data = await response.json();
+          showNotification(data.message || 'Failed to add to cart', 'error');
+        }
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+        showNotification('Error adding to cart. Please try again.', 'error');
+      }
+    }
+
+    // Buy now functionality
+    function buyNow(productId) {
+      if (!isLoggedIn) {
+        showNotification('Please login to purchase products', 'error');
+        return;
+      }
+
+      // Store product for checkout
+      localStorage.setItem('buyNowProduct', JSON.stringify(currentProduct));
+      localStorage.setItem('checkoutCart', JSON.stringify([{
+        id: productId,
+        name: currentProduct.name,
+        price: currentProduct.price,
+        quantity: 1
+      }]));
+      localStorage.setItem('checkoutTotal', currentProduct.price);
+      
+      // Redirect to checkout
+      window.location.href = 'enhanced-checkout.html';
+    }
+
+    // Toggle wishlist
+    async function toggleWishlist(productId) {
+      if (!isLoggedIn) {
+        showNotification('Please login to manage wishlist', 'error');
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/wishlist/${productId}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          showNotification('Product added to wishlist!', 'success');
+          updateWishlistButton();
+        } else {
+          // Try to remove from wishlist
+          const removeResponse = await fetch(`/api/wishlist/${productId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (removeResponse.ok) {
+            showNotification('Product removed from wishlist', 'success');
+            updateWishlistButton();
+          }
+        }
+      } catch (error) {
+        console.error('Error managing wishlist:', error);
+        showNotification('Error managing wishlist. Please try again.', 'error');
+      }
+    }
+
+    // Update wishlist button state
+    async function updateWishlistButton() {
+      if (!isLoggedIn || !currentProductId) return;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/wishlist');
+        if (response.ok) {
+          const wishlist = await response.json();
+          const inWishlist = wishlist.some(item => item._id === currentProductId);
+          
+          const wishlistBtn = document.getElementById('wishlistBtn');
+          if (wishlistBtn) {
+            if (inWishlist) {
+              wishlistBtn.innerHTML = '<i class="fas fa-heart mr-2"></i>Remove from Wishlist';
+              wishlistBtn.classList.add('active');
+            } else {
+              wishlistBtn.innerHTML = '<i class="fas fa-heart mr-2"></i>Add to Wishlist';
+              wishlistBtn.classList.remove('active');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking wishlist status:', error);
+      }
+    }
+
+    // View product function
+    function viewProduct(productId) {
+      window.location.href = `product.html?id=${productId}`;
+    }
+
+    // Image zoom functionality
+    function openImageZoom(imageSrc) {
+      const modal = document.getElementById('imgZoomModal');
+      const backdrop = document.getElementById('imgZoomBackdrop');
+      const zoomedImg = document.getElementById('zoomedImg');
+      
+      if (modal && backdrop && zoomedImg) {
+        zoomedImg.src = imageSrc;
+        modal.style.display = 'block';
+        backdrop.style.display = 'block';
+      }
+    }
+
+    // Change main image
+    function changeMainImage(imageSrc, thumbnail, index) {
+      const mainImage = document.getElementById('mainImage');
+      if (mainImage) {
+        mainImage.src = imageSrc;
+      }
+      
+      // Update thumbnail selection
+      document.querySelectorAll('.thumb-row img').forEach(img => img.classList.remove('selected'));
+      thumbnail.classList.add('selected');
+    }
+
+    // Show notification
+    function showNotification(message, type = 'success') {
+      const toast = document.getElementById('toastNotification');
+      if (toast) {
+        toast.textContent = message;
+        toast.style.display = 'block';
+        toast.style.background = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6';
+        
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 3000);
+      }
+    }
+
+    // Show error
+    function showError(message) {
+      const container = document.getElementById('productContainer');
+      if (container) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-20">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6">
+              <i class="fas fa-exclamation-triangle text-red-600 text-3xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Error Loading Product</h3>
+            <p class="text-gray-600 mb-6">${message}</p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+              <i class="fas fa-redo mr-2"></i>Try Again
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Initializing product page...');
+      checkAuth();
+      loadProductData();
+    });
   </script>
 </body>
 </html>

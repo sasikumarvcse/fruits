@@ -344,7 +344,6 @@
     .cart-sidebar.open {
       transform: translateX(0);
     }
-    
     .notification {
       position: fixed;
       top: 20px;
@@ -497,7 +496,6 @@
       justify-content: center;
       gap: 0.5rem;
     }
-
     .btn-primary {
       background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
       color: white;
@@ -694,7 +692,6 @@
       font-size: 1.125rem;
       font-weight: 600;
     }
-
     .price-breakdown {
       background: #f8fafc;
       padding: 1rem;
@@ -968,7 +965,6 @@
         width: 100% !important;
       }
     }
-
     /* Navigation mobile enhancements */
     @media (max-width: 768px) {
       /* Mobile navigation */
@@ -1043,7 +1039,6 @@
       input, textarea, select {
         font-size: 16px !important; /* Prevents zoom on iOS */
       }
-      
       /* Notification mobile adjustments */
       .notification {
         top: 10px !important;
@@ -1389,7 +1384,6 @@
       width: 60px;
       height: 60px;
     }
-    
     .progress-ring circle {
       fill: none;
       stroke: var(--arobowl-green);
@@ -1467,12 +1461,10 @@
     .cursor-grab:active {
       cursor: grabbing;
     }
-    
     /* Enhanced Scroll Bar */
     ::-webkit-scrollbar {
       width: 8px;
     }
-    
     ::-webkit-scrollbar-track {
       background: rgba(0, 0, 0, 0.1);
       border-radius: 10px;
@@ -1729,7 +1721,6 @@
   .btn-success:hover {
     background-color: #059669;
   }
-
     /* Browser Extension Conflict Fixes */
     .chrome-extension-fix {
       position: relative;
@@ -2333,7 +2324,6 @@
       <i class="fas fa-arrow-up"></i>
     </button>
   </div>
-
   <!-- Enhanced Wishlist Modal -->
   <div id="wishlistModal" class="modal wishlist-modal" style="display:none;">
     <div class="modal-content max-w-4xl mx-auto p-0 rounded-2xl bg-white shadow-2xl relative overflow-hidden">
@@ -2423,7 +2413,6 @@
     </div>
     <button onclick="openCartSidebar()" class="w-full mt-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Go to Cart</button>
   </div>
-
   <!-- Add this overlay div just before the closing </body> tag -->
   <div id="searchOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:999;"></div>
 
@@ -2769,7 +2758,6 @@
           editAddressBtn.style.display = '';
         }
       }
-
       // When address is saved, switch to read-only
       if (saveAddressBtn) {
         saveAddressBtn.addEventListener('click', async function(e) {
@@ -2840,488 +2828,6 @@
         const hasAddress = addressFields.some(f => f.value && f.value.trim());
         setAddressFormEditable(!hasAddress ? true : false);
       }
-    });
-    
-    function checkAuth() {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = 'login.html';
-        return;
-      }
-    }
-    
-    function setUserInfo() {
-      const user = JSON.parse(localStorage.getItem('user'));
-      const userNameEl = document.getElementById('userName');
-      if (user && user.firstName) {
-        userNameEl.textContent = user.firstName;
-      } else {
-        userNameEl.textContent = 'User';
-      }
-    }
-    
-    // Auto-scrolling banner
-    function initializeBanner() {
-      const slides = document.querySelectorAll('.banner-slide');
-      let currentSlide = 0;
-      
-      setInterval(() => {
-        slides[currentSlide].classList.remove('active');
-        currentSlide = (currentSlide + 1) % slides.length;
-        slides[currentSlide].classList.add('active');
-      }, 4000);
-    }
-    
-    // Load products from API
-    async function loadProducts() {
-      try {
-        const response = await fetch('/api/items');
-        if (!response.ok) {
-          throw new Error(`Server error: ${response.status}`);
-        }
-        allProducts = await response.json();
-        
-        // Check wishlist status for each product
-        const wishlist = await getWishlist();
-        allProducts = allProducts.map(product => ({
-          ...product,
-          inWishlist: wishlist.some(item => item._id === product._id)
-        }));
-        
-        filteredProducts = [...allProducts];
-        displayProducts();
-        displayRecentProducts();
-        displayRecommendations();
-        updateProductCount();
-        // Attach event listeners after products are loaded
-        attachProductCardListeners();
-      } catch (error) {
-        console.error('Error loading products:', error);
-        console.log('Using sample products for demonstration...');
-        
-        // Use sample products when server is not available
-        allProducts = [...sampleProducts];
-        filteredProducts = [...sampleProducts];
-        displayProducts();
-        displayRecentProducts();
-        displayRecommendations();
-        updateProductCount();
-        attachProductCardListeners();
-        
-        showNotification('Using demo products - server not available', 'info');
-      }
-    }
-    
-    // Get product image URL
-    function getProductImageUrl(product) {
-      if (product.images && product.images.length > 0) {
-        return `/uploads/${product.images[0]}`;
-      }
-      return '/uploads/default-item.jpg';
-    }
-    
-    // ✅ FIXED: Enhanced Cart Functions with loading states
-    function handleAddToCart(productId, buttonElement) {
-      console.log('🛒 Adding to cart:', productId);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showNotification('Please login to add items to cart', 'error');
-        setTimeout(() => window.location.href = 'login.html', 1500);
-        return;
-      }
-      
-      // Find the button if not provided
-      const button = buttonElement || event.target;
-      if (button) {
-        button.classList.add('loading');
-        button.disabled = true;
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
-        
-        // Reset button after 3 seconds
-        setTimeout(() => {
-          button.classList.remove('loading');
-          button.disabled = false;
-          button.innerHTML = originalText;
-        }, 3000);
-      }
-      
-      if (window.addToCart) {
-        window.addToCart(productId, 1);
-      } else {
-        console.error('❌ addToCart function not found');
-        showNotification('Cart system not available', 'error');
-      }
-    }
-    
-    // ✅ FIXED: Enhanced Buy Now Function with direct checkout navigation
-    function handleBuyNow(productId, productName, productPrice, productImage, buttonElement) {
-      console.log('⚡ Buy Now clicked:', {productId, productName, productPrice, productImage});
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showNotification('Please login to buy products', 'error');
-        setTimeout(() => window.location.href = 'login.html', 1500);
-        return;
-      }
-      
-      // Find the button if not provided
-      const button = buttonElement || event.target;
-      if (button) {
-        button.classList.add('loading');
-        button.disabled = true;
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
-        
-        // Reset button after checkout starts or fails
-        setTimeout(() => {
-          button.classList.remove('loading');
-          button.disabled = false;
-          button.innerHTML = originalText;
-        }, 2000);
-      }
-      
-      // Navigate to enhanced checkout page with product details
-      const checkoutUrl = `enhanced-checkout.html?productId=${productId}&productName=${encodeURIComponent(productName)}&productPrice=${productPrice}&productImage=${encodeURIComponent(productImage)}`;
-      window.location.href = checkoutUrl;
-    }
-    
-    // ✅ FIXED: Enhanced Wishlist Function
-    function handleToggleWishlist(button) {
-      console.log('❤️ Wishlist toggle clicked:', button);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showNotification('Please login to manage wishlist', 'error');
-        setTimeout(() => window.location.href = 'login.html', 1500);
-        return;
-      }
-      if (window.toggleWishlist) {
-        window.toggleWishlist(button);
-      } else {
-        console.error('❌ toggleWishlist function not found');
-        showNotification('Wishlist system not available', 'error');
-      }
-    }
-
-    // ✅ NEW: Enhanced Add to Wishlist Function
-    function handleAddToWishlist(productId, buttonElement) {
-      if (!productId) {
-        showNotification('Product ID not found', 'error');
-        return;
-      }
-      
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showNotification('Please login to add items to wishlist', 'error');
-        window.location.href = 'login.html';
-        return;
-      }
-      
-      // Disable button to prevent double clicks
-      if (buttonElement) {
-        buttonElement.disabled = true;
-        buttonElement.textContent = 'Adding...';
-      }
-      
-      // Add to wishlist
-      if (window.addToWishlist) {
-        window.addToWishlist(productId);
-      } else {
-        console.error('❌ addToWishlist function not found');
-        showNotification('Wishlist functionality not available', 'error');
-      }
-      
-      // Re-enable button after a delay
-      setTimeout(() => {
-        if (buttonElement) {
-          buttonElement.disabled = false;
-          buttonElement.textContent = 'Add to Wishlist';
-        }
-      }, 2000);
-    }
-    
-    // ✅ FIXED: Cart Checkout Handler
-    async function handleCartCheckout() {
-      console.log('🛒 Cart checkout initiated');
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showNotification('Please login to checkout', 'error');
-        setTimeout(() => window.location.href = 'login.html', 1500);
-        return;
-      }
-      
-      try {
-        // Get cart items
-        const cartResponse = await fetch('/api/cart', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (!cartResponse.ok) {
-          showNotification('Error loading cart', 'error');
-          return;
-        }
-        
-        const cart = await cartResponse.json();
-        if (!cart || cart.length === 0) {
-          showNotification('Your cart is empty', 'error');
-          return;
-        }
-        
-        // Calculate total
-        let total = 0;
-        for (const item of cart) {
-          const productResponse = await fetch(`/api/items/${item.productId}`);
-          if (productResponse.ok) {
-            const product = await productResponse.json();
-            total += product.price * item.quantity;
-          }
-        }
-        
-        // Navigate to enhanced checkout page with cart details
-        const checkoutUrl = `enhanced-checkout.html?type=cart&total=${total}`;
-        window.location.href = checkoutUrl;
-        
-      } catch (error) {
-        console.error('❌ Cart checkout error:', error);
-        showNotification('Error during checkout', 'error');
-      }
-    }
-
-    
-    // View switching functions
-    function switchToGridView() {
-      const grid = document.getElementById('productsGrid');
-      const gridBtn = document.getElementById('gridViewBtn');
-      const cardBtn = document.getElementById('cardViewBtn');
-      
-      grid.setAttribute('data-view', 'grid');
-      grid.className = 'grid grid-cols-1 gap-6';
-      
-      // Update button states
-      gridBtn.className = 'px-3 py-2 rounded-md bg-blue-600 text-white transition-all duration-200 hover:bg-blue-700';
-      cardBtn.className = 'px-3 py-2 rounded-md bg-gray-200 text-gray-700 transition-all duration-200 hover:bg-gray-300';
-      
-      // Re-display products in grid view
-      displayProducts();
-    }
-    
-    function switchToCardView() {
-      const grid = document.getElementById('productsGrid');
-      const gridBtn = document.getElementById('gridViewBtn');
-      const cardBtn = document.getElementById('cardViewBtn');
-      
-      grid.setAttribute('data-view', 'card');
-      grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
-      
-      // Update button states
-      gridBtn.className = 'px-3 py-2 rounded-md bg-gray-200 text-gray-700 transition-all duration-200 hover:bg-gray-300';
-      cardBtn.className = 'px-3 py-2 rounded-md bg-blue-600 text-white transition-all duration-200 hover:bg-blue-700';
-      
-      // Re-display products in card view
-      displayProducts();
-    }
-    
-    // Modified displayProducts function to support both views
-    function displayProducts() {
-      const grid = document.getElementById('productsGrid');
-      const loadingState = document.getElementById('loadingState');
-      const noProductsState = document.getElementById('noProductsState');
-      const currentView = grid.getAttribute('data-view') || 'grid';
-      
-      loadingState.classList.add('hidden');
-      
-      if (filteredProducts.length === 0) {
-        noProductsState.classList.remove('hidden');
-        grid.innerHTML = '';
-        return;
-      }
-      
-      noProductsState.classList.add('hidden');
-      
-      if (currentView === 'grid') {
-        // Grid Layout 2 - Left image, right description
-        grid.innerHTML = filteredProducts.map(product => {
-          // Calculate discount percentage if MRP is available
-          const discountPercent = product.mrp && product.mrp > product.price ? 
-            Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
-          
-          // Get delivery and offers info
-          const deliveryInfo = product.deliveryInfo || {};
-          const bankOffers = product.bankOffers || [];
-          
-          return `
-            <div class="product-card product-card-enhanced hover-lift card-3d bg-white border border-gray-200 rounded-2xl overflow-hidden cursor-pointer group scroll-fade-in" onclick="viewProduct('${product._id}')">
-              <div class="flex flex-col md:flex-row">
-                <!-- Left Side - Product Image -->
-                <div class="md:w-1/3 relative">
-                  <img src="${getProductImageUrl(product)}" 
-                       alt="${product.name}" 
-                       class="w-full h-48 md:h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                       onerror="this.onerror=null;this.src='/uploads/default-item.jpg';">
-                  
-                  <!-- Wishlist Button -->
-                  <button onclick="event.stopPropagation(); handleToggleWishlist(this)" 
-                          class="absolute top-4 right-12 bg-white border border-gray-200 rounded-full p-2 shadow-lg hover:bg-pink-50 transition-colors flex items-center justify-center hover:scale-110 transform duration-200" 
-                          data-product-id="${product._id}" 
-                          aria-label="Add to Wishlist">
-                    <i class="fas fa-heart ${product.inWishlist ? 'text-red-500' : 'text-gray-400'} text-lg"></i>
-                  </button>
-                  
-                  <!-- Share Button -->
-                  <button onclick="event.stopPropagation(); shareProduct('${product._id}')" 
-                          class="absolute top-4 right-4 bg-white border border-gray-200 rounded-full p-2 shadow-lg hover:bg-blue-50 transition-colors flex items-center justify-center" 
-                          aria-label="Share Product">
-                    <i class="fas fa-share-alt text-blue-600 text-lg"></i>
-                  </button>
-                  
-                  <!-- Badges -->
-                  ${product.isBestSeller ? `<span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Amazon's Choice</span>` : ''}
-                  ${discountPercent > 0 ? `<span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">${discountPercent}% off</span>` : ''}
-                </div>
-                
-                <!-- Right Side - Product Info -->
-                <div class="md:w-2/3 p-6 flex flex-col justify-between">
-                  <div>
-                    <!-- Product Title -->
-                    <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2">${product.name}</h3>
-                    
-                    <!-- Rating and Reviews -->
-                    <div class="flex items-center mb-3">
-                      <div class="flex items-center">
-                        <span class="text-yellow-400 text-lg">★★★★☆</span>
-                        <span class="text-sm text-gray-600 ml-2">4.0</span>
-                      </div>
-                      <span class="text-sm text-gray-500 ml-3">(1,234 reviews)</span>
-                    </div>
-                    
-                    <!-- Price Section -->
-                    <div class="mb-4">
-                      <div class="flex items-center gap-3">
-                        <span class="text-2xl font-bold text-gray-900">₹${product.price.toFixed(2)}</span>
-                        ${product.mrp && product.mrp > product.price ? 
-                          `<span class="text-lg text-gray-500 line-through">₹${product.mrp.toFixed(2)}</span>` : ''}
-                      </div>
-                      ${discountPercent > 0 ? 
-                        `<span class="text-sm text-green-600 font-medium">${discountPercent}% off</span>` : ''}
-                    </div>
-                    
-                    <!-- Short Description -->
-                    <p class="text-gray-600 mb-4 line-clamp-3">${product.shortDescription || product.description || 'Fresh and healthy product for your wellness journey.'}</p>
-                    
-                    <!-- Delivery Info -->
-                    ${deliveryInfo.estimatedDelivery ? `
-                      <div class="text-sm text-gray-600 mb-3">
-                        <span class="font-medium">🚚 Estimated Delivery:</span> ${deliveryInfo.estimatedDelivery}
-                      </div>
-                    ` : ''}
-                    
-                    <!-- Bank Offers -->
-                    ${bankOffers.length > 0 ? `
-                      <div class="text-sm text-gray-600 mb-4">
-                        <span class="font-medium">💳 Bank Offers:</span>
-                        <ul class="list-disc list-inside mt-1">
-                          ${bankOffers.map(offer => `<li>${offer}</li>`).join('')}
-                        </ul>
-                      </div>
-                    ` : ''}
-                  </div>
-                  
-                  <!-- Action Buttons -->
-                  <div class="flex flex-col gap-3">
-                    <div class="flex gap-2 mb-2">
-                      <button onclick="event.stopPropagation(); handleAddToCart('${product._id}', this)" 
-                              class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 px-4 rounded-lg border border-yellow-400 transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
-                        🛒 Add to Cart
-                      </button>
-                      <button onclick="event.stopPropagation(); handleAddToWishlist('${product._id}', this)" 
-                              class="bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
-                        <i class="fas fa-heart"></i>
-                      </button>
-                    </div>
-                    <button onclick="event.stopPropagation(); handleBuyNow('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${getProductImageUrl(product)}', this)" 
-                            class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
-                      ⚡ Buy Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
-      } else {
-        // Card View - Compact cards
-        grid.innerHTML = filteredProducts.map(product => {
-          // Calculate discount percentage if MRP is available
-          const discountPercent = product.mrp && product.mrp > product.price ? 
-            Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
-          
-          return `
-            <div class="product-card product-card-enhanced hover-lift card-3d bg-white border border-gray-200 rounded-2xl overflow-hidden cursor-pointer group scroll-fade-in" onclick="viewProduct('${product._id}')">
-              <!-- Product Image -->
-              <div class="relative">
-                <img src="${getProductImageUrl(product)}" 
-                     alt="${product.name}" 
-                     class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                     onerror="this.onerror=null;this.src='/uploads/default-item.jpg';">
-                
-                <!-- Enhanced Wishlist Button -->
-                <button onclick="event.stopPropagation(); handleToggleWishlist(this)" 
-                        class="absolute top-4 right-4 glass-card rounded-full p-3 shadow-lg hover:bg-pink-50 transition-all flex items-center justify-center hover-glow" 
-                        data-product-id="${product._id}" 
-                        aria-label="Add to Wishlist">
-                  <i class="fas fa-heart ${product.inWishlist ? 'text-red-500' : 'text-gray-400'} text-lg icon-bounce"></i>
-                </button>
-                
-                <!-- Badges -->
-                ${product.isBestSeller ? `<span class="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Amazon's Choice</span>` : ''}
-                ${discountPercent > 0 ? `<span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">${discountPercent}% off</span>` : ''}
-              </div>
-              
-              <!-- Product Info -->
-              <div class="p-4">
-                <!-- Product Title -->
-                <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2">${product.name}</h3>
-                
-                <!-- Rating -->
-                <div class="flex items-center mb-2">
-                  <span class="text-yellow-400 text-sm">★★★★☆</span>
-                  <span class="text-xs text-gray-600 ml-1">4.0</span>
-                </div>
-                
-                <!-- Price Section -->
-                <div class="mb-3">
-                  <div class="flex items-center gap-2">
-                    <span class="text-xl font-bold text-gray-900">₹${product.price.toFixed(2)}</span>
-                    ${product.mrp && product.mrp > product.price ? 
-                      `<span class="text-sm text-gray-500 line-through">₹${product.mrp.toFixed(2)}</span>` : ''}
-                  </div>
-                  ${discountPercent > 0 ? 
-                    `<span class="text-xs text-green-600 font-medium">${discountPercent}% off</span>` : ''}
-                </div>
-                
-                <!-- Short Description -->
-                <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.shortDescription || product.description || 'Fresh and healthy product for your wellness journey.'}</p>
-                
-                <!-- Action Buttons -->
-                <div class="flex flex-col gap-2">
-                  <button onclick="event.stopPropagation(); handleAddToCart('${product._id}', this)" 
-                          class="btn-premium ripple w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-3 px-4 rounded-xl font-bold text-sm hover-lift shadow-lg">
-                    <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
-                  </button>
-                  <button onclick="event.stopPropagation(); handleBuyNow('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${getProductImageUrl(product)}', this)" 
-                          class="btn-premium ripple w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-3 px-4 rounded-xl font-bold text-sm hover-lift shadow-lg">
-                    <i class="fas fa-bolt mr-2"></i>Buy Now
-                  </button>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-      
-      updateProductCount();
-      attachProductCardListeners();
-    }
-    
     // Search and filter functionality
     function setupEventListeners() {
       // Price range
@@ -3599,7 +3105,6 @@
         showNotification('Error loading product details', 'error');
       }
     }
-    
     // Display product modal with the given product data
     function displayProductModal(product) {
       // Store current product ID for print function
@@ -3813,7 +3318,6 @@
                 </div>
               </div>
             </div>
-            
             <!-- Enhanced Product Tabs Section -->
             <div class="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
               <div class="max-w-7xl mx-auto px-8">
@@ -4285,7 +3789,6 @@
         }
       });
     }
-
     // ✅ FIXED: Enhanced Wishlist Functions
     async function addToWishlist(itemId) {
       try {
@@ -4608,7 +4111,6 @@
         sidebar.classList.add('translate-x-full');
       }
     }
-
     async function toggleWishlist(itemIdOrButton) {
       try {
         const token = localStorage.getItem('token');
@@ -4711,7 +4213,6 @@
         }
       });
     }
-
     async function viewWishlist(e) {
       e.preventDefault();
       try {
@@ -4789,7 +4290,6 @@
         showNotification('Error loading wishlist: ' + error.message, 'error');
       }
     }
-
     function closeWishlistModal() {
       document.getElementById('wishlistModal').style.display = 'none';
     }
@@ -4947,7 +4447,6 @@
     function closeOrdersModal() {
       document.getElementById('ordersModal').style.display = 'none';
     }
-
     // Modern buyNow function using enhanced checkout flow
     async function buyNow(productId) {
       try {
@@ -5197,501 +4696,8 @@
         }
       }
     }
-    
     // Add scroll listener for FAB management
     window.addEventListener('scroll', manageScrollFAB);
-    
-    // ✅ NEW: Enhanced Loading States
-    function showLoadingOverlay(message = 'Loading...') {
-      const overlay = document.createElement('div');
-      overlay.id = 'loadingOverlay';
-      overlay.innerHTML = `
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div class="glass-card p-8 rounded-2xl text-center">
-            <div class="w-16 h-16 mx-auto mb-4">
-              <svg class="progress-ring" viewBox="0 0 60 60">
-                <circle cx="30" cy="30" r="25"></circle>
-              </svg>
-            </div>
-            <p class="text-gray-700 font-medium">${message}</p>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-    }
-    
-    function hideLoadingOverlay() {
-      const overlay = document.getElementById('loadingOverlay');
-      if (overlay) {
-        overlay.remove();
-      }
-    }
-    
-    window.scrollToTop = scrollToTop;
-    window.showLoadingOverlay = showLoadingOverlay;
-    window.hideLoadingOverlay = hideLoadingOverlay;
-    
-    // ✅ NEW: Premium Interaction Feedback
-    function triggerHapticFeedback(type = 'light') {
-      // Haptic feedback for mobile devices
-      if (navigator.vibrate) {
-        switch(type) {
-          case 'light':
-            navigator.vibrate(50);
-            break;
-          case 'medium':
-            navigator.vibrate(100);
-            break;
-          case 'heavy':
-            navigator.vibrate([100, 50, 100]);
-            break;
-        }
-      }
-    }
-    
-    // Sound effect simulation with visual feedback
-    function playInteractionSound(type) {
-      // Create visual sound wave effect
-      const soundWave = document.createElement('div');
-      soundWave.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        width: 40px;
-        height: 40px;
-        border: 2px solid ${type === 'success' ? '#10b981' : '#3b82f6'};
-        border-radius: 50%;
-        z-index: 9999;
-        pointer-events: none;
-        animation: soundWaveEffect 0.8s ease-out forwards;
-      `;
-      
-      document.body.appendChild(soundWave);
-      
-      setTimeout(() => {
-        soundWave.remove();
-      }, 800);
-    }
-    
-    // Add sound wave animation CSS
-    const soundWaveCSS = `
-      @keyframes soundWaveEffect {
-        0% {
-          transform: scale(0);
-          opacity: 1;
-        }
-        100% {
-          transform: scale(3);
-          opacity: 0;
-        }
-      }
-    `;
-    
-    const soundStyle = document.createElement('style');
-    soundStyle.textContent = soundWaveCSS;
-    document.head.appendChild(soundStyle);
-    
-    // Enhanced button interactions
-    function enhanceButtonInteractions() {
-      document.addEventListener('click', function(e) {
-        const button = e.target.closest('button');
-        if (button) {
-          // Add haptic feedback
-          triggerHapticFeedback('light');
-          
-          // Add visual feedback
-          if (button.classList.contains('btn-premium')) {
-            playInteractionSound('success');
-          }
-          
-          // Add button press animation
-          button.style.transform = 'scale(0.95)';
-          setTimeout(() => {
-            button.style.transform = '';
-          }, 150);
-        }
-      });
-    }
-    
-    window.triggerHapticFeedback = triggerHapticFeedback;
-    window.playInteractionSound = playInteractionSound;
-    window.enhanceButtonInteractions = enhanceButtonInteractions;
-    
-    // ✅ NEW: Theme System
-    let isDarkTheme = false;
-    
-    function toggleTheme() {
-      isDarkTheme = !isDarkTheme;
-      const body = document.body;
-      const themeIcon = document.querySelector('#themeToggle i');
-      
-      if (isDarkTheme) {
-        body.classList.add('dark-theme');
-        themeIcon.className = 'fas fa-moon text-lg icon-bounce';
-        showNotification('🌙 Dark theme activated', 'info');
-      } else {
-        body.classList.remove('dark-theme');
-        themeIcon.className = 'fas fa-sun text-lg icon-bounce';
-        showNotification('☀️ Light theme activated', 'info');
-      }
-      
-      triggerHapticFeedback('light');
-      localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
-    }
-    
-    // Initialize theme from localStorage
-    function initializeTheme() {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'dark') {
-        isDarkTheme = true;
-        document.body.classList.add('dark-theme');
-        const themeIcon = document.querySelector('#themeToggle i');
-        if (themeIcon) {
-          themeIcon.className = 'fas fa-moon text-lg icon-bounce';
-        }
-      }
-    }
-    
-    window.toggleTheme = toggleTheme;
-    window.initializeTheme = initializeTheme;
-
-    // Open checkout modal function
-    function openCheckoutModal(product, qty) {
-      // Create a simple checkout modal
-      const modal = document.createElement('div');
-      modal.id = 'checkoutModal';
-      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-      modal.innerHTML = `
-        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold">Checkout</h3>
-            <button onclick="closeCheckoutModal()" class="text-gray-500 hover:text-gray-700">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="mb-4">
-            <p class="text-gray-600">Product: ${product ? product.name : 'Selected Product'}</p>
-            <p class="text-gray-600">Quantity: ${qty}</p>
-            <p class="text-gray-600">Total: ₹${product ? (product.price * qty).toFixed(2) : '0.00'}</p>
-          </div>
-          <div class="flex space-x-3">
-            <button onclick="closeCheckoutModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-              Cancel
-            </button>
-            <button onclick="proceedToCheckout()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Proceed to Payment
-            </button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    }
-
-    // Close checkout modal function
-    function closeCheckoutModal() {
-      const modal = document.getElementById('checkoutModal');
-      if (modal) {
-        modal.remove();
-      }
-    }
-
-    // Proceed to checkout function
-    function proceedToCheckout() {
-      closeCheckoutModal();
-      showNotification('Redirecting to payment gateway...', 'info');
-      // You can redirect to a checkout page here
-      // window.location.href = '/checkout.html';
-    }
-
-    // Enhanced checkout flow is now handled by razorpay-checkout.js
-
-    // Fetch and render orders
-    async function fetchAndRenderOrders() {
-      const ordersList = document.getElementById('ordersList');
-      const ordersEmptyState = document.getElementById('ordersEmptyState');
-      const statusFilter = document.getElementById('orderStatusFilter');
-      ordersList.innerHTML = '<div class="text-center py-8">Loading...</div>';
-      ordersEmptyState.classList.add('hidden');
-      try {
-        const res = await fetch('/api/orders/user', { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-        const orders = await res.json();
-        let filtered = orders;
-        if (statusFilter.value !== 'all') {
-          filtered = orders.filter(o => o.status === statusFilter.value);
-        }
-        if (filtered.length === 0) {
-          ordersList.innerHTML = '';
-          ordersEmptyState.classList.remove('hidden');
-          return;
-        }
-        ordersList.innerHTML = filtered.map(order => renderOrderCard(order)).join('');
-        // Attach view details listeners
-        document.querySelectorAll('.viewOrderDetailsBtn').forEach(btn => {
-          btn.addEventListener('click', function() {
-            showOrderDetailsModal(this.dataset.orderId);
-        });
-      });
-        // Attach cancel order listeners
-        document.querySelectorAll('.cancelOrderBtn').forEach(btn => {
-          btn.addEventListener('click', function() {
-            cancelOrder(this.dataset.orderId);
-        });
-      });
-      } catch (err) {
-        ordersList.innerHTML = '<div class="text-center text-red-500">Failed to load orders.</div>';
-      }
-    }
-
-    // Render order card
-    function renderOrderCard(order) {
-      const statusColors = {
-        pending: 'bg-yellow-100 text-yellow-800',
-        paid: 'bg-blue-100 text-blue-800',
-        shipped: 'bg-purple-100 text-purple-800',
-        delivered: 'bg-green-100 text-green-800',
-        cancelled: 'bg-red-100 text-red-800'
-      };
-      return `
-        <div class="bg-white rounded-lg shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-gray-500 text-xs">Order ID:</span>
-              <span class="font-mono text-xs">${order._id}</span>
-            </div>
-            <div class="text-gray-700 mb-1">${new Date(order.createdAt).toLocaleString()}</div>
-            <div class="inline-block px-2 py-1 rounded text-xs font-semibold ${statusColors[order.status] || 'bg-gray-100 text-gray-700'}">
-              ${order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-            </div>
-            <div class="mt-2 text-gray-900 font-bold">₹${order.total}</div>
-          </div>
-          <div class="flex-1">
-            <div class="flex flex-wrap gap-2 mt-2">
-              ${order.items.map(i => i.item ? `<span class="inline-block bg-gray-100 rounded px-2 py-1 text-sm">${i.item.name} x${i.quantity}</span>` : '').join('')}
-            </div>
-          </div>
-          <div class="flex flex-col gap-2 min-w-[120px]">
-            <button class="viewOrderDetailsBtn bg-blue-600 text-white px-3 py-1 rounded" data-order-id="${order._id}">View Details</button>
-            ${order.status === 'pending' ? `<button class="cancelOrderBtn bg-red-100 text-red-700 px-3 py-1 rounded" data-order-id="${order._id}">Cancel</button>` : ''}
-          </div>
-        </div>
-      `;
-    }
-
-    // Show order details modal
-    async function showOrderDetailsModal(orderId) {
-      const modal = document.getElementById('orderDetailsModal');
-      const content = document.getElementById('orderDetailsContent');
-      content.innerHTML = '<div class="text-center py-8">Loading...</div>';
-      modal.style.display = 'block';
-      try {
-        const res = await fetch(`/api/orders/${orderId}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-        const order = await res.json();
-        content.innerHTML = `
-          <div class="mb-2"><span class="font-semibold">Order ID:</span> <span class="font-mono text-xs">${order._id}</span></div>
-          <div class="mb-2"><span class="font-semibold">Status:</span> <span class="inline-block px-2 py-1 rounded text-xs font-semibold ${order.status === 'delivered' ? 'bg-green-100 text-green-800' : order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></div>
-          <div class="mb-2"><span class="font-semibold">Order Date:</span> ${new Date(order.createdAt).toLocaleString()}</div>
-          <div class="mb-2"><span class="font-semibold">Recipient:</span> ${order.recipientName} (${order.mobile})</div>
-          <div class="mb-2"><span class="font-semibold">Address:</span> ${order.address}, ${order.pincode}</div>
-          <div class="mb-2"><span class="font-semibold">Total:</span> ₹${order.total}</div>
-          <div class="mb-2"><span class="font-semibold">Products:</span>
-            <ul class="list-disc ml-6">
-              ${order.items.map(i => i.item ? `<li>${i.item.name} x${i.quantity}</li>` : '').join('')}
-            </ul>
-          </div>
-        `;
-      } catch (err) {
-        content.innerHTML = '<div class="text-center text-red-500">Failed to load order details.</div>';
-      }
-      // Always re-attach close button event listener
-      const closeBtn = document.getElementById('closeOrderDetailsModal');
-      if (closeBtn) {
-        closeBtn.onclick = function() {
-          modal.style.display = 'none';
-        };
-      }
-    }
-
-    // Close order details modal
-    document.getElementById('closeOrderDetailsModal').addEventListener('click', function() {
-      document.getElementById('orderDetailsModal').style.display = 'none';
-    });
-
-    // Cancel order
-    async function cancelOrder(orderId) {
-      if (!confirm('Are you sure you want to cancel this order?')) return;
-      try {
-        const res = await fetch(`/api/orders/${orderId}/status`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ status: 'cancelled' })
-        });
-        if (res.ok) {
-          showNotification('Order cancelled', 'success');
-          fetchAndRenderOrders();
-        } else {
-          showNotification('Failed to cancel order', 'error');
-        }
-      } catch (err) {
-        showNotification('Failed to cancel order', 'error');
-      }
-    }
-
-    // Address Cards UI - FIXED with proper error handling
-    async function renderAddressCards() {
-      const addressBookList = document.getElementById('addressBookList');
-      if (!addressBookList) {
-        console.error('❌ Address book list element not found');
-        return;
-      }
-      
-      addressBookList.innerHTML = '<div class="text-gray-500 text-sm">Loading addresses...</div>';
-      let addresses = [];
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        addressBookList.innerHTML = '<div class="text-gray-500 text-sm">Please log in to manage addresses.</div>';
-        return;
-      }
-      
-      try {
-        const res = await fetch('/api/user/addresses', { 
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          } 
-        });
-        
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        
-        addresses = await res.json();
-        console.log('✅ Addresses loaded:', addresses.length);
-      } catch (error) {
-        console.error('❌ Failed to load addresses:', error);
-        addressBookList.innerHTML = '<div class="text-red-500 text-sm">Failed to load addresses. Please try again.</div>';
-        return;
-      }
-      
-      if (!addresses.length) {
-        addressBookList.innerHTML = '<div class="text-gray-500 text-sm">No saved addresses. Please add one.</div>';
-        return;
-      }
-      
-      // ✅ Clean HTML generation with proper escaping
-      addressBookList.innerHTML = addresses.map((a, idx) => {
-        const name = a.name || a.recipientName || 'Unknown';
-        const address = a.address || 'No address';
-        const pincode = a.pincode || 'N/A';
-        const mobile = a.mobile || 'N/A';
-        const isDefault = a.isDefault || false;
-        
-        return `
-          <div class="address-card border rounded-lg p-4 mb-2 flex items-start gap-4 ${isDefault ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white'}" data-address-id="${a._id || idx}">
-            <input type="radio" name="selectedAddress" ${isDefault ? 'checked' : ''} data-idx="${idx}" class="mt-1 accent-blue-600" />
-            <div class="flex-1">
-              <div class="font-semibold">${name} ${isDefault ? '<span class="ml-2 px-2 py-0.5 text-xs rounded bg-blue-600 text-white">Default</span>' : ''}</div>
-              <div class="text-gray-700 text-sm mb-1">${address}</div>
-              <div class="text-gray-600 text-xs mb-1">${pincode}, ${mobile}</div>
-            </div>
-            <div class="address-actions">
-              <span class="edit-address cursor-pointer text-blue-600 hover:text-blue-800" title="Edit" data-address-id="${a._id || idx}"><i class="fas fa-pen"></i></span>
-              <span class="delete-address cursor-pointer text-red-600 hover:text-red-800 ml-2" title="Delete" data-address-id="${a._id || idx}"><i class="fas fa-trash"></i></span>
-            </div>
-          </div>
-        `;
-      }).join('');
-      
-      // ✅ Attach event listeners with proper error handling
-      attachAddressEventListeners();
-    }
-    // ✅ FIXED: Proper address event listeners attachment
-    function attachAddressEventListeners() {
-      const addressBookList = document.getElementById('addressBookList');
-      if (!addressBookList) return;
-      
-      // Edit address listeners
-      addressBookList.querySelectorAll('.edit-address').forEach((btn) => {
-        btn.onclick = function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          const addressId = this.getAttribute('data-address-id');
-          openAddressEditForm(addressId);
-        };
-      });
-      
-      // Delete address listeners
-      addressBookList.querySelectorAll('.delete-address').forEach((btn) => {
-        btn.onclick = function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          const addressId = this.getAttribute('data-address-id');
-          confirmDeleteAddress(addressId);
-        };
-      });
-      
-      // Radio button listeners
-      addressBookList.querySelectorAll('input[type=radio][name=selectedAddress]').forEach(radio => {
-        radio.addEventListener('change', function() { 
-          setDefaultAddress(this.dataset.idx); 
-        });
-      });
-    }
-
-    async function setDefaultAddress(idx) {
-      // Set selected address as default
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showNotification('Please log in to manage addresses', 'error');
-        return;
-      }
-      
-      try {
-        // First get all addresses
-        const res = await fetch('/api/user/addresses', { 
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          } 
-        });
-        
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        
-        const addresses = await res.json();
-        if (!addresses[idx]) {
-          throw new Error('Address not found');
-        }
-        
-        // Update the specific address to be default
-        const addressToUpdate = addresses[idx];
-        const updateRes = await fetch(`/api/user/addresses/${addressToUpdate._id}`, {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'Authorization': `Bearer ${token}` 
-          },
-          body: JSON.stringify({ 
-            ...addressToUpdate,
-            isDefault: true 
-          })
-        });
-        
-        if (!updateRes.ok) {
-          throw new Error(`Failed to update address: ${updateRes.statusText}`);
-        }
-        
-        showNotification('Default address updated successfully', 'success');
-        renderAddressCards();
-      } catch (error) {
-        console.error('❌ Failed to set default address:', error);
-        showNotification('Failed to set default address', 'error');
-      }
-    }
     // ✅ FIXED: Enhanced address card rendering with proper checkout integration
     async function renderAddressCards() {
       const addressBookList = document.getElementById('addressBookList');
@@ -6093,7 +5099,6 @@
         showNotification('Failed to delete address', 'error');
       }
     }
-
     // ✅ FIXED: Enhanced checkout flow integration
     function initializeCheckoutFlow() {
       // Initialize Razorpay configuration if not exists
@@ -6153,7 +5158,6 @@
         });
       }
     }
-
     // ✅ FIXED: Setup quantity modal event listeners
     function setupQuantityModalListeners() {
       const decreaseQty = document.getElementById('decreaseQty');
@@ -6265,7 +5269,6 @@
     }
 
     // Call attachAddressCardListeners() after rendering address cards
-
     // Add this function before or after displayProducts()
     function attachProductCardListeners() {
       // Wishlist buttons
@@ -6648,8 +5651,6 @@
       userMenu.parentNode.insertBefore(document.getElementById('notificationBellWrapper'), userMenu.nextSibling);
     }
   })();
-
-  
   let unreadCount = 0;
 
   async function fetchNotifications() {
@@ -6740,9 +5741,6 @@
     }
   }
   </script>
-
-  
-
   <!-- Address Selection Modal -->
   <div id="addressSelectionModal" class="modal" style="display:none;">
     <div class="modal-content max-w-md p-6">
@@ -6776,7 +5774,6 @@
       <button id="closeAddressModal" class="w-full bg-gray-200 text-gray-700 py-2 rounded-lg mt-2">Cancel</button>
     </div>
   </div>
-
   <!-- Order Summary Modal (with quantity selection) -->
   <div id="orderSummaryModal" class="modal" style="display:none;">
     <div class="modal-content max-w-md p-6">
@@ -7111,9 +6108,6 @@
       userDropdown.classList.toggle('hidden');
     }
   };
-  
-
-  
   // Ensure products load properly
   if (typeof loadProducts === 'function') {
     console.log('✅ loadProducts function available');
@@ -7132,7 +6126,6 @@
       }
     };
   }
-  
   // Ensure cart functions work
   if (typeof fetchCart === 'function') {
     console.log('✅ fetchCart function available');
@@ -7465,6 +6458,46 @@
       };
       
     })();
+  </script>
+
+  <!-- Chrome Extension Error Suppression -->
+  <script>
+    // Global error handling for chrome extensions
+    window.addEventListener('error', function(event) {
+      if (event.error && event.error.message && 
+          (event.error.message.includes('chrome-extension') ||
+           event.error.message.includes('contentScript') ||
+           event.error.message.includes('i18next') ||
+           event.filename && event.filename.includes('contentScript'))) {
+        event.preventDefault();
+        return false;
+      }
+    });
+    
+    window.addEventListener('unhandledrejection', function(event) {
+      if (event.reason && 
+          ((event.reason.message && 
+            (event.reason.message.includes('chrome-extension') ||
+             event.reason.message.includes('contentScript') ||
+             event.reason.message.includes('i18next'))) ||
+           (typeof event.reason === 'string' && 
+            (event.reason.includes('chrome-extension') ||
+             event.reason.includes('contentScript') ||
+             event.reason.includes('i18next'))))) {
+        event.preventDefault();
+        return false;
+      }
+    });
+    
+    // Suppress chrome-extension fetch attempts
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+      const url = args[0];
+      if (typeof url === 'string' && url.includes('chrome-extension://')) {
+        return Promise.reject(new Error('chrome-extension fetch blocked'));
+      }
+      return originalFetch.apply(this, args);
+    };
   </script>
 
   <!-- Modal Close Functions -->
