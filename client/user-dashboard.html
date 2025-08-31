@@ -1815,12 +1815,24 @@
     
     /* Premium Transitions */
     .fade-out {
-      animation: fadeOut 0.5s ease-out forwards;
+      opacity: 0 !important;
+      transition: opacity 0.5s ease-out;
+      pointer-events: none;
     }
     
     @keyframes fadeOut {
       0% { opacity: 1; }
       100% { opacity: 0; }
+    }
+    
+    /* Loading Screen Specific Styles */
+    #loadingScreen {
+      transition: opacity 0.5s ease-out;
+    }
+    
+    #loadingScreen.fade-out {
+      opacity: 0 !important;
+      pointer-events: none;
     }
 
       /* Razorpay Modal Override */
@@ -2114,7 +2126,7 @@
 </head>
 <body class="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 overflow-x-hidden relative">
   <!-- Premium Loading Screen -->
-  <div id="loadingScreen" class="fixed inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 z-50 flex items-center justify-center">
+  <div id="loadingScreen" class="fixed inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 z-50 flex items-center justify-center transition-opacity duration-500">
     <div class="text-center">
       <div class="mb-8">
         <!-- Enhanced Arobowl Logo Animation -->
@@ -2170,12 +2182,18 @@
       
       <!-- Enhanced Progress Bar -->
       <div class="w-80 h-3 bg-white/20 rounded-full overflow-hidden shadow-inner">
-        <div class="h-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 rounded-full animate-pulse" 
-             style="width: 0%; animation: loadingProgress 2.5s ease-out forwards;"></div>
+        <div id="loadingProgressBar" class="h-full bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 rounded-full transition-all duration-1000 ease-out" 
+             style="width: 0%;"></div>
       </div>
       
       <!-- Loading Text -->
       <p class="text-white/70 text-sm mt-4 animate-pulse">Loading your wellness journey...</p>
+      
+      <!-- Manual Skip Button (appears after 3 seconds) -->
+      <button id="skipLoadingBtn" class="mt-6 px-6 py-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-all duration-300 opacity-0" 
+              onclick="skipLoading()" style="display: none;">
+        Skip Loading
+      </button>
     </div>
   </div>
 
@@ -2896,26 +2914,35 @@
     
     // Initialize the application
     document.addEventListener('DOMContentLoaded', function() {
-      checkAuth();
-      initializeBanner();
-      loadProducts();
-      setupEventListeners();
-      setUserInfo();
-      updateCartCount();
-      fetchCart();
-      // Initialize product states after a short delay to ensure products are loaded
-      setTimeout(() => {
-        initializeProductStates();
-        enhanceProductCards();
-        updateFabCartBadge();
-      }, 1000);
+      try {
+        checkAuth();
+        initializeBanner();
+        loadProducts();
+        setupEventListeners();
+        setUserInfo();
+        updateCartCount();
+        fetchCart();
+        // Initialize product states after a short delay to ensure products are loaded
+        setTimeout(() => {
+          try {
+            initializeProductStates();
+            enhanceProductCards();
+            updateFabCartBadge();
+          } catch (error) {
+            console.warn('Some initialization functions failed:', error);
+          }
+        }, 1000);
       
-      // Initialize advanced effects
-      initScrollAnimations();
-      initParallaxEffect();
-      addRippleEffect();
-      enhanceButtonInteractions();
-      initializeTheme();
+              // Initialize advanced effects
+        try {
+          initScrollAnimations();
+          initParallaxEffect();
+          addRippleEffect();
+          enhanceButtonInteractions();
+          initializeTheme();
+        } catch (error) {
+          console.warn('Some advanced effects failed to initialize:', error);
+        }
       
       // Add stagger animation to category cards
       setTimeout(() => {
@@ -2924,16 +2951,48 @@
         });
       }, 500);
       
-      // Hide loading screen after page loads
-      setTimeout(() => {
-        const loadingScreen = document.getElementById('loadingScreen');
-        if (loadingScreen) {
-          loadingScreen.classList.add('fade-out');
-          setTimeout(() => {
-            loadingScreen.style.display = 'none';
-          }, 500);
-        }
-      }, 2500);
+      // Enhanced loading screen control
+      const loadingScreen = document.getElementById('loadingScreen');
+      const loadingProgressBar = document.getElementById('loadingProgressBar');
+      
+      if (loadingScreen && loadingProgressBar) {
+        // Animate progress bar
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+          progress += 2;
+          loadingProgressBar.style.width = progress + '%';
+          
+          if (progress >= 100) {
+            clearInterval(progressInterval);
+            // Hide loading screen after progress completes
+            setTimeout(() => {
+              loadingScreen.classList.add('fade-out');
+              setTimeout(() => {
+                loadingScreen.style.display = 'none';
+              }, 500);
+            }, 300);
+          }
+        }, 50); // Update every 50ms for smooth animation
+        
+        // Fallback: Ensure loading screen hides after maximum time
+        setTimeout(() => {
+          if (loadingScreen.style.display !== 'none') {
+            loadingScreen.classList.add('fade-out');
+            setTimeout(() => {
+              loadingScreen.style.display = 'none';
+            }, 500);
+          }
+        }, 5000); // Maximum 5 seconds
+        
+        // Show skip button after 3 seconds
+        setTimeout(() => {
+          const skipBtn = document.getElementById('skipLoadingBtn');
+          if (skipBtn) {
+            skipBtn.style.display = 'block';
+            skipBtn.style.opacity = '1';
+          }
+        }, 3000);
+      }
       
           // Initialize enhanced loading animations
     initializeLoadingAnimations();
@@ -5354,32 +5413,36 @@
     
     // Enhanced Loading Animation Functions
     function initializeLoadingAnimations() {
-      // Add loading animation to product cards
-      document.querySelectorAll('.product-card').forEach(card => {
-        card.addEventListener('click', function() {
-          showProductLoading();
+      try {
+        // Add loading animation to product cards
+        document.querySelectorAll('.product-card').forEach(card => {
+          card.addEventListener('click', function() {
+            showProductLoading();
+          });
         });
-      });
-      
-      // Add loading animation to navigation links
-      document.querySelectorAll('nav a').forEach(link => {
-        link.addEventListener('click', function(e) {
-          if (this.href && !this.href.includes('#')) {
-            e.preventDefault();
-            showPageTransitionLoading();
-            setTimeout(() => {
-              window.location.href = this.href;
-            }, 1000);
-          }
+        
+        // Add loading animation to navigation links
+        document.querySelectorAll('nav a').forEach(link => {
+          link.addEventListener('click', function(e) {
+            if (this.href && !this.href.includes('#')) {
+              e.preventDefault();
+              showPageTransitionLoading();
+              setTimeout(() => {
+                window.location.href = this.href;
+              }, 1000);
+            }
+          });
         });
-      });
-      
-      // Add loading animation to search
-      const searchButton = document.querySelector('button:contains("Search")');
-      if (searchButton) {
-        searchButton.addEventListener('click', function() {
-          showProductLoading();
-        });
+        
+        // Add loading animation to search
+        const searchButton = document.querySelector('button:contains("Search")');
+        if (searchButton) {
+          searchButton.addEventListener('click', function() {
+            showProductLoading();
+          });
+        }
+      } catch (error) {
+        console.warn('Loading animations initialization failed:', error);
       }
     }
     
@@ -5438,10 +5501,22 @@
       }
     }
     
+    // Skip loading function
+    function skipLoading() {
+      const loadingScreen = document.getElementById('loadingScreen');
+      if (loadingScreen) {
+        loadingScreen.classList.add('fade-out');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }
+    }
+    
     // Global loading functions
     window.showProductLoading = showProductLoading;
     window.showPageTransitionLoading = showPageTransitionLoading;
     window.hidePageTransitionLoading = hidePageTransitionLoading;
+    window.skipLoading = skipLoading;
     
     // API Error Handling and Fallback Functions
     function handleAPIError(error, endpoint) {
@@ -5503,6 +5578,18 @@
     window.handleAPIError = handleAPIError;
     window.getMockOrderStatus = getMockOrderStatus;
     window.getMockUserData = getMockUserData;
+    
+    // Global error handler to ensure loading screen is hidden
+    window.addEventListener('error', function(event) {
+      console.warn('Global error detected, ensuring loading screen is hidden:', event.error);
+      const loadingScreen = document.getElementById('loadingScreen');
+      if (loadingScreen && loadingScreen.style.display !== 'none') {
+        loadingScreen.classList.add('fade-out');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }
+    });
     
     // Console Error Interception
     function interceptConsoleErrors() {

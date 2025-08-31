@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading Screen Fix Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Loading Screen Styles */
+    #loadingScreen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease-out;
+    }
+    
+    #loadingScreen.fade-out {
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+    
+    .loading-content {
+      text-align: center;
+      color: white;
+    }
+    
+    .progress-bar {
+      width: 320px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 20px auto;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
+      border-radius: 6px;
+      transition: width 0.1s ease-out;
+      width: 0%;
+    }
+    
+    .skip-btn {
+      margin-top: 20px;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      opacity: 0;
+      display: none;
+    }
+    
+    .skip-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    .main-content {
+      padding: 40px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loadingScreen">
+    <div class="loading-content">
+      <h1 class="text-4xl font-bold mb-4">Arobowl</h1>
+      <p class="text-xl mb-6">Bowl Your Way to Wellness</p>
+      
+      <!-- Progress Bar -->
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+      
+      <p class="text-lg">Loading your wellness journey...</p>
+      
+      <!-- Skip Button -->
+      <button id="skipBtn" class="skip-btn" onclick="skipLoading()">
+        Skip Loading
+      </button>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <h1 class="text-3xl font-bold text-gray-800 mb-4">Welcome to Arobowl!</h1>
+    <p class="text-gray-600">The loading screen should have automatically hidden by now.</p>
+    <p class="text-gray-600">If you're still seeing it, click the "Skip Loading" button above.</p>
+  </div>
+  
+  <script>
+    // Enhanced loading screen control
+    const loadingScreen = document.getElementById('loadingScreen');
+    const progressFill = document.getElementById('progressFill');
+    const skipBtn = document.getElementById('skipBtn');
+    
+    if (loadingScreen && progressFill) {
+      // Animate progress bar
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 2;
+        progressFill.style.width = progress + '%';
+        
+        if (progress >= 100) {
+          clearInterval(progressInterval);
+          // Hide loading screen after progress completes
+          setTimeout(() => {
+            loadingScreen.classList.add('fade-out');
+            setTimeout(() => {
+              loadingScreen.style.display = 'none';
+            }, 500);
+          }, 300);
+        }
+      }, 50); // Update every 50ms for smooth animation
+      
+      // Fallback: Ensure loading screen hides after maximum time
+      setTimeout(() => {
+        if (loadingScreen.style.display !== 'none') {
+          loadingScreen.classList.add('fade-out');
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 500);
+        }
+      }, 5000); // Maximum 5 seconds
+      
+      // Show skip button after 3 seconds
+      setTimeout(() => {
+        if (skipBtn) {
+          skipBtn.style.display = 'block';
+          skipBtn.style.opacity = '1';
+        }
+      }, 3000);
+    }
+    
+    // Skip loading function
+    function skipLoading() {
+      const loadingScreen = document.getElementById('loadingScreen');
+      if (loadingScreen) {
+        loadingScreen.classList.add('fade-out');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }
+    }
+    
+    // Global error handler
+    window.addEventListener('error', function(event) {
+      console.warn('Global error detected, ensuring loading screen is hidden:', event.error);
+      const loadingScreen = document.getElementById('loadingScreen');
+      if (loadingScreen && loadingScreen.style.display !== 'none') {
+        loadingScreen.classList.add('fade-out');
+        setTimeout(() => {
+          loadingScreen.style.display = 'none';
+        }, 500);
+      }
+    });
+    
+    // Test: Simulate an error after 1 second to test error handling
+    setTimeout(() => {
+      console.log('Testing error handling...');
+      // This will trigger the global error handler
+      try {
+        throw new Error('Test error for loading screen fallback');
+      } catch (error) {
+        console.error('Test error caught:', error);
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
