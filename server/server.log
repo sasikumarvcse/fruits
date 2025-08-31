@@ -1,7 +1,108 @@
 nohup: ignoring input
-(node:10091) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(node:6986) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
 (Use `node --trace-warnings ...` to show where the warning was created)
-(node:10091) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(node:6986) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
 🚀 Server running at: http://localhost:3000
 💳 Razorpay configured: Yes
 ✅ MongoDB connected
+🔍 Comparing passwords for user: sasikumar54vcse@gmail.com
+🔒 Password comparison result: false
+🔍 Comparing passwords for user: sasikumar54vcse@gmail.com
+🔒 Password comparison result: true
+Backend: addToCart received productId: undefined itemId: 68b2e1c462309d1528548037 using: 68b2e1c462309d1528548037
+Backend: addToCart product lookup result: {
+  deliveryInfo: { estimatedDelivery: '', additionalInfo: '' },
+  productDetails: {
+    calories: '',
+    protein: '',
+    carbs: '',
+    fiber: '',
+    vitamins: '',
+    minerals: '',
+    origin: '',
+    season: '',
+    storage: '',
+    shelfLife: '',
+    customFields: []
+  },
+  _id: new ObjectId('68b2e1c462309d1528548037'),
+  name: 'Dragon Fruit',
+  description: 'Exotic and beautiful dragon fruit with sweet, mild flavor. Perfect for smoothie bowls or fresh eating.',
+  price: 400,
+  category: 'premium',
+  isOrganic: false,
+  isBestSeller: false,
+  ratings: 0,
+  sales: 0,
+  images: [ 'uploads/dragonfruit-1.jpg', 'uploads/dragonfruit-2.jpg' ],
+  stock: 15,
+  status: 'active',
+  seller: null,
+  offers: [ 'Exotic Premium', 'Free Cutting' ],
+  details: 'Rich in antioxidants, Vitamin C, and fiber. Great for skin health.',
+  createdAt: 2025-08-30T11:34:28.760Z,
+  reviews: [],
+  deliveryStatus: [],
+  __v: 0
+}
+getCart: user.cart = [
+  {
+    "product": {
+      "deliveryInfo": {
+        "estimatedDelivery": "",
+        "additionalInfo": ""
+      },
+      "productDetails": {
+        "calories": "",
+        "protein": "",
+        "carbs": "",
+        "fiber": "",
+        "vitamins": "",
+        "minerals": "",
+        "origin": "",
+        "season": "",
+        "storage": "",
+        "shelfLife": "",
+        "customFields": []
+      },
+      "_id": "68b2e1c462309d1528548037",
+      "name": "Dragon Fruit",
+      "description": "Exotic and beautiful dragon fruit with sweet, mild flavor. Perfect for smoothie bowls or fresh eating.",
+      "price": 400,
+      "category": "premium",
+      "isOrganic": false,
+      "isBestSeller": false,
+      "ratings": 0,
+      "sales": 0,
+      "images": [
+        "uploads/dragonfruit-1.jpg",
+        "uploads/dragonfruit-2.jpg"
+      ],
+      "stock": 15,
+      "status": "active",
+      "seller": null,
+      "offers": [
+        "Exotic Premium",
+        "Free Cutting"
+      ],
+      "details": "Rich in antioxidants, Vitamin C, and fiber. Great for skin health.",
+      "createdAt": "2025-08-30T11:34:28.760Z",
+      "reviews": [],
+      "deliveryStatus": [],
+      "__v": 0
+    },
+    "quantity": 1,
+    "_id": "68b3b8d2076f1cfde31c5965"
+  }
+]
+addToWishlist: req.user = {
+  id: '68a8f8a1e4f6b29bdbe74805',
+  role: 'user',
+  _id: '68a8f8a1e4f6b29bdbe74805'
+}
+addToWishlist: req.body = { itemId: '68b2e1c462309d1528548037' }
+getWishlist: req.user = {
+  id: '68a8f8a1e4f6b29bdbe74805',
+  role: 'user',
+  _id: '68a8f8a1e4f6b29bdbe74805'
+}

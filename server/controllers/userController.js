@@ -117,6 +117,14 @@ exports.getCart = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    
+    // Clean up any cart items with null products
+    const validCartItems = user.cart.filter(item => item.product !== null);
+    if (validCartItems.length !== user.cart.length) {
+      user.cart = validCartItems;
+      await user.save();
+    }
+    
     fixCartFormat(user); // Ensure cart is always in correct format
     // DEBUG: Log the populated cart
     console.log('getCart: user.cart =', JSON.stringify(user.cart, null, 2));
@@ -126,6 +134,7 @@ exports.getCart = async (req, res) => {
     }));
     res.json(cartWithProduct);
   } catch (error) {
+    console.error('getCart error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -143,34 +152,31 @@ exports.addToCart = async (req, res) => {
     }
     
     // Check if product exists
-    const product = await require('../models/Item').findById(id);
+    const Item = require('../models/Item');
+    const product = await Item.findById(id);
     console.log('Backend: addToCart product lookup result:', product);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
     
-    // Use MongoDB update operation instead of saving entire user
-    const result = await User.findByIdAndUpdate(
-      req.user.id,
-      { 
-        $push: { 
-          cart: { 
-            product: id, 
-            quantity: quantity 
-          } 
-        }
-      },
-      { new: true }
-    );
+    // Check if product is already in cart
+    const user = await User.findById(req.user.id);
+    const existingCartItem = user.cart.find(item => item.product && item.product.toString() === id);
     
-    if (!result) {
-      return res.status(404).json({ message: 'User not found' });
+    if (existingCartItem) {
+      // Update quantity if already in cart
+      existingCartItem.quantity += quantity;
+      await user.save();
+    } else {
+      // Add new item to cart
+      user.cart.push({ product: id, quantity: quantity });
+      await user.save();
     }
     
     // Populate cart products
-    await result.populate('cart.product');
+    await user.populate('cart.product');
     
-    const cartWithProduct = result.cart.map(c => ({
+    const cartWithProduct = user.cart.map(c => ({
       ...c.toObject(),
       product: c.product
     }));

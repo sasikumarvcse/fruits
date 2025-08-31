@@ -123,6 +123,19 @@ mongoose
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
+// Memory management
+const v8 = require('v8');
+setInterval(() => {
+  const memUsage = process.memoryUsage();
+  const heapUsed = Math.round(memUsage.heapUsed / 1024 / 1024);
+  const heapTotal = Math.round(memUsage.heapTotal / 1024 / 1024);
+  
+  if (heapUsed > 500) { // If using more than 500MB
+    console.log(`⚠️  High memory usage: ${heapUsed}MB / ${heapTotal}MB`);
+    global.gc && global.gc(); // Force garbage collection if available
+  }
+}, 30000); // Check every 30 seconds
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
