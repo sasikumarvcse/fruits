@@ -8,7 +8,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   
   <!-- Content Security Policy to prevent browser extension conflicts -->
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://checkout.razorpay.com;">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://checkout.razorpay.com;">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     
@@ -3715,22 +3715,21 @@
           return;
         }
         
-        // Start the enhanced checkout flow: Address → Quantity → Payment
-        if (typeof startCheckoutFlow === 'function') {
-          startCheckoutFlow(
-            product._id,
-            product.name,
-            product.price,
-            product.image
-          );
-        } else {
-          showNotification('Checkout system not loaded', 'error');
-        }
+        // Navigate directly to enhanced checkout page with product details
+        const checkoutUrl = `enhanced-checkout.html?productId=${product._id}&productName=${encodeURIComponent(product.name)}&productPrice=${product.price}&productImage=${encodeURIComponent(getProductImageUrl(product))}`;
+        window.location.href = checkoutUrl;
       } catch (error) {
         console.error('Error starting checkout:', error);
         showNotification('Failed to start checkout', 'error');
       }
     }
+
+    // ✅ FIXED: Attach functions to window object for global access
+    window.addToCart = addToCart;
+    window.toggleWishlist = toggleWishlist;
+    window.buyNow = buyNow;
+    window.addToWishlist = addToWishlist;
+    window.removeFromWishlist = removeFromWishlist;
 
     // Open checkout modal function
     function openCheckoutModal(product, qty) {
@@ -4961,12 +4960,30 @@
   </script>
 
   <script>
-  // Polling for real-time order status updates
-  setInterval(() => {
-    if (typeof fetchAndRenderOrders === 'function') {
-      fetchAndRenderOrders();
+  // Polling for real-time order status updates (reduced frequency to prevent memory issues)
+  let orderPollingInterval;
+  function startOrderPolling() {
+    // Clear existing interval if any
+    if (orderPollingInterval) clearInterval(orderPollingInterval);
+    
+    orderPollingInterval = setInterval(() => {
+      if (typeof fetchAndRenderOrders === 'function' && document.visibilityState === 'visible') {
+        fetchAndRenderOrders();
+      }
+    }, 60000); // Reduced to 60 seconds
+  }
+  
+  // Only poll when page is visible
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      startOrderPolling();
+    } else {
+      if (orderPollingInterval) clearInterval(orderPollingInterval);
     }
-  }, 15000); // 15 seconds
+  });
+  
+  // Start polling when page loads
+  startOrderPolling();
   </script>
 
   <script>
@@ -4974,7 +4991,7 @@
   (function insertBell() {
     const userMenu = document.getElementById('userMenu');
     if (userMenu && !document.getElementById('notificationBellWrapper')) {
-      userMenu.parentNode.insertBefore(docufment.getElementById('notificationBellWrapper'), userMenu.nextSibling);
+      userMenu.parentNode.insertBefore(document.getElementById('notificationBellWrapper'), userMenu.nextSibling);
     }
   })();
 
@@ -5013,8 +5030,31 @@
     `).join('');
   }
 
-  // Poll for notifications every 15s
-  setInterval(fetchNotifications, 15000);
+  // Poll for notifications (optimized to prevent memory issues)
+  let notificationPollingInterval;
+  function startNotificationPolling() {
+    // Clear existing interval if any
+    if (notificationPollingInterval) clearInterval(notificationPollingInterval);
+    
+    notificationPollingInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchNotifications();
+      }
+    }, 30000); // Reduced to 30 seconds
+  }
+  
+  // Only poll when page is visible
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      startNotificationPolling();
+      fetchNotifications(); // Fetch immediately when page becomes visible
+    } else {
+      if (notificationPollingInterval) clearInterval(notificationPollingInterval);
+    }
+  });
+  
+  // Start polling and fetch initial notifications
+  startNotificationPolling();
   fetchNotifications();
 
   // Bell click: toggle dropdown, mark all as read
@@ -5687,8 +5727,23 @@
         fixModalZIndex();
       }
       
-      // Apply fixes periodically to handle dynamic content
-      setInterval(fixModalZIndex, 2000);
+      // Apply fixes only when needed to prevent memory issues
+      let modalFixInterval;
+      function startModalFixing() {
+        if (modalFixInterval) clearInterval(modalFixInterval);
+        modalFixInterval = setInterval(fixModalZIndex, 10000); // Reduced to 10 seconds
+      }
+      
+      // Only run when page is visible
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          startModalFixing();
+        } else {
+          if (modalFixInterval) clearInterval(modalFixInterval);
+        }
+      });
+      
+      startModalFixing();
       
     })();
   </script>
