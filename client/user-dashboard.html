@@ -1834,6 +1834,12 @@
       opacity: 0 !important;
       pointer-events: none;
     }
+    
+    #loadingScreen.hidden {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
 
       /* Razorpay Modal Override */
   .razorpay-container {
@@ -2193,6 +2199,12 @@
       <button id="skipLoadingBtn" class="mt-6 px-6 py-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-all duration-300 opacity-0" 
               onclick="skipLoading()" style="display: none;">
         Skip Loading
+      </button>
+      
+      <!-- Emergency Hide Button (always visible) -->
+      <button id="emergencyHideBtn" class="mt-3 px-4 py-1 bg-red-500/30 hover:bg-red-500/50 text-white rounded-full transition-all duration-300 text-sm" 
+              onclick="window.hideLoadingScreen ? window.hideLoadingScreen() : skipLoading()">
+        Force Hide
       </button>
     </div>
   </div>
@@ -2914,6 +2926,9 @@
     
     // Initialize the application
     document.addEventListener('DOMContentLoaded', function() {
+      // Track page load time for loading screen management
+      window.pageLoadTime = Date.now();
+      
       try {
         checkAuth();
         initializeBanner();
@@ -2951,7 +2966,7 @@
         });
       }, 500);
       
-      // Enhanced loading screen control
+      // Enhanced loading screen control with guaranteed hiding
       const loadingScreen = document.getElementById('loadingScreen');
       const loadingProgressBar = document.getElementById('loadingProgressBar');
       
@@ -2966,22 +2981,14 @@
             clearInterval(progressInterval);
             // Hide loading screen after progress completes
             setTimeout(() => {
-              loadingScreen.classList.add('fade-out');
-              setTimeout(() => {
-                loadingScreen.style.display = 'none';
-              }, 500);
+              hideLoadingScreen();
             }, 300);
           }
         }, 50); // Update every 50ms for smooth animation
         
         // Fallback: Ensure loading screen hides after maximum time
         setTimeout(() => {
-          if (loadingScreen.style.display !== 'none') {
-            loadingScreen.classList.add('fade-out');
-            setTimeout(() => {
-              loadingScreen.style.display = 'none';
-            }, 500);
-          }
+          hideLoadingScreen();
         }, 5000); // Maximum 5 seconds
         
         // Show skip button after 3 seconds
@@ -2994,7 +3001,78 @@
         }, 3000);
       }
       
-          // Initialize enhanced loading animations
+      // Function to hide loading screen
+      function hideLoadingScreen() {
+        if (loadingScreen && loadingScreen.style.display !== 'none') {
+          // Add multiple classes to ensure hiding
+          loadingScreen.classList.add('fade-out', 'hidden');
+          loadingScreen.style.display = 'none';
+          loadingScreen.style.opacity = '0';
+          loadingScreen.style.pointerEvents = 'none';
+          
+          setTimeout(() => {
+            // Remove from DOM to prevent any interference
+            if (loadingScreen.parentNode) {
+              loadingScreen.parentNode.removeChild(loadingScreen);
+            }
+          }, 500);
+        }
+      }
+      
+            // Global function to force hide loading screen
+      window.hideLoadingScreen = hideLoadingScreen;
+      
+      // Console command for developers to force hide loading screen
+      console.log('💡 Developer tip: Use hideLoadingScreen() in console to force hide loading screen');
+      
+      // Add global function to console for easy access
+      window.forceHideLoading = function() {
+        console.log('🚨 Force hiding loading screen...');
+        hideLoadingScreen();
+        // Also try to remove any stuck loading elements
+        document.querySelectorAll('.loading, .loading-overlay, .spinner').forEach(el => {
+          el.style.display = 'none';
+          el.remove();
+        });
+        return 'Loading screen hidden!';
+      };
+      
+      // Additional safety: Hide loading screen when page is fully loaded
+      window.addEventListener('load', function() {
+        setTimeout(() => {
+          hideLoadingScreen();
+        }, 1000); // Give extra time for any remaining resources
+      });
+      
+      // Additional safety: Hide loading screen when all resources are loaded
+      if (document.readyState === 'complete') {
+        setTimeout(() => {
+          hideLoadingScreen();
+        }, 500);
+      }
+      
+      // Final safety: Force hide loading screen after 8 seconds regardless
+      setTimeout(() => {
+        hideLoadingScreen();
+      }, 8000);
+      
+      // Check if loading screen is stuck every 2 seconds
+      const loadingCheckInterval = setInterval(() => {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen && loadingScreen.style.display !== 'none') {
+          // If loading screen is still visible after 10 seconds, force hide it
+          const loadingTime = Date.now() - window.pageLoadTime || 0;
+          if (loadingTime > 10000) {
+            console.warn('⚠️ Loading screen stuck, forcing hide');
+            hideLoadingScreen();
+            clearInterval(loadingCheckInterval);
+          }
+        } else {
+          clearInterval(loadingCheckInterval);
+        }
+      }, 2000);
+      
+      // Initialize enhanced loading animations
     initializeLoadingAnimations();
     
     // Intercept and handle console errors gracefully
@@ -5411,35 +5489,41 @@
       });
     }
     
-    // Enhanced Loading Animation Functions
+    // Enhanced Loading Animation Functions (Less aggressive)
     function initializeLoadingAnimations() {
       try {
-        // Add loading animation to product cards
-        document.querySelectorAll('.product-card').forEach(card => {
-          card.addEventListener('click', function() {
-            showProductLoading();
+        // Only add loading animation to product cards if main loading screen is hidden
+        if (document.getElementById('loadingScreen')?.style.display === 'none') {
+          document.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', function() {
+              showProductLoading();
+            });
           });
-        });
+        }
         
-        // Add loading animation to navigation links
-        document.querySelectorAll('nav a').forEach(link => {
-          link.addEventListener('click', function(e) {
-            if (this.href && !this.href.includes('#')) {
-              e.preventDefault();
-              showPageTransitionLoading();
-              setTimeout(() => {
-                window.location.href = this.href;
-              }, 1000);
-            }
+        // Only add loading animation to navigation links if main loading screen is hidden
+        if (document.getElementById('loadingScreen')?.style.display === 'none') {
+          document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+              if (this.href && !this.href.includes('#')) {
+                e.preventDefault();
+                showPageTransitionLoading();
+                setTimeout(() => {
+                  window.location.href = this.href;
+                }, 1000);
+              }
+            });
           });
-        });
+        }
         
-        // Add loading animation to search
-        const searchButton = document.querySelector('button:contains("Search")');
-        if (searchButton) {
-          searchButton.addEventListener('click', function() {
-            showProductLoading();
-          });
+        // Only add loading animation to search if main loading screen is hidden
+        if (document.getElementById('loadingScreen')?.style.display === 'none') {
+          const searchButton = document.querySelector('button:contains("Search")');
+          if (searchButton) {
+            searchButton.addEventListener('click', function() {
+              showProductLoading();
+            });
+          }
         }
       } catch (error) {
         console.warn('Loading animations initialization failed:', error);
@@ -5503,12 +5587,20 @@
     
     // Skip loading function
     function skipLoading() {
-      const loadingScreen = document.getElementById('loadingScreen');
-      if (loadingScreen) {
-        loadingScreen.classList.add('fade-out');
-        setTimeout(() => {
-          loadingScreen.style.display = 'none';
-        }, 500);
+      if (window.hideLoadingScreen) {
+        window.hideLoadingScreen();
+      } else {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+          loadingScreen.classList.add('fade-out');
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+            // Remove from DOM to prevent any interference
+            if (loadingScreen.parentNode) {
+              loadingScreen.parentNode.removeChild(loadingScreen);
+            }
+          }, 500);
+        }
       }
     }
     
@@ -5594,7 +5686,7 @@
     // Console Error Interception
     function interceptConsoleErrors() {
       // Intercept fetch errors
-      const originalFetch = window.fetch;
+      let originalFetch = window.fetch;
       window.fetch = async function(...args) {
         try {
           const response = await originalFetch.apply(this, args);
@@ -5947,7 +6039,7 @@
             return;
         }
         
-        if (razorpayConfig.userAddresses.length === 0) {
+        if (!window.razorpayConfig || !window.razorpayConfig.userAddresses || window.razorpayConfig.userAddresses.length === 0) {
             addressList.innerHTML = `
                 <div class="no-addresses">
                     <p>No saved addresses found</p>
@@ -5960,7 +6052,7 @@
         }
         
         // ✅ Clean HTML generation without encoding issues
-        const addressHTML = razorpayConfig.userAddresses.map(address => {
+        const addressHTML = window.razorpayConfig.userAddresses.map(address => {
             return `
                 <div class="address-item ${address.isDefault ? 'default' : ''}" 
                      data-address-id="${address._id}" 
@@ -6043,6 +6135,22 @@
                 }, 400);
             }
         }, 4000);
+    }
+    
+    // Add missing functions to prevent errors
+    function selectAddress(addressId) {
+        console.log('Selecting address:', addressId);
+        // Implementation will be added later
+    }
+    
+    function editAddress(addressId) {
+        console.log('Editing address:', addressId);
+        // Implementation will be added later
+    }
+    
+    function deleteAddress(addressId) {
+        console.log('Deleting address:', addressId);
+        // Implementation will be added later
     }
   </script>
 
@@ -7130,7 +7238,7 @@
     });
     
     // Suppress chrome-extension fetch attempts
-    const originalFetch = window.fetch;
+    let originalFetch = window.fetch;
     window.fetch = function(...args) {
       const url = args[0];
       if (typeof url === 'string' && url.includes('chrome-extension://')) {
@@ -7212,7 +7320,7 @@
     });
     
     // Suppress chrome-extension fetch attempts
-    const originalFetch = window.fetch;
+    let originalFetch = window.fetch;
     window.fetch = function(...args) {
       const url = args[0];
       if (typeof url === 'string' && url.includes('chrome-extension://')) {
