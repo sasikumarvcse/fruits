@@ -2,7 +2,7 @@
 <html lang="en" class="overflow-x-hidden">
 <head>
       <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>🥗 Arobowl - Bowl Your Way to Wellness</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -14,28 +14,101 @@
     
     body { font-family: 'Inter', sans-serif; }
     
-    /* Arobowl Brand Colors */
+    /* Enhanced Arobowl Brand Colors & Design System */
     :root {
       --arobowl-dark-blue: #1e3a8a;
       --arobowl-green: #10b981;
       --arobowl-orange: #f97316;
       --arobowl-white: #ffffff;
       --arobowl-black: #000000;
+      
+      /* Extended Color Palette */
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      --error-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      --info-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      
+      /* Premium Shadows */
+      --shadow-soft: 0 2px 15px rgba(0, 0, 0, 0.08);
+      --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
+      --shadow-hard: 0 20px 40px rgba(0, 0, 0, 0.15);
+      --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.3);
+      
+      /* Animation Variables */
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      --transition-elastic: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     
-    /* Modern Page Load Animation */
+    /* Advanced Page Load Animations */
     .page-load-animation {
-      animation: pageLoad 1.5s ease-out;
+      animation: pageLoadAdvanced 2s ease-out;
     }
     
-    @keyframes pageLoad {
+    @keyframes pageLoadAdvanced {
       0% { 
         opacity: 0; 
-        transform: translateY(30px) scale(0.95); 
+        transform: translateY(50px) scale(0.9) rotateX(10deg); 
+        filter: blur(10px);
+      }
+      50% {
+        opacity: 0.8;
+        transform: translateY(10px) scale(0.98) rotateX(2deg);
+        filter: blur(2px);
       }
       100% { 
         opacity: 1; 
-        transform: translateY(0) scale(1); 
+        transform: translateY(0) scale(1) rotateX(0deg); 
+        filter: blur(0px);
+      }
+    }
+    
+    /* Staggered Animation for Elements */
+    .stagger-animation {
+      animation: staggerIn 0.8s ease-out forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    
+    .stagger-animation:nth-child(1) { animation-delay: 0.1s; }
+    .stagger-animation:nth-child(2) { animation-delay: 0.2s; }
+    .stagger-animation:nth-child(3) { animation-delay: 0.3s; }
+    .stagger-animation:nth-child(4) { animation-delay: 0.4s; }
+    .stagger-animation:nth-child(5) { animation-delay: 0.5s; }
+    .stagger-animation:nth-child(6) { animation-delay: 0.6s; }
+    
+    @keyframes staggerIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Floating Elements Animation */
+    .float-animation {
+      animation: floatGentle 6s ease-in-out infinite;
+    }
+    
+    @keyframes floatGentle {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-10px) rotate(1deg); }
+      66% { transform: translateY(-5px) rotate(-1deg); }
+    }
+    
+    /* Pulse Animation for Important Elements */
+    .pulse-glow {
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulseGlow {
+      0%, 100% { 
+        box-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+        transform: scale(1.02);
       }
     }
     
@@ -75,6 +148,64 @@
       height: 400px;
       position: relative;
       overflow: hidden;
+    }
+    
+    /* Particle Effect Background */
+    .particles-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: particleFloat 15s linear infinite;
+    }
+    
+    .particle:nth-child(1) { width: 4px; height: 4px; left: 10%; animation-delay: 0s; }
+    .particle:nth-child(2) { width: 6px; height: 6px; left: 20%; animation-delay: 2s; }
+    .particle:nth-child(3) { width: 3px; height: 3px; left: 30%; animation-delay: 4s; }
+    .particle:nth-child(4) { width: 5px; height: 5px; left: 40%; animation-delay: 6s; }
+    .particle:nth-child(5) { width: 4px; height: 4px; left: 50%; animation-delay: 8s; }
+    .particle:nth-child(6) { width: 7px; height: 7px; left: 60%; animation-delay: 10s; }
+    .particle:nth-child(7) { width: 3px; height: 3px; left: 70%; animation-delay: 12s; }
+    .particle:nth-child(8) { width: 5px; height: 5px; left: 80%; animation-delay: 14s; }
+    .particle:nth-child(9) { width: 4px; height: 4px; left: 90%; animation-delay: 16s; }
+    
+    @keyframes particleFloat {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+      }
+    }
+    
+    /* Animated Background Gradient */
+    .animated-bg {
+      background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+    }
+    
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
     
     .banner-slide {
@@ -598,40 +729,83 @@
       right: 20px;
       z-index: 9999;
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      border-left: 4px solid #10b981;
-      padding: 1rem 1.5rem;
-      max-width: 400px;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border-left: 5px solid #10b981;
+      padding: 1.25rem 1.75rem;
+      max-width: 420px;
+      min-width: 300px;
       transform: translateX(100%);
-      transition: transform 0.3s ease;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .notification.show {
       transform: translateX(0);
+      animation: notificationBounce 0.6s ease-out;
+    }
+
+    @keyframes notificationBounce {
+      0% { transform: translateX(100%) scale(0.9); opacity: 0; }
+      50% { transform: translateX(-10px) scale(1.02); opacity: 0.8; }
+      100% { transform: translateX(0) scale(1); opacity: 1; }
+    }
+
+    .notification.success {
+      border-left-color: #10b981;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(255, 255, 255, 0.95));
     }
 
     .notification.error {
       border-left-color: #ef4444;
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(255, 255, 255, 0.95));
     }
 
     .notification.warning {
       border-left-color: #f59e0b;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(255, 255, 255, 0.95));
     }
 
     .notification.info {
       border-left-color: #3b82f6;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(255, 255, 255, 0.95));
     }
 
     .notification-content {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 1rem;
     }
 
     .notification-message {
       color: #1f2937;
-      font-weight: 500;
+      font-weight: 600;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      flex: 1;
+    }
+
+    .notification-icon {
+      font-size: 1.25rem;
+      margin-right: 0.75rem;
+    }
+
+    .notification.success .notification-icon {
+      color: #10b981;
+    }
+
+    .notification.error .notification-icon {
+      color: #ef4444;
+    }
+
+    .notification.warning .notification-icon {
+      color: #f59e0b;
+    }
+
+    .notification.info .notification-icon {
+      color: #3b82f6;
     }
 
     .notification-close {
@@ -639,13 +813,295 @@
       border: none;
       color: #6b7280;
       cursor: pointer;
-      font-size: 1.25rem;
-      padding: 0;
-      margin-left: 1rem;
+      font-size: 1.5rem;
+      padding: 0.25rem;
+      margin-left: 0.5rem;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .notification-close:hover {
       color: #374151;
+      background: rgba(107, 114, 128, 0.1);
+      transform: scale(1.1);
+    }
+
+    /* Mobile Compatibility Enhancements */
+    @media (max-width: 768px) {
+      .notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        min-width: auto;
+        padding: 1rem;
+      }
+      
+      .notification-content {
+        gap: 0.5rem;
+      }
+      
+      .notification-message {
+        font-size: 0.9rem;
+      }
+      
+      /* Cart sidebar mobile adjustments */
+      .cart-sidebar {
+        width: 100% !important;
+      }
+      
+      /* Product cards mobile optimization */
+      .product-card {
+        margin-bottom: 1rem;
+      }
+      
+      .product-card .flex {
+        flex-direction: column !important;
+      }
+      
+      .product-card img {
+        height: 200px !important;
+        width: 100% !important;
+      }
+      
+      /* Button adjustments for mobile */
+      .product-card button {
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+      }
+      
+      /* Wishlist modal mobile */
+      .wishlist-modal {
+        width: 95% !important;
+        max-width: none !important;
+        margin: 1rem !important;
+      }
+      
+      /* Category cards mobile */
+      .category-card {
+        min-width: 140px;
+      }
+      
+      /* Hero banner mobile */
+      .hero-banner h1 {
+        font-size: 2rem !important;
+      }
+      
+      .hero-banner p {
+        font-size: 1.1rem !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      /* Extra small devices */
+      .notification {
+        top: 5px;
+        right: 5px;
+        left: 5px;
+        padding: 0.75rem;
+      }
+      
+      .notification-message {
+        font-size: 0.85rem;
+      }
+      
+      /* Product grid adjustments */
+      .products-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+      }
+      
+      /* Category cards extra small */
+      .category-card {
+        min-width: 120px;
+        padding: 0.75rem;
+      }
+      
+      .category-card .w-16 {
+        width: 3rem !important;
+        height: 3rem !important;
+      }
+      
+      .category-card i {
+        font-size: 1.25rem !important;
+      }
+      
+      /* Modal adjustments for extra small screens */
+      .modal-content {
+        width: 95% !important;
+        margin: 5% auto !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+      }
+      
+      /* Header adjustments */
+      .hero-banner h1 {
+        font-size: 1.75rem !important;
+      }
+      
+      .hero-banner p {
+        font-size: 1rem !important;
+      }
+    }
+
+    /* Comprehensive Mobile Compatibility */
+    @media (max-width: 1024px) {
+      /* Tablet and mobile adjustments */
+      .modal-content {
+        max-width: 90% !important;
+        margin: 3% auto !important;
+      }
+      
+      /* Product modal adjustments */
+      .product-modal .modal-content {
+        max-width: 95% !important;
+        margin: 2% auto !important;
+      }
+      
+      /* Cart sidebar full width on tablets */
+      .cart-sidebar {
+        width: 100% !important;
+      }
+    }
+
+    /* Navigation mobile enhancements */
+    @media (max-width: 768px) {
+      /* Mobile navigation */
+      #mainNav {
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        width: 100% !important;
+        background: white !important;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+        border-top: 1px solid #e5e7eb !important;
+        padding: 1rem 0 !important;
+      }
+      
+      #mainNav.hidden {
+        display: none !important;
+      }
+      
+      #mainNav a {
+        display: block !important;
+        padding: 0.75rem 1rem !important;
+        border-bottom: 1px solid #f3f4f6 !important;
+      }
+      
+      /* Header user menu mobile */
+      #userDropdown {
+        right: 0 !important;
+        left: auto !important;
+        width: 200px !important;
+      }
+      
+      /* Search adjustments */
+      .search-container {
+        width: 100% !important;
+        margin: 0 !important;
+      }
+      
+      /* Touch-friendly buttons */
+      button {
+        min-height: 44px !important;
+        min-width: 44px !important;
+      }
+      
+      /* Product card mobile adjustments */
+      .product-card {
+        border-radius: 1rem !important;
+        margin-bottom: 1rem !important;
+      }
+      
+      .product-card button {
+        padding: 0.75rem 1rem !important;
+        font-size: 0.9rem !important;
+      }
+      
+      /* Modal mobile specific */
+      .modal {
+        padding: 0.5rem !important;
+      }
+      
+      .modal-content {
+        border-radius: 1rem !important;
+        max-height: 95vh !important;
+        overflow-y: auto !important;
+      }
+      
+      /* Cart sidebar mobile */
+      .cart-sidebar {
+        border-radius: 0 !important;
+      }
+      
+      /* Form inputs mobile */
+      input, textarea, select {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+      }
+      
+      /* Notification mobile adjustments */
+      .notification {
+        top: 10px !important;
+        right: 10px !important;
+        left: 10px !important;
+        max-width: none !important;
+        min-width: auto !important;
+        transform: translateY(-100%) !important;
+        transition: transform 0.3s ease !important;
+      }
+      
+      .notification.show {
+        transform: translateY(0) !important;
+      }
+      
+      /* Touch-friendly close button */
+      .notification-close {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 1.25rem !important;
+      }
+    }
+
+    /* Touch and Gesture Enhancements */
+    @media (hover: none) and (pointer: coarse) {
+      /* Touch devices */
+      .hover\:scale-105:hover {
+        transform: scale(1.02) !important;
+      }
+      
+      .hover\:shadow-xl:hover {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+      }
+      
+      /* Reduce hover effects on touch devices */
+      .group:hover .group-hover\:scale-105 {
+        transform: scale(1.01) !important;
+      }
+    }
+
+    /* Accessibility and usability */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+      .notification {
+        border: 2px solid currentColor !important;
+      }
+      
+      button {
+        border: 1px solid currentColor !important;
+      }
     }
 
     /* Loading States */
@@ -666,6 +1122,465 @@
       border-top: 2px solid currentColor;
       border-radius: 50%;
       animation: spin 1s linear infinite;
+    }
+    
+    /* Premium Button Styles */
+    .btn-premium {
+      background: var(--primary-gradient);
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-medium);
+    }
+    
+    .btn-premium::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn-premium:hover::before {
+      left: 100%;
+    }
+    
+    .btn-premium:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hard);
+    }
+    
+    .btn-premium:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-soft);
+    }
+    
+    /* Glassmorphism Effects */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+    
+    .glass-dark {
+      background: rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Interactive Hover Effects */
+    .hover-lift {
+      transition: var(--transition-smooth);
+    }
+    
+    .hover-lift:hover {
+      transform: translateY(-8px) rotateX(5deg);
+      box-shadow: var(--shadow-hard);
+    }
+    
+    .hover-glow {
+      transition: var(--transition-smooth);
+    }
+    
+    .hover-glow:hover {
+      box-shadow: var(--shadow-glow);
+      transform: scale(1.05);
+    }
+    
+    /* Ripple Effect */
+    .ripple {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .ripple::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .ripple:active::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    /* Scroll Animations */
+    .scroll-fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: var(--transition-smooth);
+    }
+    
+    .scroll-fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .scroll-slide-left {
+      opacity: 0;
+      transform: translateX(-50px);
+      transition: var(--transition-smooth);
+    }
+    
+    .scroll-slide-left.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    .scroll-slide-right {
+      opacity: 0;
+      transform: translateX(50px);
+      transition: var(--transition-smooth);
+    }
+    
+    .scroll-slide-right.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    /* Parallax Effect */
+    .parallax {
+      transition: transform 0.1s ease-out;
+    }
+    
+    /* Enhanced Product Card Animations */
+    .product-card-enhanced {
+      background: linear-gradient(145deg, #ffffff, #f8fafc);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      transition: var(--transition-bounce);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .product-card-enhanced::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    
+    .product-card-enhanced:hover::before {
+      transform: translateX(100%);
+    }
+    
+    .product-card-enhanced:hover {
+      transform: translateY(-12px) scale(1.02);
+      box-shadow: var(--shadow-hard);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    
+    /* Floating Action Button */
+    .fab {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--success-gradient);
+      color: white;
+      border: none;
+      cursor: pointer;
+      box-shadow: var(--shadow-medium);
+      transition: var(--transition-bounce);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    
+    .fab:hover {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: var(--shadow-hard);
+    }
+    
+    .fab:active {
+      transform: scale(0.95);
+    }
+    
+    /* Ripple Animation */
+    @keyframes rippleEffect {
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(2);
+        opacity: 0;
+      }
+    }
+    
+    /* Enhanced Search Bar */
+    .search-enhanced {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border: 2px solid transparent;
+      border-radius: 25px;
+      transition: var(--transition-smooth);
+      box-shadow: var(--shadow-soft);
+    }
+    
+    .search-enhanced:focus {
+      border-color: var(--arobowl-green);
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+      background: rgba(255, 255, 255, 1);
+    }
+    
+    /* Enhanced User Menu */
+    .user-menu-enhanced {
+      background: var(--primary-gradient);
+      border-radius: 20px;
+      padding: 8px 16px;
+      transition: var(--transition-smooth);
+      box-shadow: var(--shadow-soft);
+    }
+    
+    .user-menu-enhanced:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-medium);
+    }
+    
+    /* Animated Icons */
+    .icon-bounce {
+      animation: iconBounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes iconBounce {
+      0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+      }
+      40% {
+        transform: translateY(-10px);
+      }
+      60% {
+        transform: translateY(-5px);
+      }
+    }
+    
+    /* Progress Indicators */
+    .progress-ring {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .progress-ring circle {
+      fill: none;
+      stroke: var(--arobowl-green);
+      stroke-width: 4;
+      stroke-dasharray: 188.5;
+      stroke-dashoffset: 188.5;
+      animation: progressRing 2s ease-in-out forwards;
+    }
+    
+    @keyframes progressRing {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+    
+    /* FAB Animations */
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.8);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    /* Enhanced Card Hover Effects */
+    .card-3d {
+      perspective: 1000px;
+      transform-style: preserve-3d;
+    }
+    
+    .card-3d:hover {
+      transform: rotateY(5deg) rotateX(5deg);
+    }
+    
+    /* Magnetic Effect for Buttons */
+    .magnetic {
+      transition: var(--transition-smooth);
+    }
+    
+    .magnetic:hover {
+      transform: translate(2px, -2px);
+    }
+    
+    /* Neon Glow Effect */
+    .neon-glow {
+      box-shadow: 
+        0 0 5px currentColor,
+        0 0 10px currentColor,
+        0 0 15px currentColor,
+        0 0 20px currentColor;
+    }
+    
+    /* Breathing Animation */
+    .breathe {
+      animation: breathe 4s ease-in-out infinite;
+    }
+    
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    /* Custom Cursor Effects */
+    .cursor-pointer {
+      cursor: pointer;
+    }
+    
+    .cursor-grab {
+      cursor: grab;
+    }
+    
+    .cursor-grab:active {
+      cursor: grabbing;
+    }
+    
+    /* Enhanced Scroll Bar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--success-gradient);
+      border-radius: 10px;
+      box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-gradient);
+    }
+    
+    /* Selection Styling */
+    ::selection {
+      background: rgba(16, 185, 129, 0.3);
+      color: #1f2937;
+    }
+    
+    ::-moz-selection {
+      background: rgba(16, 185, 129, 0.3);
+      color: #1f2937;
+    }
+    
+    /* Focus Ring Enhancement */
+    .focus-ring:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.5);
+    }
+    
+    /* Text Gradient Effects */
+    .text-gradient {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Premium Border Effects */
+    .border-gradient {
+      border: 2px solid transparent;
+      background: linear-gradient(white, white) padding-box,
+                  var(--primary-gradient) border-box;
+    }
+    
+    /* Dark Theme Styles */
+    .dark-theme {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      color: #f1f5f9;
+    }
+    
+    .dark-theme .glass-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .dark-theme .product-card-enhanced {
+      background: linear-gradient(145deg, #1e293b, #334155);
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+    }
+    
+    .dark-theme .search-enhanced {
+      background: rgba(15, 23, 42, 0.9);
+      color: #f1f5f9;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .dark-theme .notification {
+      background: rgba(15, 23, 42, 0.95);
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .dark-theme .category-card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.8));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+    }
+    
+    /* Theme Transition */
+    body {
+      transition: background-color 0.5s ease, color 0.5s ease;
+    }
+    
+    .dark-theme * {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+    
+    /* Loading Screen Animations */
+    @keyframes loadingProgress {
+      0% { width: 0%; }
+      20% { width: 30%; }
+      50% { width: 60%; }
+      80% { width: 90%; }
+      100% { width: 100%; }
+    }
+    
+    /* Premium Transitions */
+    .fade-out {
+      animation: fadeOut 0.5s ease-out forwards;
+    }
+    
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
     }
 
       /* Razorpay Modal Override */
@@ -958,9 +1873,33 @@
     }
   </style>
 </head>
-<body class="bg-gray-50 overflow-x-hidden">
-  <!-- Header -->
-  <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-200">
+<body class="bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 overflow-x-hidden relative">
+  <!-- Premium Loading Screen -->
+  <div id="loadingScreen" class="fixed inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 z-50 flex items-center justify-center">
+    <div class="text-center">
+      <div class="mb-8">
+        <div class="w-24 h-24 mx-auto mb-4 relative">
+          <div class="absolute inset-0 bg-white rounded-full animate-ping"></div>
+          <div class="relative w-24 h-24 bg-white rounded-full flex items-center justify-center">
+            <span class="text-4xl">🥗</span>
+          </div>
+        </div>
+        <h1 class="text-4xl font-bold text-white mb-2">Arobowl</h1>
+        <p class="text-white/80 text-lg">Bowl Your Way to Wellness</p>
+      </div>
+      <div class="w-64 h-2 bg-white/20 rounded-full overflow-hidden">
+        <div class="h-full bg-white rounded-full animate-pulse" style="width: 0%; animation: loadingProgress 2s ease-out forwards;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Background Pattern -->
+  <div class="fixed inset-0 opacity-5 pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-400/10 via-purple-400/10 to-pink-400/10"></div>
+    <div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, #10b981 1px, transparent 1px), radial-gradient(circle at 75% 75%, #3b82f6 1px, transparent 1px); background-size: 50px 50px;"></div>
+  </div>
+  <!-- Enhanced Header with Glassmorphism -->
+  <header class="glass-card sticky top-0 z-50 border-b border-white/20 backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
                 <!-- Arobowl Logo -->
@@ -1014,29 +1953,34 @@
             <input type="text" 
                    id="mainSearchInput"
                    placeholder="Search for products, brands, and categories..." 
-                   class="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            <i class="fas fa-search absolute left-4 top-3 text-gray-400"></i>
-            <button class="absolute right-2 top-1 bg-blue-600 text-white px-4 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors">
-              Search
+                   class="search-enhanced w-full pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <i class="fas fa-search absolute left-4 top-4 text-gray-400 icon-bounce"></i>
+            <button class="btn-premium ripple absolute right-2 top-1.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-full text-sm hover:from-blue-600 hover:to-purple-600 magnetic">
+              <i class="fas fa-search mr-1"></i>Search
             </button>
           </div>
         </div>
         
         <!-- Right Side -->
         <div class="flex items-center space-x-4">
+          <!-- Theme Toggle -->
+          <button id="themeToggle" class="p-3 text-white hover:text-yellow-200 transition-colors hover-glow ripple rounded-full bg-white/10 backdrop-blur-sm border border-white/20" onclick="toggleTheme()" title="Toggle Theme">
+            <i class="fas fa-sun text-lg icon-bounce"></i>
+          </button>
+          
           <!-- Cart Button in Navbar -->
-          <button id="cartBtn" class="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <i class="fas fa-shopping-cart text-2xl" id="navbarCartIcon"></i>
-            <span id="navbarCartCount" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+          <button id="cartBtn" class="relative p-3 text-white hover:text-green-200 transition-colors hover-glow ripple rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+            <i class="fas fa-shopping-cart text-xl icon-bounce" id="navbarCartIcon"></i>
+            <span id="navbarCartCount" class="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold shadow-lg">0</span>
           </button>
           <!-- User Menu -->
           <div class="relative" id="userMenu">
-            <button id="userMenuBtn" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-              <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+            <button id="userMenuBtn" class="user-menu-enhanced flex items-center space-x-2 text-white transition-colors p-2 rounded-lg hover-lift">
+              <div class="w-10 h-10 bg-gradient-to-r from-white/20 to-white/10 rounded-full flex items-center justify-center border border-white/30">
                 <i class="fas fa-user text-white text-sm"></i>
               </div>
-              <span id="userName" class="hidden md:block font-medium">User</span>
-              <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+              <span id="userName" class="hidden md:block font-semibold">User</span>
+              <i class="fas fa-chevron-down text-xs text-white/80 icon-bounce"></i>
             </button>
             
             <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 hidden border border-gray-200">
@@ -1069,14 +2013,14 @@
       </div>
     </div>
     
-    <!-- Mobile Search -->
+    <!-- Enhanced Mobile Search -->
     <div class="lg:hidden pb-4">
       <div class="relative">
         <input type="text" 
                id="mobileSearchInput"
                placeholder="Search products..." 
-               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+               class="search-enhanced w-full pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 border-gradient">
+        <i class="fas fa-search absolute left-4 top-4 text-gray-400 icon-bounce"></i>
       </div>
     </div>
   </header>
@@ -1084,13 +2028,27 @@
   <!-- Wrap all main content to hide in search mode -->
   <div id="mainContent">
       <!-- Hero Banner with Auto-scrolling -->
-    <section class="hero-banner page-load-animation">
+    <!-- Enhanced Hero Banner with Particles -->
+    <section class="hero-banner page-load-animation animated-bg">
+      <!-- Particle Effect Container -->
+      <div class="particles-container">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+      </div>
+      
       <div class="banner-slide active">
-        <div class="text-center">
-          <h1 class="text-4xl md:text-6xl font-bold mb-4 text-white">🥗 Welcome to Arobowl</h1>
-          <p class="text-xl md:text-2xl mb-6 opacity-90 text-white">Bowl Your Way to Wellness</p>
-          <button class="bg-white text-green-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
-            🥗 Shop Healthy Bowls
+        <div class="text-center relative z-10">
+          <h1 class="text-4xl md:text-6xl font-bold mb-4 text-white float-animation">🥗 Welcome to Arobowl</h1>
+          <p class="text-xl md:text-2xl mb-6 opacity-90 text-white scroll-fade-in">Bowl Your Way to Wellness</p>
+          <button class="btn-premium ripple pulse-glow hover-lift">
+            <i class="fas fa-leaf mr-2"></i>🥗 Shop Healthy Bowls
           </button>
         </div>
       </div>
@@ -1114,34 +2072,50 @@
       </div>
     </section>
 
-  <!-- Categories Section -->
-<section id="categories" class="py-8 sm:py-12 bg-white w-full max-w-full scroll-mt-16">
-    <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 w-full max-w-full">
-      <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8 text-center">Shop by Category</h2>
+  <!-- Enhanced Categories Section -->
+<section id="categories" class="py-12 sm:py-16 bg-gradient-to-br from-gray-50 via-white to-blue-50 w-full max-w-full scroll-mt-16 relative overflow-hidden">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 opacity-5">
+      <div class="absolute inset-0" style="background-image: radial-gradient(circle at 2px 2px, #10b981 1px, transparent 0); background-size: 40px 40px;"></div>
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 w-full max-w-full relative z-10">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 scroll-fade-in">
+          <span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Shop by Category</span>
+        </h2>
+        <p class="text-gray-600 text-lg scroll-fade-in">Discover our carefully curated collection of healthy bowls</p>
+      </div>
     <div class="flex flex-row gap-4 overflow-x-auto no-scrollbar pb-2 w-full max-w-full sm:grid sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 sm:overflow-x-visible sm:gap-6">
       
               <!-- Breakfast Bowls -->
-        <div class="category-card group text-center p-4 rounded-lg bg-gradient-to-br from-yellow-50 to-orange-100 flex-shrink-0 min-w-[120px] max-w-[80vw] sm:min-w-0 sm:max-w-full sm:flex-shrink hover:shadow-md transition-all duration-300 cursor-pointer" onclick="filterByCategory('Basic')">
-          <div class="w-16 h-16 bg-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-            <i class="fas fa-sun text-white text-2xl"></i>
+        <!-- Enhanced Basic Bowls -->
+        <div class="category-card group text-center p-6 rounded-2xl bg-gradient-to-br from-yellow-50 via-orange-50 to-orange-100 flex-shrink-0 min-w-[140px] max-w-[80vw] sm:min-w-0 sm:max-w-full sm:flex-shrink hover-lift glass-card cursor-pointer stagger-animation" onclick="filterByCategory('Basic')">
+          <div class="w-20 h-20 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+            <i class="fas fa-sun text-white text-3xl"></i>
           </div>
-          <h3 class="font-semibold text-gray-800 group-hover:text-yellow-600 transition-colors">🥣 Basic</h3>
+          <h3 class="font-bold text-gray-800 text-lg group-hover:text-yellow-600 transition-colors">🥣 Basic Bowls</h3>
+          <p class="text-xs text-gray-600 mt-1">Simple & delicious</p>
         </div>
 
         <!-- Lunch Bowls -->
-        <div class="category-card group text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 flex-shrink-0 min-w-[120px] max-w-[80vw] sm:min-w-0 sm:max-w-full sm:flex-shrink hover:shadow-md transition-all duration-300 cursor-pointer" onclick="filterByCategory('lunch')">
-          <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-            <i class="fas fa-leaf text-white text-2xl"></i>
+        <!-- Enhanced Standard Bowls -->
+        <div class="category-card group text-center p-6 rounded-2xl bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 flex-shrink-0 min-w-[140px] max-w-[80vw] sm:min-w-0 sm:max-w-full sm:flex-shrink hover-lift glass-card cursor-pointer stagger-animation" onclick="filterByCategory('lunch')">
+          <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+            <i class="fas fa-leaf text-white text-3xl"></i>
           </div>
-          <h3 class="font-semibold text-gray-800 group-hover:text-green-600 transition-colors">🥗 Standard</h3>
+          <h3 class="font-bold text-gray-800 text-lg group-hover:text-green-600 transition-colors">🥗 Standard Bowls</h3>
+          <p class="text-xs text-gray-600 mt-1">Fresh & nutritious</p>
         </div>
 
         <!-- Dinner Bowls -->
-        <div class="category-card group text-center p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 flex-shrink-0 min-w-[120px] max-w-[80vw] sm:min-w-0 sm:max-w-full sm:flex-shrink hover:shadow-md transition-all duration-300 cursor-pointer" onclick="filterByCategory('dinner')">
-          <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-            <i class="fas fa-moon text-white text-2xl"></i>
+        <!-- Enhanced Premium Bowls -->
+        <div class="category-card group text-center p-6 rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex-shrink-0 min-w-[140px] max-w-[80vw] sm:min-w-0 sm:max-w-full sm:flex-shrink hover-lift glass-card cursor-pointer stagger-animation" onclick="filterByCategory('dinner')">
+          <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+            <i class="fas fa-crown text-white text-3xl"></i>
           </div>
-          <h3 class="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">🍽️ Premium</h3>
+          <h3 class="font-bold text-gray-800 text-lg group-hover:text-blue-600 transition-colors">🍽️ Premium Bowls</h3>
+          <p class="text-xs text-gray-600 mt-1">Luxury experience</p>
         </div>
 
       </div>
@@ -1160,9 +2134,17 @@
   </section>
 
 
-      <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8 pb-8">
-      <div class="flex flex-col gap-4 sm:gap-8">
+      <!-- Enhanced Main Content -->
+    <main class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-8 sm:py-12 pb-12">
+      <div class="flex flex-col gap-6 sm:gap-12">
+        
+        <!-- Products Section Header -->
+        <div class="text-center scroll-fade-in">
+          <h2 class="text-3xl sm:text-4xl font-bold mb-4">
+            <span class="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">Featured Products</span>
+          </h2>
+          <p class="text-gray-600 text-lg">Handpicked fresh bowls for your healthy lifestyle</p>
+        </div>
         
         <!-- Products Grid -->
         <div class="flex-1">
@@ -1234,8 +2216,8 @@
     </div>
   </div>
 
-  <!-- Cart Sidebar (Animated Drawer) -->
-  <div id="cartSidebar" class="cart-sidebar fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl z-50 transition-transform duration-300 transform translate-x-full">
+  <!-- Enhanced Cart Sidebar with Glassmorphism -->
+  <div id="cartSidebar" class="cart-sidebar fixed top-0 right-0 h-full w-full md:w-96 glass-card shadow-2xl z-50 transition-transform duration-500 transform translate-x-full border-l border-white/20">
     <div class="flex flex-col h-full">
       <div class="flex items-center justify-between p-4 border-b">
         <span class="font-semibold text-lg">Shopping Cart (<span id="sidebarCartCount">0</span>)</span>
@@ -1253,10 +2235,12 @@
           <span class="font-semibold">Total:</span>
           <span id="cartTotal">₹0</span>
         </div>
-        <button id="checkoutBtn" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium hover:scale-105 transform duration-200" onclick="handleCartCheckout()">
-          <i class="fas fa-credit-card mr-2"></i>Checkout
+        <button id="checkoutBtn" class="btn-premium ripple w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-4 px-6 rounded-xl hover:from-green-600 hover:to-emerald-600 font-bold text-lg hover-lift shadow-lg pulse-glow" onclick="handleCartCheckout()">
+          <i class="fas fa-credit-card mr-3"></i>Proceed to Checkout
         </button>
-        <button id="clearCartBtn" onclick="clearCart()" class="w-full mt-2 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors font-medium">Clear Cart</button>
+        <button id="clearCartBtn" onclick="clearCart()" class="btn-premium ripple w-full mt-3 bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-xl hover:from-red-600 hover:to-pink-600 font-semibold magnetic">
+          <i class="fas fa-trash mr-2"></i>Clear Cart
+        </button>
       </div>
     </div>
   </div>
@@ -1331,19 +2315,65 @@
     </div>
   </div>
 
-  <!-- Wishlist Modal -->
-  <div id="wishlistModal" class="modal" style="display:none;">
-    <div class="modal-content max-w-2xl mx-auto p-6 rounded-lg bg-white shadow-lg relative">
-        <h3 class="text-xl font-semibold text-gray-900">My Wishlist</h3>
-      <button onclick="closeWishlistModal()" class="text-gray-400 hover:text-gray-600 absolute top-4 right-4"><i class="fas fa-times text-xl"></i></button>
-      <div class="flex justify-end mb-4">
-        <button id="shareWishlistBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center"><i class="fas fa-share-alt mr-2"></i>Share Wishlist</button>
+  <!-- Floating Action Buttons -->
+  <div class="fixed bottom-6 right-6 flex flex-col gap-4 z-50">
+    <!-- Cart FAB -->
+    <button id="fabCart" class="fab hover-glow" onclick="toggleCartSidebar()" title="Open Cart">
+      <i class="fas fa-shopping-cart"></i>
+      <span id="fabCartBadge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">0</span>
+    </button>
+    
+    <!-- Wishlist FAB -->
+    <button id="fabWishlist" class="fab hover-glow" onclick="viewWishlist(event)" title="View Wishlist" style="background: var(--error-gradient);">
+      <i class="fas fa-heart"></i>
+    </button>
+    
+    <!-- Scroll to Top FAB -->
+    <button id="fabScrollTop" class="fab hover-glow" onclick="scrollToTop()" title="Scroll to Top" style="background: var(--info-gradient); display: none;">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+  </div>
+
+  <!-- Enhanced Wishlist Modal -->
+  <div id="wishlistModal" class="modal wishlist-modal" style="display:none;">
+    <div class="modal-content max-w-4xl mx-auto p-0 rounded-2xl bg-white shadow-2xl relative overflow-hidden">
+      <!-- Wishlist Header -->
+      <div class="bg-gradient-to-r from-red-500 to-pink-500 p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-heart text-2xl"></i>
+            <h3 class="text-2xl font-bold">My Wishlist</h3>
+          </div>
+          <button onclick="closeWishlistModal()" class="text-white hover:text-red-200 transition-colors">
+            <i class="fas fa-times text-2xl"></i>
+          </button>
+        </div>
+        <p class="mt-2 opacity-90">Your favorite products saved for later</p>
       </div>
-      <div id="shareWishlistLink" class="mb-4 hidden">
-        <input type="text" id="wishlistShareUrl" class="w-full border rounded p-2 mb-2" readonly />
-        <button onclick="copyWishlistLink()" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Copy Link</button>
+      
+      <!-- Wishlist Actions -->
+      <div class="p-4 bg-gray-50 border-b">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            <i class="fas fa-info-circle"></i>
+            <span>Tap the heart to remove from wishlist</span>
+          </div>
+          <button id="shareWishlistBtn" class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-full hover:from-blue-600 hover:to-purple-600 transition-all flex items-center gap-2">
+            <i class="fas fa-share-alt"></i>Share Wishlist
+          </button>
+        </div>
+        <div id="shareWishlistLink" class="mt-4 hidden">
+          <div class="flex gap-2">
+            <input type="text" id="wishlistShareUrl" class="flex-1 border border-gray-300 rounded-lg p-3 text-sm" readonly placeholder="Wishlist share link will appear here" />
+            <button onclick="copyWishlistLink()" class="bg-green-500 text-white px-4 py-3 rounded-lg hover:bg-green-600 transition-colors">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+        </div>
       </div>
-      <div id="wishlistContent" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      <!-- Wishlist Content -->
+      <div id="wishlistContent" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-96 overflow-y-auto">
         <!-- Wishlist items will be loaded here -->
       </div>
     </div>
@@ -1397,8 +2427,8 @@
   <!-- Add this overlay div just before the closing </body> tag -->
   <div id="searchOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:999;"></div>
 
-  <!-- Modern live dropdown for search suggestions -->
-  <div id="mainSearchDropdown" style="display:none; position:absolute; top:100%; left:0; width:100%; background:white; border:1px solid #e5e7eb; z-index:1000; max-height:350px; overflow-y:auto; box-shadow:0 4px 16px rgba(0,0,0,0.08);"></div>
+  <!-- Enhanced Search Dropdown -->
+  <div id="mainSearchDropdown" class="glass-card" style="display:none; position:absolute; top:100%; left:0; width:100%; z-index:1000; max-height:350px; overflow-y:auto; border-radius:16px; box-shadow:var(--shadow-hard); border:1px solid rgba(255,255,255,0.2);"></div>
 
   <!-- Razorpay Checkout Modal -->
   <div id="checkoutModal" class="modal" style="display:none;">
@@ -1565,13 +2595,70 @@
       setUserInfo();
       updateCartCount();
       fetchCart();
+      // Initialize product states after a short delay to ensure products are loaded
+      setTimeout(() => {
+        initializeProductStates();
+        enhanceProductCards();
+        updateFabCartBadge();
+      }, 1000);
+      
+      // Initialize advanced effects
+      initScrollAnimations();
+      initParallaxEffect();
+      addRippleEffect();
+      enhanceButtonInteractions();
+      initializeTheme();
+      
+      // Add stagger animation to category cards
+      setTimeout(() => {
+        document.querySelectorAll('.stagger-animation').forEach((el, index) => {
+          el.style.animationDelay = `${index * 0.1}s`;
+        });
+      }, 500);
+      
+      // Hide loading screen after page loads
+      setTimeout(() => {
+        const loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+          loadingScreen.classList.add('fade-out');
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 500);
+        }
+      }, 2500);
+      
       // fetchWishlist(); // Commented out - function not needed in dashboard
       // updateNavbarBadges(); // Disabled: function not defined, caused JS error
       
-      // Hamburger menu toggle
+      // Enhanced Hamburger menu toggle with animation
       document.getElementById('mobileMenuBtn').addEventListener('click', function() {
         const nav = document.getElementById('mainNav');
+        const icon = this.querySelector('i');
+        
         nav.classList.toggle('hidden');
+        
+        // Animate hamburger icon
+        if (nav.classList.contains('hidden')) {
+          icon.classList.remove('fa-times');
+          icon.classList.add('fa-bars');
+        } else {
+          icon.classList.remove('fa-bars');
+          icon.classList.add('fa-times');
+        }
+      });
+      
+      // Close mobile menu when clicking outside
+      document.addEventListener('click', function(e) {
+        const nav = document.getElementById('mainNav');
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        
+        if (!nav.contains(e.target) && !mobileBtn.contains(e.target)) {
+          if (!nav.classList.contains('hidden')) {
+            nav.classList.add('hidden');
+            mobileBtn.querySelector('i').classList.remove('fa-times');
+            mobileBtn.querySelector('i').classList.add('fa-bars');
+          }
+        }
       });
       
       // Filter functionality removed - sidebar filters no longer exist
@@ -1964,24 +3051,35 @@
       
       try {
         // Get cart items
-        const cart = await window.getCart();
+        const cartResponse = await fetch('/api/cart', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!cartResponse.ok) {
+          showNotification('Error loading cart', 'error');
+          return;
+        }
+        
+        const cart = await cartResponse.json();
         if (!cart || cart.length === 0) {
           showNotification('Your cart is empty', 'error');
           return;
         }
         
-        // Use the enhanced checkout system from script.js if available
-        if (window.openAddressSelectionModal) {
-          window.openAddressSelectionModal('cart');
-        } else if (window.startCartCheckout) {
-          window.startCartCheckout();
-        } else {
-          // Fallback: simple checkout
-          showNotification('Opening checkout...', 'info');
-          // For now, just navigate to a checkout page or show a modal
-          console.log('Cart contents:', cart);
-          showNotification('Checkout functionality will be implemented', 'info');
+        // Calculate total
+        let total = 0;
+        for (const item of cart) {
+          const productResponse = await fetch(`/api/items/${item.productId}`);
+          if (productResponse.ok) {
+            const product = await productResponse.json();
+            total += product.price * item.quantity;
+          }
         }
+        
+        // Navigate to enhanced checkout page with cart details
+        const checkoutUrl = `enhanced-checkout.html?type=cart&total=${total}`;
+        window.location.href = checkoutUrl;
+        
       } catch (error) {
         console.error('❌ Cart checkout error:', error);
         showNotification('Error during checkout', 'error');
@@ -2051,7 +3149,7 @@
           const bankOffers = product.bankOffers || [];
           
           return `
-            <div class="product-card bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group" onclick="viewProduct('${product._id}')">
+            <div class="product-card product-card-enhanced hover-lift card-3d bg-white border border-gray-200 rounded-2xl overflow-hidden cursor-pointer group scroll-fade-in" onclick="viewProduct('${product._id}')">
               <div class="flex flex-col md:flex-row">
                 <!-- Left Side - Product Image -->
                 <div class="md:w-1/3 relative">
@@ -2157,7 +3255,7 @@
             Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
           
           return `
-            <div class="product-card bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group" onclick="viewProduct('${product._id}')">
+            <div class="product-card product-card-enhanced hover-lift card-3d bg-white border border-gray-200 rounded-2xl overflow-hidden cursor-pointer group scroll-fade-in" onclick="viewProduct('${product._id}')">
               <!-- Product Image -->
               <div class="relative">
                 <img src="${getProductImageUrl(product)}" 
@@ -2165,12 +3263,12 @@
                      class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                      onerror="this.onerror=null;this.src='/uploads/default-item.jpg';">
                 
-                <!-- Wishlist Button -->
+                <!-- Enhanced Wishlist Button -->
                 <button onclick="event.stopPropagation(); handleToggleWishlist(this)" 
-                        class="absolute top-4 right-4 bg-white border border-gray-200 rounded-full p-2 shadow-lg hover:bg-pink-50 transition-colors flex items-center justify-center hover:scale-110 transform duration-200" 
+                        class="absolute top-4 right-4 glass-card rounded-full p-3 shadow-lg hover:bg-pink-50 transition-all flex items-center justify-center hover-glow" 
                         data-product-id="${product._id}" 
                         aria-label="Add to Wishlist">
-                  <i class="fas fa-heart ${product.inWishlist ? 'text-red-500' : 'text-gray-400'} text-lg"></i>
+                  <i class="fas fa-heart ${product.inWishlist ? 'text-red-500' : 'text-gray-400'} text-lg icon-bounce"></i>
                 </button>
                 
                 <!-- Badges -->
@@ -2206,12 +3304,12 @@
                 <!-- Action Buttons -->
                 <div class="flex flex-col gap-2">
                   <button onclick="event.stopPropagation(); handleAddToCart('${product._id}', this)" 
-                          class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-2 px-3 rounded-lg border border-yellow-400 transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
-                    🛒 Add to Cart
+                          class="btn-premium ripple w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white py-3 px-4 rounded-xl font-bold text-sm hover-lift shadow-lg">
+                    <i class="fas fa-shopping-cart mr-2"></i>Add to Cart
                   </button>
                   <button onclick="event.stopPropagation(); handleBuyNow('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${getProductImageUrl(product)}', this)" 
-                          class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-3 rounded-lg transition-colors font-semibold text-sm hover:scale-105 transform duration-200">
-                    ⚡ Buy Now
+                          class="btn-premium ripple w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-3 px-4 rounded-xl font-bold text-sm hover-lift shadow-lg">
+                    <i class="fas fa-bolt mr-2"></i>Buy Now
                   </button>
                 </div>
               </div>
@@ -3083,8 +4181,12 @@
     // ✅ FIXED: Enhanced Cart Functions with proper checkout flow
     async function addToCart(itemId, quantity = null) {
       try {
+        // Show loading state
+        showLoadingOverlay('Adding to cart...');
+        
         const token = localStorage.getItem('token');
         if (!token) {
+          hideLoadingOverlay();
           showNotification('Please login to add items to cart', 'error');
           window.location.href = 'login.html';
           return;
@@ -3137,17 +4239,27 @@
           body: JSON.stringify({ itemId, quantity: qty })
         });
         if (response.ok) {
-          showNotification('Product added to cart!');
+          hideLoadingOverlay();
+          // Show success animation
+          showSuccessAnimation('cart');
+          showNotification('🛒 Product added to cart successfully!', 'success');
+          triggerHapticFeedback('medium');
           updateCartCount();
           fetchCart();
           updateCartIcon(itemId, true);
+          // Refresh states after a brief delay
+          setTimeout(() => refreshProductStates(), 500);
         } else {
+          hideLoadingOverlay();
           const error = await response.json();
           showNotification(error.message || 'Failed to add to cart', 'error');
+          triggerHapticFeedback('heavy');
         }
       } catch (error) {
+        hideLoadingOverlay();
         console.error('Error adding to cart:', error);
         showNotification('Error adding to cart', 'error');
+        triggerHapticFeedback('heavy');
       }
     }
 
@@ -3157,15 +4269,19 @@
       const cartButtons = document.querySelectorAll(`[onclick*="addToCart('${itemId}')"]`);
       cartButtons.forEach(button => {
         if (added) {
-          button.innerHTML = '<i class="fas fa-check text-green-600 mr-2"></i>Added to Cart';
-          button.classList.add('bg-green-600', 'hover:bg-green-700');
-          button.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-          // Reset after 3 seconds
-          setTimeout(() => {
-            button.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i>ADD TO CART';
-            button.classList.remove('bg-green-600', 'hover:bg-green-700');
-            button.classList.add('bg-blue-600', 'hover:bg-blue-700');
-          }, 3000);
+          button.innerHTML = '<i class="fas fa-shopping-cart text-white mr-2"></i>In Cart';
+          button.classList.remove('bg-blue-600', 'hover:bg-blue-700', 'bg-green-500', 'hover:bg-green-600');
+          button.classList.add('bg-orange-500', 'hover:bg-orange-600');
+          button.style.background = 'linear-gradient(135deg, #f97316, #ea580c)';
+          button.style.boxShadow = '0 4px 15px rgba(249, 115, 22, 0.4)';
+          button.disabled = true;
+        } else {
+          button.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i>Add to Cart';
+          button.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+          button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+          button.style.background = '';
+          button.style.boxShadow = '';
+          button.disabled = false;
         }
       });
     }
@@ -3173,8 +4289,12 @@
     // ✅ FIXED: Enhanced Wishlist Functions
     async function addToWishlist(itemId) {
       try {
+        // Show loading state
+        showLoadingOverlay('Adding to wishlist...');
+        
         const token = localStorage.getItem('token');
         if (!token) {
+          hideLoadingOverlay();
           showNotification('Please login to add items to wishlist', 'error');
           window.location.href = 'login.html';
           return;
@@ -3190,19 +4310,27 @@
         });
 
         if (response.ok) {
-          showNotification('Product added to wishlist!');
+          hideLoadingOverlay();
+          // Show success animation
+          showSuccessAnimation('wishlist');
+          showNotification('❤️ Product added to wishlist successfully!', 'success');
+          triggerHapticFeedback('medium');
           updateWishlistIcon(itemId, true);
           // Refresh wishlist if on wishlist page
           if (window.location.pathname.includes('wishlist')) {
             loadWishlist();
           }
         } else {
+          hideLoadingOverlay();
           const error = await response.json();
           showNotification(error.message || 'Failed to add to wishlist', 'error');
+          triggerHapticFeedback('heavy');
         }
       } catch (error) {
+        hideLoadingOverlay();
         console.error('Error adding to wishlist:', error);
         showNotification('Error adding to wishlist', 'error');
+        triggerHapticFeedback('heavy');
       }
     }
 
@@ -3222,7 +4350,7 @@
         });
 
         if (response.ok) {
-          showNotification('Product removed from wishlist');
+          showNotification('💔 Product removed from wishlist', 'success');
           updateWishlistIcon(itemId, false);
           // Refresh wishlist if on wishlist page
           if (window.location.pathname.includes('wishlist')) {
@@ -3240,18 +4368,21 @@
 
     // Update wishlist icon function
     function updateWishlistIcon(itemId, added) {
-      const wishlistButtons = document.querySelectorAll(`[onclick*="addToWishlist('${itemId}')"]`);
+      const wishlistButtons = document.querySelectorAll(`[onclick*="addToWishlist('${itemId}')"], [onclick*="toggleWishlist('${itemId}')"]`);
       wishlistButtons.forEach(button => {
         if (added) {
-          button.innerHTML = '<i class="fas fa-heart text-red-600 mr-2"></i>Added to Wishlist';
-          button.classList.add('bg-red-600', 'hover:bg-red-700');
-          button.classList.remove('bg-gray-600', 'hover:bg-gray-700');
-          // Reset after 3 seconds
-          setTimeout(() => {
-            button.innerHTML = '<i class="fas fa-heart mr-2"></i>Add to Wishlist';
-            button.classList.remove('bg-red-600', 'hover:bg-red-700');
-            button.classList.add('bg-gray-600', 'hover:bg-gray-700');
-          }, 3000);
+          button.innerHTML = '<i class="fas fa-heart text-white mr-2"></i>In Wishlist';
+          button.classList.remove('bg-gray-600', 'hover:bg-gray-700', 'bg-pink-500', 'hover:bg-pink-600');
+          button.classList.add('bg-red-500', 'hover:bg-red-600');
+          button.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+          button.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)';
+          // Keep the heart filled and red permanently when in wishlist
+        } else {
+          button.innerHTML = '<i class="far fa-heart mr-2"></i>Add to Wishlist';
+          button.classList.remove('bg-red-500', 'hover:bg-red-600');
+          button.classList.add('bg-gray-600', 'hover:bg-gray-700');
+          button.style.background = '';
+          button.style.boxShadow = '';
         }
       });
     }
@@ -3282,7 +4413,29 @@
     async function updateCartCount() {
       const cart = await getCart();
       const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-      document.getElementById('sidebarCartCount').textContent = count;
+      
+      // Update sidebar cart count
+      const sidebarCount = document.getElementById('sidebarCartCount');
+      if (sidebarCount) sidebarCount.textContent = count;
+      
+      // Update header cart count
+      const headerCount = document.getElementById('cartCount');
+      if (headerCount) headerCount.textContent = count;
+      
+      // Update FAB cart badge
+      const fabBadge = document.getElementById('fabCartBadge');
+      if (fabBadge) {
+        fabBadge.textContent = count;
+        fabBadge.style.display = count === 0 ? 'none' : 'flex';
+        
+        // Add bounce animation when count changes
+        if (count > 0) {
+          fabBadge.style.animation = 'none';
+          setTimeout(() => {
+            fabBadge.style.animation = 'iconBounce 0.6s ease-out';
+          }, 10);
+        }
+      }
     }
 
     async function fetchCart() {
@@ -3306,20 +4459,38 @@
           const itemTotal = product.price * item.quantity;
           subtotal += itemTotal;
           cartItemsContainer.innerHTML += `
-            <div class="flex items-center mb-4 pb-4 border-b border-gray-200">
+            <div class="flex items-center mb-4 pb-4 border-b border-gray-200 bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors">
               <img src="${getProductImageUrl(product)}" 
                    alt="${product.name}" 
-                   class="w-16 h-16 object-cover rounded mr-3"
+                   class="w-20 h-20 object-cover rounded-lg mr-4 shadow-sm"
                    onerror="this.onerror=null;this.src='/uploads/default-item.jpg';">
+              
               <div class="flex-1">
-                <div class="font-medium text-base">${product.name}</div>
-                <div class="text-xs text-gray-500">Qty: ${item.quantity} × ₹${product.price ? product.price.toFixed(2) : ''}</div>
+                <div class="font-semibold text-base text-gray-900 mb-1">${product.name}</div>
+                <div class="text-sm text-gray-600 mb-2">₹${product.price ? product.price.toFixed(2) : '0.00'} each</div>
+                
+                <!-- Quantity Controls -->
+                <div class="flex items-center gap-2">
+                  <button onclick="updateCartItem('${product._id}', ${item.quantity - 1})" 
+                          class="w-10 h-10 glass-card border border-gray-300 rounded-full flex items-center justify-center hover:bg-red-50 hover-glow transition-all ${item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''}"
+                          ${item.quantity <= 1 ? 'disabled' : ''}>
+                    <i class="fas fa-minus text-sm text-red-500"></i>
+                  </button>
+                  <span class="w-16 text-center font-bold bg-gradient-to-r from-blue-50 to-purple-50 border border-gray-300 rounded-lg px-3 py-2 text-lg">${item.quantity}</span>
+                  <button onclick="updateCartItem('${product._id}', ${item.quantity + 1})" 
+                          class="w-10 h-10 glass-card border border-gray-300 rounded-full flex items-center justify-center hover:bg-green-50 hover-glow transition-all">
+                    <i class="fas fa-plus text-sm text-green-500"></i>
+                  </button>
+                </div>
               </div>
-              <div class="font-semibold text-base ml-2">₹${itemTotal.toFixed(2)}</div>
-              <button onclick="removeFromCart('${product._id}')" 
-                      class="ml-4 text-red-500 hover:text-red-700">
-                <i class="fas fa-trash"></i>
-              </button>
+              
+              <div class="text-right">
+                <div class="font-bold text-lg text-gray-900 mb-2">₹${itemTotal.toFixed(2)}</div>
+                <button onclick="removeFromCart('${product._id}')" 
+                        class="btn-premium ripple bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-xl hover:from-red-600 hover:to-pink-600 text-sm font-semibold magnetic">
+                  <i class="fas fa-trash mr-1"></i>Remove
+                </button>
+              </div>
             </div>
           `;
         });
@@ -3343,9 +4514,10 @@
           body: JSON.stringify({ itemId })
         });
         if (response.ok) {
-          showNotification('Item removed from cart');
+          showNotification('🗑️ Item removed from cart successfully', 'success');
           updateCartCount();
           fetchCart();
+          updateCartIcon(itemId, false);
         }
       } catch (error) {
         console.error('Error removing from cart:', error);
@@ -3372,10 +4544,54 @@
         if (response.ok) {
           fetchCart();
           updateCartCount();
+          showNotification('📝 Quantity updated successfully', 'success');
         }
       } catch (error) {
         console.error('Error updating cart:', error);
         showNotification('Error updating quantity', 'error');
+      }
+    }
+
+    // ✅ FIXED: Clear Cart Function
+    async function clearCart() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          showNotification('Please login to manage cart', 'error');
+          return;
+        }
+
+        // Show confirmation dialog
+        if (!confirm('Are you sure you want to clear all items from your cart?')) {
+          return;
+        }
+
+        const response = await fetch('/api/cart/clear', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          showNotification('Cart cleared successfully', 'success');
+          fetchCart();
+          updateCartCount();
+          // Update all cart icons to show items are no longer in cart
+          const cartButtons = document.querySelectorAll('[onclick*="addToCart"]');
+          cartButtons.forEach(button => {
+            button.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i>Add to Cart';
+            button.classList.remove('bg-green-600', 'hover:bg-green-700');
+            button.classList.add('bg-blue-600', 'hover:bg-blue-700');
+          });
+        } else {
+          const error = await response.json();
+          showNotification(error.message || 'Failed to clear cart', 'error');
+        }
+      } catch (error) {
+        console.error('Error clearing cart:', error);
+        showNotification('Error clearing cart', 'error');
       }
     }
 
@@ -3427,7 +4643,7 @@
         });
         
         if (response.ok) {
-          showNotification(isInWishlist ? 'Removed from wishlist' : 'Added to wishlist');
+          showNotification(isInWishlist ? '💔 Removed from wishlist' : '❤️ Added to wishlist successfully!', 'success');
           updateWishlistIcon(itemId, !isInWishlist);
           await loadUserCartAndWishlist();
         } else {
@@ -3506,32 +4722,58 @@
         console.log('Wishlist items count:', wishlist.length);
         
         if (!wishlist || wishlist.length === 0) {
-          wishlistContent.innerHTML = '<p class="text-gray-500 col-span-2 text-center py-8">Your wishlist is empty</p>';
+          wishlistContent.innerHTML = `
+            <div class="col-span-full text-center py-12">
+              <i class="fas fa-heart text-6xl text-gray-300 mb-4"></i>
+              <p class="text-gray-500 text-lg mb-2">Your wishlist is empty</p>
+              <p class="text-gray-400 text-sm mb-6">Start adding products you love!</p>
+              <button onclick="closeWishlistModal()" class="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-3 rounded-full hover:from-red-600 hover:to-pink-600 transition-all">
+                <i class="fas fa-shopping-bag mr-2"></i>Browse Products
+              </button>
+            </div>
+          `;
         } else {
           console.log('Rendering wishlist items...');
           wishlistContent.innerHTML = wishlist.map(product => {
             console.log('Rendering product:', product.name, product._id);
             return `
-              <div class="product-card bg-white rounded-lg overflow-hidden shadow-sm">
+              <div class="product-card bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group border border-gray-100">
                 <div class="relative">
                   <img src="${getProductImageUrl(product)}" 
                        alt="${product.name}" 
-                       class="w-full h-48 object-cover"
+                       class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                        onerror="this.onerror=null;this.src='/uploads/default-item.jpg';">
-                  <button onclick="toggleWishlist(this)" 
-                          class="absolute top-2 right-2 p-2 rounded-full bg-white shadow-md wishlist-icon"
+                  
+                  <!-- Remove from wishlist button (heart overlay) -->
+                  <button onclick="removeFromWishlist('${product._id}')" 
+                          class="absolute top-3 right-3 w-12 h-12 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all duration-200 shadow-lg hover:scale-110 wishlist-icon"
                           data-product-id="${product._id}">
-                    <i class="fas fa-heart text-red-500"></i>
+                    <i class="fas fa-heart text-red-500 text-lg"></i>
                   </button>
+                  
+                  <!-- Price badge -->
+                  <div class="absolute bottom-3 left-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-2 rounded-full shadow-lg">
+                    <span class="font-bold">₹${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                  </div>
                 </div>
-                <div class="p-4">
-                  <h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">${product.name || 'Unnamed Product'}</h3>
-                  <p class="text-gray-600 text-sm mb-3 line-clamp-2">${product.description || 'No description available'}</p>
-                  <div class="flex justify-between items-center">
-                    <span class="text-xl font-bold text-blue-600">₹${product.price ? product.price.toFixed(2) : '0.00'}</span>
+                
+                <div class="p-5">
+                  <h4 class="font-bold text-gray-900 mb-2 text-lg line-clamp-1">${product.name || 'Unnamed Product'}</h4>
+                  <p class="text-gray-600 text-sm mb-4 line-clamp-2">${product.description || 'No description available'}</p>
+                  
+                  <!-- Action buttons -->
+                  <div class="flex gap-3">
                     <button onclick="addToCart('${product._id}')" 
-                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-                      Add to Cart
+                            class="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-4 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-200 font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
+                      <i class="fas fa-shopping-cart"></i>
+                      <span class="hidden sm:inline">Add to Cart</span>
+                      <span class="sm:hidden">Cart</span>
+                    </button>
+                    <button onclick="handleBuyNow('${product._id}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${getProductImageUrl(product)}', this)" 
+                            class="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-4 rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-200 font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
+                      <i class="fas fa-bolt"></i>
+                      <span class="hidden sm:inline">Buy Now</span>
+                      <span class="sm:hidden">Buy</span>
                     </button>
                   </div>
                 </div>
@@ -3724,12 +4966,394 @@
       }
     }
 
+    // ✅ NEW: Initialize product states (cart/wishlist indicators)
+    async function initializeProductStates() {
+      try {
+        const [cart, wishlist] = await Promise.all([getCart(), getWishlist()]);
+        
+        // Update cart icons for products already in cart
+        if (cart && cart.length > 0) {
+          cart.forEach(item => {
+            if (item.product && item.product._id) {
+              updateCartIcon(item.product._id, true);
+            }
+          });
+        }
+        
+        // Update wishlist icons for products already in wishlist
+        if (wishlist && wishlist.length > 0) {
+          wishlist.forEach(product => {
+            if (product._id) {
+              updateWishlistIcon(product._id, true);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error initializing product states:', error);
+      }
+    }
+
     // ✅ FIXED: Attach functions to window object for global access
     window.addToCart = addToCart;
     window.toggleWishlist = toggleWishlist;
     window.buyNow = buyNow;
     window.addToWishlist = addToWishlist;
     window.removeFromWishlist = removeFromWishlist;
+    window.clearCart = clearCart;
+    window.updateCartItem = updateCartItem;
+    window.handleCartCheckout = handleCartCheckout;
+    window.initializeProductStates = initializeProductStates;
+    
+    // ✅ NEW: Refresh product states after operations
+    async function refreshProductStates() {
+      await initializeProductStates();
+    }
+    
+    window.refreshProductStates = refreshProductStates;
+    
+    // ✅ NEW: Advanced Interaction Effects
+    
+    // Scroll-triggered animations
+    function initScrollAnimations() {
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, observerOptions);
+      
+      // Observe all scroll animation elements
+      document.querySelectorAll('.scroll-fade-in, .scroll-slide-left, .scroll-slide-right').forEach(el => {
+        observer.observe(el);
+      });
+    }
+    
+    // Parallax effect on scroll
+    function initParallaxEffect() {
+      window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const parallax = document.querySelectorAll('.parallax');
+        const speed = 0.5;
+        
+        parallax.forEach(element => {
+          const yPos = -(scrolled * speed);
+          element.style.transform = `translateY(${yPos}px)`;
+        });
+      });
+    }
+    
+    // Ripple effect for buttons
+    function addRippleEffect() {
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('ripple')) {
+          const button = e.target;
+          const rect = button.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const x = e.clientX - rect.left - size / 2;
+          const y = e.clientY - rect.top - size / 2;
+          
+          const ripple = document.createElement('span');
+          ripple.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            left: ${x}px;
+            top: ${y}px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: rippleEffect 0.6s linear;
+            pointer-events: none;
+          `;
+          
+          button.appendChild(ripple);
+          
+          setTimeout(() => {
+            ripple.remove();
+          }, 600);
+        }
+      });
+    }
+    
+    // Update FAB cart badge
+    function updateFabCartBadge() {
+      const badge = document.getElementById('fabCartBadge');
+      const cartCount = document.getElementById('cartCount');
+      if (badge && cartCount) {
+        const count = cartCount.textContent || '0';
+        badge.textContent = count;
+        badge.style.display = count === '0' ? 'none' : 'flex';
+      }
+    }
+    
+    // Enhanced product card hover effects
+    function enhanceProductCards() {
+      document.querySelectorAll('.product-card').forEach(card => {
+        // Add enhanced class for better styling
+        card.classList.add('product-card-enhanced');
+        
+        // Add mouse move effect
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          
+          const rotateX = (y - centerY) / 10;
+          const rotateY = (centerX - x) / 10;
+          
+          card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`;
+        });
+        
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+        });
+      });
+    }
+    
+    window.initScrollAnimations = initScrollAnimations;
+    window.initParallaxEffect = initParallaxEffect;
+    window.addRippleEffect = addRippleEffect;
+    window.updateFabCartBadge = updateFabCartBadge;
+    window.enhanceProductCards = enhanceProductCards;
+    
+    // ✅ NEW: Success Animation System
+    function showSuccessAnimation(type) {
+      const icon = type === 'cart' ? 'fas fa-shopping-cart' : 'fas fa-heart';
+      const color = type === 'cart' ? '#3b82f6' : '#ef4444';
+      
+      // Create floating success icon
+      const successIcon = document.createElement('div');
+      successIcon.innerHTML = `<i class="${icon}"></i>`;
+      successIcon.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 4rem;
+        color: ${color};
+        z-index: 10000;
+        pointer-events: none;
+        animation: successPop 1.5s ease-out forwards;
+      `;
+      
+      document.body.appendChild(successIcon);
+      
+      setTimeout(() => {
+        successIcon.remove();
+      }, 1500);
+    }
+    
+    // Add success animation CSS
+    const successAnimationCSS = `
+      @keyframes successPop {
+        0% {
+          transform: translate(-50%, -50%) scale(0) rotate(0deg);
+          opacity: 0;
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.2) rotate(10deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(0.8) rotate(0deg);
+          opacity: 0;
+        }
+      }
+    `;
+    
+    // Add CSS to document
+    const style = document.createElement('style');
+    style.textContent = successAnimationCSS;
+    document.head.appendChild(style);
+    
+    window.showSuccessAnimation = showSuccessAnimation;
+    
+    // ✅ NEW: Scroll to Top and FAB Management
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+    
+    // Show/hide scroll to top button based on scroll position
+    function manageScrollFAB() {
+      const scrollTopFAB = document.getElementById('fabScrollTop');
+      if (scrollTopFAB) {
+        if (window.scrollY > 300) {
+          scrollTopFAB.style.display = 'flex';
+          scrollTopFAB.style.animation = 'fadeInUp 0.3s ease-out';
+        } else {
+          scrollTopFAB.style.display = 'none';
+        }
+      }
+    }
+    
+    // Add scroll listener for FAB management
+    window.addEventListener('scroll', manageScrollFAB);
+    
+    // ✅ NEW: Enhanced Loading States
+    function showLoadingOverlay(message = 'Loading...') {
+      const overlay = document.createElement('div');
+      overlay.id = 'loadingOverlay';
+      overlay.innerHTML = `
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div class="glass-card p-8 rounded-2xl text-center">
+            <div class="w-16 h-16 mx-auto mb-4">
+              <svg class="progress-ring" viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="25"></circle>
+              </svg>
+            </div>
+            <p class="text-gray-700 font-medium">${message}</p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+    
+    function hideLoadingOverlay() {
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) {
+        overlay.remove();
+      }
+    }
+    
+    window.scrollToTop = scrollToTop;
+    window.showLoadingOverlay = showLoadingOverlay;
+    window.hideLoadingOverlay = hideLoadingOverlay;
+    
+    // ✅ NEW: Premium Interaction Feedback
+    function triggerHapticFeedback(type = 'light') {
+      // Haptic feedback for mobile devices
+      if (navigator.vibrate) {
+        switch(type) {
+          case 'light':
+            navigator.vibrate(50);
+            break;
+          case 'medium':
+            navigator.vibrate(100);
+            break;
+          case 'heavy':
+            navigator.vibrate([100, 50, 100]);
+            break;
+        }
+      }
+    }
+    
+    // Sound effect simulation with visual feedback
+    function playInteractionSound(type) {
+      // Create visual sound wave effect
+      const soundWave = document.createElement('div');
+      soundWave.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        width: 40px;
+        height: 40px;
+        border: 2px solid ${type === 'success' ? '#10b981' : '#3b82f6'};
+        border-radius: 50%;
+        z-index: 9999;
+        pointer-events: none;
+        animation: soundWaveEffect 0.8s ease-out forwards;
+      `;
+      
+      document.body.appendChild(soundWave);
+      
+      setTimeout(() => {
+        soundWave.remove();
+      }, 800);
+    }
+    
+    // Add sound wave animation CSS
+    const soundWaveCSS = `
+      @keyframes soundWaveEffect {
+        0% {
+          transform: scale(0);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(3);
+          opacity: 0;
+        }
+      }
+    `;
+    
+    const soundStyle = document.createElement('style');
+    soundStyle.textContent = soundWaveCSS;
+    document.head.appendChild(soundStyle);
+    
+    // Enhanced button interactions
+    function enhanceButtonInteractions() {
+      document.addEventListener('click', function(e) {
+        const button = e.target.closest('button');
+        if (button) {
+          // Add haptic feedback
+          triggerHapticFeedback('light');
+          
+          // Add visual feedback
+          if (button.classList.contains('btn-premium')) {
+            playInteractionSound('success');
+          }
+          
+          // Add button press animation
+          button.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            button.style.transform = '';
+          }, 150);
+        }
+      });
+    }
+    
+    window.triggerHapticFeedback = triggerHapticFeedback;
+    window.playInteractionSound = playInteractionSound;
+    window.enhanceButtonInteractions = enhanceButtonInteractions;
+    
+    // ✅ NEW: Theme System
+    let isDarkTheme = false;
+    
+    function toggleTheme() {
+      isDarkTheme = !isDarkTheme;
+      const body = document.body;
+      const themeIcon = document.querySelector('#themeToggle i');
+      
+      if (isDarkTheme) {
+        body.classList.add('dark-theme');
+        themeIcon.className = 'fas fa-moon text-lg icon-bounce';
+        showNotification('🌙 Dark theme activated', 'info');
+      } else {
+        body.classList.remove('dark-theme');
+        themeIcon.className = 'fas fa-sun text-lg icon-bounce';
+        showNotification('☀️ Light theme activated', 'info');
+      }
+      
+      triggerHapticFeedback('light');
+      localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+    }
+    
+    // Initialize theme from localStorage
+    function initializeTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        isDarkTheme = true;
+        document.body.classList.add('dark-theme');
+        const themeIcon = document.querySelector('#themeToggle i');
+        if (themeIcon) {
+          themeIcon.className = 'fas fa-moon text-lg icon-bounce';
+        }
+      }
+    }
+    
+    window.toggleTheme = toggleTheme;
+    window.initializeTheme = initializeTheme;
 
     // Open checkout modal function
     function openCheckoutModal(product, qty) {
@@ -4727,11 +6351,31 @@
         const existingNotifications = document.querySelectorAll('.notification');
         existingNotifications.forEach(n => n.remove());
         
+        // Get appropriate icon for notification type
+        let icon = '';
+        switch(type) {
+            case 'success':
+                icon = '<i class="fas fa-check-circle notification-icon"></i>';
+                break;
+            case 'error':
+                icon = '<i class="fas fa-times-circle notification-icon"></i>';
+                break;
+            case 'warning':
+                icon = '<i class="fas fa-exclamation-triangle notification-icon"></i>';
+                break;
+            case 'info':
+                icon = '<i class="fas fa-info-circle notification-icon"></i>';
+                break;
+            default:
+                icon = '<i class="fas fa-bell notification-icon"></i>';
+        }
+        
         // Create new notification
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.innerHTML = `
             <div class="notification-content">
+                ${icon}
                 <span class="notification-message">${message}</span>
                 <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
             </div>
@@ -4740,10 +6384,20 @@
         // Add to page
         document.body.appendChild(notification);
         
+        // Show notification with animation
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
         // Auto-remove after 4 seconds
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 400);
             }
         }, 4000);
     }
