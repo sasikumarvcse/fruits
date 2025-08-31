@@ -5594,7 +5594,7 @@
     // Console Error Interception
     function interceptConsoleErrors() {
       // Intercept fetch errors
-      const originalFetch = window.fetch;
+      let originalFetch = window.fetch;
       window.fetch = async function(...args) {
         try {
           const response = await originalFetch.apply(this, args);
@@ -5947,7 +5947,7 @@
             return;
         }
         
-        if (razorpayConfig.userAddresses.length === 0) {
+        if (!window.razorpayConfig || !window.razorpayConfig.userAddresses || window.razorpayConfig.userAddresses.length === 0) {
             addressList.innerHTML = `
                 <div class="no-addresses">
                     <p>No saved addresses found</p>
@@ -5960,7 +5960,7 @@
         }
         
         // ✅ Clean HTML generation without encoding issues
-        const addressHTML = razorpayConfig.userAddresses.map(address => {
+        const addressHTML = window.razorpayConfig.userAddresses.map(address => {
             return `
                 <div class="address-item ${address.isDefault ? 'default' : ''}" 
                      data-address-id="${address._id}" 
@@ -6043,6 +6043,22 @@
                 }, 400);
             }
         }, 4000);
+    }
+    
+    // Add missing functions to prevent errors
+    function selectAddress(addressId) {
+        console.log('Selecting address:', addressId);
+        // Implementation will be added later
+    }
+    
+    function editAddress(addressId) {
+        console.log('Editing address:', addressId);
+        // Implementation will be added later
+    }
+    
+    function deleteAddress(addressId) {
+        console.log('Deleting address:', addressId);
+        // Implementation will be added later
     }
   </script>
 
@@ -7130,7 +7146,7 @@
     });
     
     // Suppress chrome-extension fetch attempts
-    const originalFetch = window.fetch;
+    let originalFetch = window.fetch;
     window.fetch = function(...args) {
       const url = args[0];
       if (typeof url === 'string' && url.includes('chrome-extension://')) {
@@ -7212,7 +7228,7 @@
     });
     
     // Suppress chrome-extension fetch attempts
-    const originalFetch = window.fetch;
+    let originalFetch = window.fetch;
     window.fetch = function(...args) {
       const url = args[0];
       if (typeof url === 'string' && url.includes('chrome-extension://')) {
